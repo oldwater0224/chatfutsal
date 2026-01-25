@@ -1,19 +1,22 @@
 "use client";
 
-import { onAuthStateChanged, User } from "firebase/auth";
+// import { onAuthStateChanged, User } from "firebase/auth";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { auth } from "../lib/firebase";
+import { useAuth } from "../contexts/AuthContext";
+// import { useEffect, useState } from "react";
+// import { auth } from "../lib/firebase";
+
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  // useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  //     setUser(currentUser);
+  //   });
+  //   return () => unsubscribe();
+  // }, []);
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
       <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
@@ -21,7 +24,9 @@ export default function Header() {
           ChatFutsal
         </Link>
 
-        {user ? (
+        {isLoading ? (
+          <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+        ) : user ? (
           <Link
             href="/mypage"
             className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"

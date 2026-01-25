@@ -1,17 +1,6 @@
 import Link from "next/link";
+import { MatchCardProps } from "../types";
 
-interface MatchCardProps {
-  match:{
-  id : string;
-  title : string;
-  date : string;
-  time : string;
-  location : string;
-  currentParticipants : number;
-  maxParticipants : number;
-  level : string;
-  }
-};
 export default function MatchCard ({match} : MatchCardProps) { 
   const isFull = match.currentParticipants >= match.maxParticipants;
 

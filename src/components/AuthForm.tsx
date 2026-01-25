@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-interface AuthFormProps {
-  mode: "login" | "signup";
-  onSubmit: (
-    email: string,
-    password: string,
-    displayName?: string,
-  ) => Promise<void>;
-}
+import { AuthFormProps } from "../types";
 
 export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
   const [email, setEmail] = useState("");

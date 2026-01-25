@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-interface MatchFilterProps {
-  onFilterChange: (filters: { date: string; region: string }) => void;
-}
+import { MatchFilterProps } from "../types";
 
 export default function MatchFilter({onFilterChange} : MatchFilterProps) {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);

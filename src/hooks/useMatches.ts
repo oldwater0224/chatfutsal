@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Match } from "../types";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 export function useMatches(filters?: { date?: string; region?: string }) {
   const [matches, setMatches] = useState<Match[]>([]);

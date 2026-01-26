@@ -18,6 +18,6 @@ console.log("==============================");
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// ✅ 반드시 export 해야 함!
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);

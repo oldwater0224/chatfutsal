@@ -34,15 +34,8 @@ export function useAuth() {
           console.log("3. firestore 조회 완료 , exists:", userDoc.exists());
         } catch (e) {
           console.error("firestore 에러:", e);
-          // ✅ 에러 시 Auth 정보로 기본 userData 생성
-          setUserData({
-            uid: currentUser.uid,
-            email: currentUser.email || "",
-            displayName: currentUser.displayName || "사용자",
-            createdAt: new Date(),
-          });
-          // setUserData(null);
         } finally {
+          setUserData(null);
           setIsLoading(false);
         }
 

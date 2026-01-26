@@ -27,3 +27,38 @@ export interface MatchCardProps {
 export interface MatchFilterProps {
   onFilterChange: (filters: { date: string; region: string }) => void;
 }
+
+export interface Match {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+  maxParticipants: number;
+  currentParticipants: number;
+  participants: string[];
+  level: 'beginner' | 'amateur' | 'semi-pro' | 'pro';
+  price: number;
+  status: 'open' | 'confirmed' | 'completed' | 'cancelled';
+  createdAt: Date;
+}
+
+export interface ChatRoom {
+  id: string;
+  participantName: string;
+  participants: string[];
+  lastMessage: string;
+  lastMessageAt: Date;
+  unreadCount: number;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  createdAt: Date;
+}

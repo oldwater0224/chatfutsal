@@ -1,11 +1,10 @@
-"use client";
+'use client';
 
-import BottomNav from "@/src/components/BottomNav";
-import Header from "@/src/components/Header";
-import { useAuth } from "@/src/contexts/AuthContext";
-
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuth } from '@/src/hooks/useAuth';
+import Header from '@/src/components/Header';
+import BottomNav from '@/src/components/BottomNav';
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -13,19 +12,19 @@ export default function MyPage() {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [user, isLoading, router]);
 
   const handleLogout = async () => {
     await logout();
-    router.push("/");
+    router.push('/');
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>로딩중...</p>
+        <p>로딩 중...</p>
       </div>
     );
   }
@@ -43,12 +42,12 @@ export default function MyPage() {
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
               <span className="text-green-600 text-2xl font-bold">
-                {user.displayName?.charAt(0) || "U"}
+                {user.displayName?.charAt(0) || 'U'}
               </span>
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">
-                {user.displayName || "사용자"}
+                {user.displayName || '사용자'}
               </h2>
               <p className="text-gray-500 text-sm">{user.email}</p>
             </div>
@@ -60,7 +59,7 @@ export default function MyPage() {
               <span className="text-gray-900">
                 {userData?.createdAt
                   ? new Date(userData.createdAt).toLocaleDateString()
-                  : "-"}
+                  : '-'}
               </span>
             </div>
           </div>
@@ -68,7 +67,7 @@ export default function MyPage() {
 
         <div className="mt-4 space-y-2">
           <button
-            onClick={() => router.push("/mypage/matches")}
+            onClick={() => router.push('/mypage/matches')}
             className="w-full bg-white p-4 rounded-lg text-left flex justify-between items-center shadow-sm"
           >
             <span>참가 신청한 매치</span>

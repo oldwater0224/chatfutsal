@@ -27,7 +27,7 @@ export default function MatchDetailPage() {
   const levelColors: Record<string, string> = {
     beginner: "bg-green-100 text-green-700",
     amateur: "bg-blue-100 text-blue-700",
-    "semi-pro": "bg-purple-100 text-purple-700",
+    semipro: "bg-purple-100 text-purple-700",
     pro: "bg-red-100 text-red-700",
   };
 
@@ -158,14 +158,15 @@ export default function MatchDetailPage() {
           ) : (
             <div className="flex flex-wrap gap-2">
               {match.participants.map((participantId, index) => (
-                <div
+                <Link
                   key={participantId}
-                  className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center"
+                  href={`/users/${participantId}`}
+                  className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200"
                 >
                   <span className="text-green-600 text-sm font-medium">
                     {index + 1}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -173,7 +174,7 @@ export default function MatchDetailPage() {
       </main>
 
       {/* 하단 참가 버튼 */}
-       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
         <div className="max-w-md mx-auto">
           {isParticipant ? (
             <button
@@ -181,7 +182,7 @@ export default function MatchDetailPage() {
               disabled={isSubmitting}
               className="w-full py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 disabled:opacity-50"
             >
-              {isSubmitting ? '처리 중...' : '참가 취소하기'}
+              {isSubmitting ? "처리 중..." : "참가 취소하기"}
             </button>
           ) : isFull ? (
             <button
@@ -196,7 +197,9 @@ export default function MatchDetailPage() {
               disabled={isSubmitting}
               className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
             >
-              {isSubmitting ? '처리 중...' : `참가 신청하기 (${match.price.toLocaleString()}원)`}
+              {isSubmitting
+                ? "처리 중..."
+                : `참가 신청하기 (${match.price.toLocaleString()}원)`}
             </button>
           )}
         </div>

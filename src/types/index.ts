@@ -4,6 +4,7 @@ export interface User {
   displayName: string;
   createdAt: Date;
 }
+
 export interface AuthFormProps {
   mode: "login" | "signup";
   onSubmit: (
@@ -12,6 +13,7 @@ export interface AuthFormProps {
     displayName?: string,
   ) => Promise<void>;
 }
+
 export interface MatchCardProps {
   match: {
     id: string;
@@ -24,6 +26,7 @@ export interface MatchCardProps {
     level: string;
   };
 }
+
 export interface MatchFilterProps {
   onFilterChange: (filters: { date: string; region: string }) => void;
 }
@@ -40,19 +43,21 @@ export interface Match {
   maxParticipants: number;
   currentParticipants: number;
   participants: string[];
-  level: 'beginner' | 'amateur' | 'semi-pro' | 'pro';
+  level: "beginner" | "amateur" | "semipro" | "pro";
   price: number;
-  status: 'open' | 'confirmed' | 'completed' | 'cancelled';
+  status: "open" | "confirmed" | "completed" | "cancelled";
   createdAt: Date;
 }
 
 export interface ChatRoom {
   id: string;
+  participantNames: Record<string, string>;
   participantName: string;
   participants: string[];
   lastMessage: string;
   lastMessageAt: Date;
   unreadCount: number;
+  createdAt: Date;  // ✅ 추가됨
 }
 
 export interface Message {
@@ -61,4 +66,5 @@ export interface Message {
   senderName: string;
   text: string;
   createdAt: Date;
+  readBy: string[];
 }

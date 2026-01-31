@@ -1,79 +1,94 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-
-interface Message {
-  id: string;
-  senderId: string;
-  senderName: string;
-  text: string;
-  createdAt: Date;
-}
+import { useState, useRef, useEffect } from 'react';
+import { Message } from '@/src/types/index';
 
 interface ChatRoomProps {
-  roomId: string;
+  messages: Message[];
   currentUserId: string;
-  message: Message[];
   onSendMessage: (text: string) => void;
+  loading?: boolean;
+  
 }
 
 export default function ChatRoom({
-  roomId,
+  messages,
   currentUserId,
-  message,
   onSendMessage,
+  loading = false,
 }: ChatRoomProps) {
-  const [newMessage, setNewMessage] = useState("");
-  const messageEndRef = useRef<HTMLDivElement>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 새 메세지가 오면 스크롤을 아래로
+  // 새 메시지가 오면 스크롤 아래로
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [message]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || sending) return;
 
-    onSendMessage(newMessage);
-    setNewMessage("");
+    setSending(true);
+    try {
+      await onSendMessage(newMessage);
+      setNewMessage('');
+    } catch (err) {
+      console.error('메시지 전송 에러:', err);
+    }
+    setSending(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <p className="text-gray-500">메시지 불러오는 중...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {message.map((msg) => {
-          const isMe = msg.senderId === currentUserId;
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <p>대화를 시작해보세요!</p>
+          </div>
+        ) : (
+          messages.map((msg) => {
+            const isMe = msg.senderId === currentUserId;
 
-          return (
-            <div
-              key={msg.id}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-            >
+            return (
               <div
-                className={`max-w-[70%] px-4 py-2 rounded-2xl ${
-                  isMe
-                    ? "bg-green-500 text-white rounded-br-md"
-                    : "bg-white text-gray-900 rounded-bl-md"
-                }`}
+                key={msg.id}
+                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
               >
-                {!isMe && (
-                  <p className="text-xs text-gray-500 mb-1">{msg.senderName}</p>
-                )}
-                <p className="text-sm">{msg.text}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    isMe ? "text-green-100" : "text-gray-400"
+                <div
+                  className={`max-w-[70%] px-4 py-2 rounded-2xl ${
+                    isMe
+                      ? 'bg-green-500 text-white rounded-br-md'
+                      : 'bg-white text-gray-900 rounded-bl-md shadow-sm'
                   }`}
                 >
-                  {formatMessageTime(msg.createdAt)}
-                </p>
+                  {!isMe && (
+                    <p className="text-xs text-gray-500 mb-1">{msg.senderName}</p>
+                  )}
+                  <p className="text-sm">{msg.text}</p>
+                  <p
+                    className={`text-xs mt-1 ${
+                      isMe ? 'text-green-100' : 'text-gray-400'
+                    }`}
+                  >
+                    {formatMessageTime(msg.createdAt)}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={messageEndRef} />
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* 입력창 */}
@@ -90,18 +105,19 @@ export default function ChatRoom({
         />
         <button
           type="submit"
-          disabled={!newMessage.trim()}
+          disabled={!newMessage.trim() || sending}
           className="px-4 py-2 bg-green-500 text-white rounded-full disabled:opacity-50"
         >
-          전송
+          {sending ? '...' : '전송'}
         </button>
       </form>
     </div>
   );
 }
+
 function formatMessageTime(date: Date): string {
-  return date.toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }

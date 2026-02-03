@@ -1,5 +1,4 @@
 export interface User {
-  id: string;
   uid: string;
   email: string;
   displayName: string;
@@ -58,7 +57,7 @@ export interface ChatRoom {
   lastMessage: string;
   lastMessageAt: Date;
   unreadCount: number;
-  createdAt: Date;  // ✅ 추가됨
+  createdAt: Date; // ✅ 추가됨
 }
 
 export interface Message {

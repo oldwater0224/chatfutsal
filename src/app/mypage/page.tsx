@@ -11,7 +11,7 @@ import { useChatRooms } from '@/src/hooks/useChatRoom';
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
   const router = useRouter();
-  const {matches} = useMyMatches(user?.id);
+  const {matches} = useMyMatches(user?.uid);
   const {chatRooms} = useChatRooms(user?.uid);
 
   useEffect(() => {

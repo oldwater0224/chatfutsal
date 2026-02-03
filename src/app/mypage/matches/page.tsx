@@ -11,7 +11,7 @@ import { useEffect } from "react";
 export default function MyMatchesPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const { matches, isLoading: matchesLoading, error } = useMyMatches(user?.id);
+  const { matches, isLoading: matchesLoading, error } = useMyMatches(user?.uid);
 
   useEffect(() => {
     if (!authLoading && !user) {

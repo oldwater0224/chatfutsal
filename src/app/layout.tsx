@@ -1,6 +1,7 @@
 import Script from "next/script";
 import "./globals.css";
 import { Metadata } from "next";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: "ChatFutsal",
@@ -12,15 +13,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log("Kakao Key:", process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY);
   return (
     <html lang="ko">
       <body>
-        {/* ✅ body 안에 Script 배치 (head 아님!) */}
-        <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY}&autoload=false`}
-          strategy="beforeInteractive"
-        />
-        {children}
+        <ErrorBoundary>
+          <Script
+            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY}&autoload=false`}
+            strategy="beforeInteractive"
+          />
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

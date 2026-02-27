@@ -116,8 +116,8 @@ if (isLoading) {
 
       {/* 하단 버튼 */}
       {!isMe && currentUser && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-md">
+        <div className="fixed bottom-0  left-0 right-0 bg-white border-t p-4">
+          <div className="max-w-md mx-auto">
             <button
               onClick={handleStartChat}
               disabled={startingChat}

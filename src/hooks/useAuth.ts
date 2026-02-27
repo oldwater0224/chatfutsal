@@ -35,7 +35,7 @@ export function useAuth() {
         } catch (e) {
           console.error("firestore 에러:", e);
         } finally {
-          setUserData(null);
+          
           setIsLoading(false);
         }
 

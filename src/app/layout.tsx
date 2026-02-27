@@ -13,7 +13,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log("Kakao Key:", process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY);
+  // console.log("Kakao Key:", process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY);
   return (
     <html lang="ko">
       <body>

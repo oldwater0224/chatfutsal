@@ -1,35 +1,39 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuth } from '@/src/hooks/useAuth';
-import { seedMatches } from '@/src/lib/seedMatches';
-import { seedTestUsers, seedChatRooms, seedChatRoomsWithUser } from '@/src/lib/seedChats';
+import { useState } from "react";
+import { useAuth } from "@/src/hooks/useAuth";
+import { seedMatches } from "@/src/lib/seedMatches";
+import {
+  seedTestUsers,
+  seedChatRooms,
+  seedChatRoomsWithUser,
+} from "@/src/lib/seedChats";
 
 export default function SeedPage() {
   const { user, userData, isLoading } = useAuth();
-  const [status, setStatus] = useState<string>('');
+  const [status, setStatus] = useState<string>("");
   const [isRunning, setIsRunning] = useState(false);
 
   const handleSeedMatches = async () => {
     setIsRunning(true);
-    setStatus('매치 데이터 생성 중...');
+    setStatus("매치 데이터 생성 중...");
     try {
       await seedMatches(20);
-      setStatus('✅ 매치 20개 생성 완료!');
+      setStatus("✅ 매치 20개 생성 완료!");
     } catch (error) {
-      setStatus('❌ 매치 생성 실패: ' + error);
+      setStatus("❌ 매치 생성 실패: " + error);
     }
     setIsRunning(false);
   };
 
   const handleSeedUsers = async () => {
     setIsRunning(true);
-    setStatus('테스트 유저 생성 중...');
+    setStatus("테스트 유저 생성 중...");
     try {
       await seedTestUsers();
-      setStatus('✅ 테스트 유저 6명 생성 완료!');
+      setStatus("✅ 테스트 유저 6명 생성 완료!");
     } catch (error) {
-      setStatus('❌ 유저 생성 실패: ' + error);
+      setStatus("❌ 유저 생성 실패: " + error);
     }
     setIsRunning(false);
   };
@@ -37,12 +41,12 @@ export default function SeedPage() {
   // 로그인 필요 없음 - 테스트 유저끼리 채팅
   const handleSeedChats = async () => {
     setIsRunning(true);
-    setStatus('테스트 유저 채팅방 생성 중...');
+    setStatus("테스트 유저 채팅방 생성 중...");
     try {
       await seedChatRooms();
-      setStatus('✅ 테스트 유저 채팅방 6개 생성 완료!');
+      setStatus("✅ 테스트 유저 채팅방 6개 생성 완료!");
     } catch (error) {
-      setStatus('❌ 채팅방 생성 실패: ' + error);
+      setStatus("❌ 채팅방 생성 실패: " + error);
     }
     setIsRunning(false);
   };
@@ -50,17 +54,17 @@ export default function SeedPage() {
   // 로그인 필요 - 내 채팅방 생성
   const handleSeedMyChats = async () => {
     if (!user || !userData) {
-      setStatus('❌ 로그인이 필요합니다');
+      setStatus("❌ 로그인이 필요합니다");
       return;
     }
 
     setIsRunning(true);
-    setStatus('내 채팅방 생성 중...');
+    setStatus("내 채팅방 생성 중...");
     try {
-      await seedChatRoomsWithUser(user.uid, userData.displayName || '사용자');
-      setStatus('✅ 내 채팅방 3개 생성 완료!');
+      await seedChatRoomsWithUser(user.uid, userData.displayName || "사용자");
+      setStatus("✅ 내 채팅방 3개 생성 완료!");
     } catch (error) {
-      setStatus('❌ 내 채팅방 생성 실패: ' + error);
+      setStatus("❌ 내 채팅방 생성 실패: " + error);
     }
     setIsRunning(false);
   };
@@ -69,18 +73,20 @@ export default function SeedPage() {
   const handleSeedAll = async () => {
     setIsRunning(true);
     try {
-      setStatus('1/3 매치 데이터 생성 중...');
+      setStatus("1/3 매치 데이터 생성 중...");
       await seedMatches(20);
 
-      setStatus('2/3 테스트 유저 생성 중...');
+      setStatus("2/3 테스트 유저 생성 중...");
       await seedTestUsers();
 
-      setStatus('3/3 테스트 유저 채팅방 생성 중...');
+      setStatus("3/3 테스트 유저 채팅방 생성 중...");
       await seedChatRooms();
 
-      setStatus('✅ 전체 더미 데이터 생성 완료!\n\n테스트 유저로 로그인하려면:\n- 이메일: player1@test.com ~ player6@test.com\n- (Firebase Auth에 등록 필요)');
+      setStatus(
+        "✅ 전체 더미 데이터 생성 완료!\n\n테스트 유저로 로그인하려면:\n- 이메일: player1@test.com ~ player6@test.com\n- (Firebase Auth에 등록 필요)",
+      );
     } catch (error) {
-      setStatus('❌ 생성 실패: ' + error);
+      setStatus("❌ 생성 실패: " + error);
     }
     setIsRunning(false);
   };
@@ -96,18 +102,17 @@ export default function SeedPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">🛠️ 테스트 데이터 생성</h1>
-        <p className="text-gray-500 text-sm mb-6">
-          개발/테스트용 더미 데이터를 생성합니다.
-          <br />
-          배포 전에 이 페이지를 삭제해주세요!
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          🛠️ 테스트 데이터 생성
+        </h1>
 
         {/* 로그인 상태 */}
         <div className="bg-white rounded-lg p-4 mb-6 border">
           <p className="text-sm text-gray-500">현재 로그인:</p>
           <p className="font-medium">
-            {user ? `${userData?.displayName} (${user.email})` : '비로그인 상태'}
+            {user
+              ? `${userData?.displayName} (${user.email})`
+              : "비로그인 상태"}
           </p>
         </div>
 
@@ -167,7 +172,9 @@ export default function SeedPage() {
 
         {/* 테스트 유저 정보 */}
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm font-bold text-blue-800 mb-2">📋 생성되는 테스트 유저</p>
+          <p className="text-sm font-bold text-blue-800 mb-2">
+            📋 생성되는 테스트 유저
+          </p>
           <ul className="text-xs text-blue-700 space-y-1">
             <li>• 축구왕김철수 (test_user_1)</li>
             <li>• 골키퍼박영희 (test_user_2)</li>
@@ -182,8 +189,6 @@ export default function SeedPage() {
         <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <p className="text-sm text-yellow-800">
             ⚠️ 이 페이지는 개발용입니다.
-            <br />
-            배포 시 <code className="bg-yellow-100 px-1 rounded">/seed</code> 페이지를 삭제해주세요.
           </p>
         </div>
       </div>

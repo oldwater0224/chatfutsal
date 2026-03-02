@@ -13,6 +13,7 @@ export default function MatchFilter({onFilterChange} : MatchFilterProps) {
     { value: "gyeonggi", label: "경기" },
     { value: "incheon", label: "인천" },
     { value: "busan", label: "부산" },
+    { value: "daegu", label: "대구" },
   ];
 
   const handleDateChange = (newDate: string) => {

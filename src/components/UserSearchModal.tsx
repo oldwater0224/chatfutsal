@@ -1,7 +1,7 @@
 "use client";
 
 import { collection, getDocs, limit, query } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { db } from "../lib/firebase";
 
 interface User {
@@ -9,6 +9,7 @@ interface User {
   displayName: string;
   email: string;
 }
+
 interface UserSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,74 +24,66 @@ export default function UserSearchModal({
   currentUserId,
 }: UserSearchModalProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // modal 열릴때 전체 유저 불러오기
-  useEffect(() => {
-    if (!isOpen) return;
+  // ✅ 유저 불러오기 함수
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, limit(50));
+      const snapshot = await getDocs(q);
 
-    const fetchUser = async () => {
-      setIsLoading(true);
-      try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, limit(50));
-        const snapshot = await getDocs(q);
+      const userList: User[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (doc.id !== currentUserId) {
+          userList.push({
+            uid: doc.id,
+            displayName: data.displayName || "사용자",
+            email: data.email || "",
+          });
+        }
+      });
 
-        const userList: User[] = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          // 본인 제외
-          if (doc.id !== currentUserId) {
-            userList.push({
-              uid: doc.id,
-              displayName: data.displayName || "사용자",
-              email: data.email || "",
-            });
-          }
-        });
-
-        setAllUsers(userList);
-        setUsers(userList);
-      } catch (e) {
-        console.error("유저 불러오기 실패:", e);
-      }
+      setAllUsers(userList);
+    } catch (e) {
+      console.error("유저 불러오기 실패:", e);
+    } finally {
       setIsLoading(false);
-    };
+    }
+  }, [currentUserId]);
 
-    fetchUser();
-  }, [isOpen, currentUserId]);
-
-  // 검색어로 필터링
+  // ✅ 모달 열릴 때 유저 불러오기
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setUsers(allUsers);
-    } else {
-      const filtered = allUsers.filter(
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen, fetchUsers]);
+
+  // ✅ 검색어 필터링 - state 대신 계산된 값 사용
+  const filteredUsers = searchTerm.trim() === ""
+    ? allUsers
+    : allUsers.filter(
         (user) =>
           user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setUsers(filtered);
-    }
-  }, [allUsers, searchTerm]);
 
-  // modal이 닫히면 초기화
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm("");
-      setUsers([]);
-      setAllUsers([]);
-    }
-  }, [isOpen]);
+  // ✅ 모달 닫기 - 이벤트 핸들러에서 초기화
+  const handleClose = () => {
+    setSearchTerm("");
+    setAllUsers([]);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       {/* 배경 */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
 
       {/* 모달 */}
       <div className="relative w-full max-w-lg bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
@@ -99,7 +92,7 @@ export default function UserSearchModal({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold">새 채팅 시작</h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full"
             >
               ✕
@@ -123,7 +116,7 @@ export default function UserSearchModal({
             <div className="flex items-center justify-center py-10">
               <div className="w-6 h-6 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             </div>
-          ) : users.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-gray-500">
               <span className="text-3xl mb-2">🔍</span>
               <p>
@@ -137,7 +130,7 @@ export default function UserSearchModal({
             </div>
           ) : (
             <ul>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <li key={user.uid}>
                   <button
                     onClick={() => onSelectUser(user)}

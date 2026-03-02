@@ -1,4 +1,4 @@
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 
 const locations = [
@@ -76,4 +76,23 @@ export async function seedMatches(count: number = 20) {
   }
 
   console.log('매치 생성 완료!');
+}
+// 모든 매치 삭제
+export async function deleteAllMatches() {
+  console.log('모든 매치 삭제 시작...');
+
+  try {
+    const matchesRef = collection(db, 'matches');
+    const snapshot = await getDocs(matchesRef);
+
+    for (const matchDoc of snapshot.docs) {
+      await deleteDoc(matchDoc.ref);
+      console.log(`✅ 매치 삭제: ${matchDoc.id}`);
+    }
+
+    console.log(`총 ${snapshot.size}개 매치 삭제 완료!`);
+  } catch (error) {
+    console.error('❌ 매치 삭제 실패:', error);
+    throw error;
+  }
 }

@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc , deleteDoc , getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 
 // 테스트용 유저 데이터
@@ -216,4 +216,48 @@ export async function seedChatRoomsWithUser(currentUserId: string, currentUserNa
   }
 
   console.log('내 채팅방 생성 완료!');
+}
+// 테스트 유저 삭제
+export async function deleteTestUsers() {
+  console.log('테스트 유저 삭제 시작...');
+
+  for (const user of testUsers) {
+    try {
+      await deleteDoc(doc(db, 'users', user.uid));
+      console.log(`✅ 유저 삭제: ${user.displayName}`);
+    } catch (error) {
+      console.error(`❌ 유저 삭제 실패:`, error);
+    }
+  }
+
+  console.log('테스트 유저 삭제 완료!');
+}
+
+// 모든 채팅방 삭제
+export async function deleteAllChatRooms() {
+  console.log('모든 채팅방 삭제 시작...');
+
+  try {
+    const chatRoomsRef = collection(db, 'chatRooms');
+    const snapshot = await getDocs(chatRoomsRef);
+
+    for (const chatRoomDoc of snapshot.docs) {
+      // 메시지 서브컬렉션 먼저 삭제
+      const messagesRef = collection(db, 'chatRooms', chatRoomDoc.id, 'messages');
+      const messagesSnapshot = await getDocs(messagesRef);
+
+      for (const msgDoc of messagesSnapshot.docs) {
+        await deleteDoc(doc(db, 'chatRooms', chatRoomDoc.id, 'messages', msgDoc.id));
+      }
+
+      // 채팅방 삭제
+      await deleteDoc(doc(db, 'chatRooms', chatRoomDoc.id));
+      console.log(`✅ 채팅방 삭제: ${chatRoomDoc.id}`);
+    }
+
+    console.log(`총 ${snapshot.size}개 채팅방 삭제 완료!`);
+  } catch (error) {
+    console.error('❌ 채팅방 삭제 실패:', error);
+    throw error;
+  }
 }

@@ -8,6 +8,7 @@ export default function TestPage() {
   };
 
   return (
+    
     <div>
       <h2 className="text-center py-4 bg-gray-200">회원가입 모드</h2>
       <AuthForm mode="signup" onSubmit={handleSubmit} />

@@ -16,7 +16,7 @@ export function useMyMatches(userId : string | undefined){
     const q= query(
       matchesRef , 
       where('participants' , 'array-contains' , userId) , 
-      orderBy('data' , 'desc')
+      orderBy('date' , 'desc')
     );
 
     const unsubscribe = onSnapshot(

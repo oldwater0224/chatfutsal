@@ -68,3 +68,18 @@ export interface Message {
   createdAt: Date;
   readBy: string[];
 }
+export interface RecruitPost{
+  id : string;
+  authorId : string;
+  authorName : string;
+  title : string;
+  content : string;
+  date : string;
+  time : string;
+  location : string;
+  level : 'beginner' | 'amateur' | 'semipro' | 'pro';
+  needCount : number; // 모집 인원
+  status : 'open' | 'closed'; // 모집 상태
+  createdAt : Date;
+  updatedAt : Date;
+}

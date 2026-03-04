@@ -154,7 +154,7 @@ export default function MatchDetailPage() {
           </h3>
 
           {match.participants.length === 0 ? (
-            <p className="text-gray-500 text-sm">아직 참가자가 없습니다</p>
+            <p className="text-gray-500 text-sm">아직 참가자가 없습니다.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {match.participants.map((participantId, index) => (

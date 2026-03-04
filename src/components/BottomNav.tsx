@@ -7,10 +7,11 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: '홈', icon: '⚽', activeIcon: '⚽' },
-    { href: '/chat', label: '채팅', icon: '💬', activeIcon: '💬' },
-    { href: '/mypage', label: 'MY', icon: '👤', activeIcon: '👤' },
-  ];
+  { href: '/', label: '홈', icon: '⚽', activeIcon: '⚽' },
+  { href: '/recruit', label: '용병모집', icon: '📝', activeIcon: '📝' },
+  { href: '/chat', label: '채팅', icon: '💬', activeIcon: '💬' },
+  { href: '/mypage', label: 'MY', icon: '👤', activeIcon: '👤' },
+];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">

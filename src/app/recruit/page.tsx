@@ -50,7 +50,7 @@ export default function RecruitListPage(){
           </div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <span className="text-5xl mb-4">📝</span>
+            
             <p className="text-gray-700 font-medium mb-1">모집 글이 없어요</p>
             <p className="text-gray-500 text-sm mb-4">
               첫 번째 용병 모집 글을 작성해보세요!

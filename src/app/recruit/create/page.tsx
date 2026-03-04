@@ -4,7 +4,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { createRecruitPost } from "@/src/lib/recruitService";
 
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const LEVELS = [
@@ -91,7 +91,7 @@ export default function CreateRecruitPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className=" mx-auto  px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/recruit" className="text-gray-600 text-xl">
               ←

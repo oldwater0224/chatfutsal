@@ -14,7 +14,7 @@ const level_labels = [
   { value: "amateur", label: "아마추어" },
   { value: "semipro", label: "세미프로" },
   { value: "pro", label: "프로" },
-];
+] as const;
 
 export default function EditRecruitPage() {
   const params = useParams();
@@ -26,15 +26,23 @@ export default function EditRecruitPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    date: "",
-    time: "",
-    location: "",
-    level: "amateur",
-    needCount: 1,
-  });
+  const [formData, setFormData] = useState<{
+  title: string;
+  content: string;
+  date: string;
+  time: string;
+  location: string;
+  level: typeof level_labels[number]['value']
+  needCount: number;
+}>({
+  title: "",
+  content: "",
+  date: "",
+  time: "",
+  location: "",
+  level: "amateur",
+  needCount: 1,
+});
 
   // 기존 데이터 불러오기
   useEffect(() => {
@@ -134,7 +142,7 @@ export default function EditRecruitPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href={`/recruit/${postId}`} className="text-gray-600 text-xl">
               ←

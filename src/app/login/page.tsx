@@ -13,8 +13,8 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
-    } catch (err: any) {
-      throw new Error(getFirebaseErrorMessage(err.code));
+    } catch (error: unknown) {
+      throw new Error(getFirebaseErrorMessage(error.code));
     }
   };
 

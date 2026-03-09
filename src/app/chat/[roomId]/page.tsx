@@ -7,9 +7,9 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/src/lib/firebase';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useMessages, sendMessage } from '@/src/hooks/useMessage';
+import { leaveChatRoom, markMessagesAsRead } from '@/src/lib/chatService';
 import ChatRoom from '@/src/components/ChatRoom';
 import { ChatRoom as ChatRoomType } from '@/src/types';
-import { leaveChatRoom } from '@/src/lib/chatService';
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -20,8 +20,8 @@ export default function ChatRoomPage() {
   const { messages, isLoading: messagesLoading } = useMessages(roomId);
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [roomLoading, setRoomLoading] = useState(true);
-  const [isLeaving , setIsLeaving] = useState(false);
-    const [showMenu, setShowMenu] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   // 채팅방 정보 가져오기
   useEffect(() => {
@@ -34,10 +34,10 @@ export default function ChatRoomPage() {
           id: roomDoc.id,
           participants: data.participants,
           participantNames: data.participantNames,
-          participantName: data.participantName || '',
+          participantName: '',
           lastMessage: data.lastMessage,
           lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
-          unreadCount: data.unreadCount || 0, 
+          unreadCount: 0,
           createdAt: data.createdAt?.toDate() || new Date(),
         });
       }
@@ -46,6 +46,23 @@ export default function ChatRoomPage() {
 
     fetchChatRoom();
   }, [roomId]);
+
+  // 채팅방 입장 시 메시지 읽음 처리
+  useEffect(() => {
+    if (user && roomId && messages.length > 0) {
+      markMessagesAsRead(roomId, user.uid);
+    }
+  }, [user, roomId, messages]);
+
+  // 새 메시지 올 때마다 읽음 처리
+  useEffect(() => {
+    if (user && roomId && messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      if (latestMessage && latestMessage.senderId !== user.uid) {
+        markMessagesAsRead(roomId, user.uid);
+      }
+    }
+  }, [messages , messages.length, user, roomId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -64,27 +81,26 @@ export default function ChatRoomPage() {
     );
   };
 
-  // 채팅방 나가기
   const handleLeaveChatRoom = async () => {
     const confirmed = window.confirm('채팅방을 나가시겠습니까?\n대화 내용이 모두 삭제됩니다.');
-    if(!confirmed) return;
+
+    if (!confirmed) return;
 
     setIsLeaving(true);
-    try{
+    try {
       await leaveChatRoom(roomId);
       router.push('/chat');
-    }catch(e){
-      console.error('채팅방 나가기 실패' ,e);
-      alert('채팅방 나가지 못했습니다.')
+    } catch (error) {
+      console.error('채팅방 나가기 실패:', error);
+      alert('채팅방 나가기에 실패했습니다.');
     }
     setIsLeaving(false);
-
-  }
+  };
 
   if (authLoading || roomLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
+        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
       </div>
     );
   }
@@ -100,7 +116,6 @@ export default function ChatRoomPage() {
     );
   }
 
-  // 상대방 정보
   const otherUserId = chatRoom.participants?.find((id) => id !== user.uid);
   const otherUserName = otherUserId
     ? chatRoom.participantNames[otherUserId] || '사용자'
@@ -127,7 +142,6 @@ export default function ChatRoomPage() {
           </Link>
         </div>
 
-        {/* 메뉴 버튼 */}
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -136,15 +150,13 @@ export default function ChatRoomPage() {
             ⋮
           </button>
 
-          {/* 드롭다운 메뉴 */}
           {showMenu && (
             <>
-              {/* 메뉴 외부 클릭 시 닫기 */}
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-35">
+              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-[140px]">
                 <button
                   onClick={() => {
                     setShowMenu(false);
@@ -152,7 +164,7 @@ export default function ChatRoomPage() {
                   }}
                   className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-50 text-sm"
                 >
-                   채팅방 나가기
+                  🚪 채팅방 나가기
                 </button>
               </div>
             </>
@@ -170,7 +182,6 @@ export default function ChatRoomPage() {
         />
       </div>
 
-      {/* 나가기 로딩 오버레이 */}
       {isLeaving && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
           <div className="bg-white rounded-lg px-6 py-4 flex items-center gap-3">

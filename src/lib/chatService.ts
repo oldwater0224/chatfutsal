@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -88,11 +89,49 @@ export async function leaveChatRoom(roomId: string): Promise<void> {
     await Promise.all(deletePromises);
 
     // 채팅방 삭제
-    await deleteDoc(doc(db , 'chatRooms' , roomId));
+    await deleteDoc(doc(db, "chatRooms", roomId));
 
-    console.log('채팅방 삭제 완료' , roomId);
-  } catch(e) {
-    console.error('채팅방 삭제 실패' ,e);
-    throw e
+    console.log("채팅방 삭제 완료", roomId);
+  } catch (e) {
+    console.error("채팅방 삭제 실패", e);
+    throw e;
   }
+}
+// 메세지 읽음 처리
+export async function markMessagesAsRead(
+  roomId: string,
+  userId: string,
+): Promise<void> {
+  try {
+    const messagesRef = collection(db, "chatRooms", roomId, "message");
+    const q = query(messagesRef);
+    const snapshot = await getDocs(q);
+
+    const batch = writeBatch(db);
+
+    snapshot.docs.forEach((msgDoc) => {
+      const data = msgDoc.data();
+      const readBy = data.readBy || [];
+
+      // 아직 읽지 않은 메세지만 업데이트
+      if (!readBy.includes(userId)) {
+        batch.update(doc(db, "chatRooms", roomId, "messages", msgDoc.id), {
+          readBy: [...readBy, userId],
+        });
+      }
+    });
+    await batch.commit();
+  } catch (error) {
+    console.error("메세지 읽음 처리 실패:", error);
+  }
+}
+
+// 읽지 않은 메시지 수 계산
+export function getUnreadCount(
+  messages: { readBy?: string[] }[],
+  userId: string
+): number {
+  return messages.filter(
+    (msg) => !msg.readBy || !msg.readBy.includes(userId)
+  ).length;
 }

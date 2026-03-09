@@ -8,19 +8,21 @@ import {
   orderBy,
   onSnapshot,
 } from 'firebase/firestore';
-import { ChatRoom } from '../types';
-import { db } from '../lib/firebase';
+import { db } from '@/src/lib/firebase';
+import { ChatRoom } from '@/src/types';
 
-
+interface ChatRoomWithUnread extends ChatRoom {
+  unreadCount: number;
+}
 
 export function useChatRooms(userId: string | undefined) {
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [isLoading, setIsLoading] = useState(!!userId);
-  const [error, setError] = useState<string | null>(null);
+  const [chatRooms, setChatRooms] = useState<ChatRoomWithUnread[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalUnread, setTotalUnread] = useState(0);
 
   useEffect(() => {
     if (!userId) {
-      
+     
       return;
     }
 
@@ -31,33 +33,60 @@ export function useChatRooms(userId: string | undefined) {
       orderBy('lastMessageAt', 'desc')
     );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const rooms: ChatRoom[] = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            participants: data.participants,
-            participantNames: data.participantNames,
-            lastMessage: data.lastMessage,
-            lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
-            createdAt: data.createdAt?.toDate() || new Date(),
-          };
-        });
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const roomsWithUnread: ChatRoomWithUnread[] = [];
 
-        setChatRooms(rooms);
-        setIsLoading(false);
-      },
-      (err) => {
-        console.error('채팅 목록 에러:', err);
-        setError('채팅 목록을 불러오는데 실패했습니다');
-        setIsLoading(false);
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+
+        // 각 채팅방의 메시지에서 읽지 않은 수 계산
+        const messagesRef = collection(db, 'chatRooms', docSnap.id, 'messages');
+        const messagesQuery = query(messagesRef);
+
+        // 실시간으로 읽지 않은 메시지 수 구독
+        let unreadCount = 0;
+
+        const room: ChatRoomWithUnread = {
+          id: docSnap.id,
+          participants: data.participants,
+          participantNames: data.participantNames,
+          participantName: '',
+          lastMessage: data.lastMessage || '',
+          lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          unreadCount: 0,
+        };
+
+        roomsWithUnread.push(room);
       }
-    );
+
+      // 각 채팅방의 읽지 않은 메시지 수 계산
+      const roomsWithCounts = await Promise.all(
+        roomsWithUnread.map(async (room) => {
+          const messagesRef = collection(db, 'chatRooms', room.id, 'messages');
+          const messagesSnap = await new Promise<number>((resolve) => {
+            const unsubscribe = onSnapshot(messagesRef, (msgSnapshot) => {
+              const unread = msgSnapshot.docs.filter((msgDoc) => {
+                const msgData = msgDoc.data();
+                const readBy = msgData.readBy || [];
+                // 내가 보낸 메시지는 제외하고, 내가 안 읽은 메시지만 카운트
+                return msgData.senderId !== userId && !readBy.includes(userId);
+              }).length;
+              resolve(unread);
+              unsubscribe();
+            });
+          });
+          return { ...room, unreadCount: messagesSnap };
+        })
+      );
+
+      setChatRooms(roomsWithCounts);
+      setTotalUnread(roomsWithCounts.reduce((sum, r) => sum + r.unreadCount, 0));
+      setIsLoading(false);
+    });
 
     return () => unsubscribe();
   }, [userId]);
 
-  return { chatRooms, isLoading, error };
+  return { chatRooms, isLoading, totalUnread };
 }

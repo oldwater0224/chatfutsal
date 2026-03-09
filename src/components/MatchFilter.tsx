@@ -80,7 +80,7 @@ export default function MatchFilter({ filters = {date : '' , region: '' , level 
             <button
               key={date.value}
               onClick={() => handleDateClick(date.value)}
-              className={`fx-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 filters.date === date.value
                   ? 'bg-green-600 text-white'
                   : date.isWeekend
@@ -96,12 +96,12 @@ export default function MatchFilter({ filters = {date : '' , region: '' , level 
       </div>
 
       {/* 추가 필터 토글 */}
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-3 flex justify-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 text-sm text-gray-600"
+          className="flex items-center  gap-2 text-sm text-gray-600 rounded-b-full"
         >
-          <span>필터</span>
+          <span> 매치 필터</span>
           {hasActiveFilters && (
             <span className="w-2 h-2 bg-green-500 rounded-full" />
           )}

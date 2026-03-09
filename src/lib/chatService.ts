@@ -103,24 +103,61 @@ export async function markMessagesAsRead(
   userId: string,
 ): Promise<void> {
   try {
-    const messagesRef = collection(db, "chatRooms", roomId, "message");
+    console.log('읽음 처리 시작:');
+    console.log('roomId:' , roomId);
+    console.log('userId:' , userId);
+
+    const messagesRef = collection(db, "chatRooms", roomId, "messages");
+    console.log('messagesRef 경로:' , messagesRef)
     const q = query(messagesRef);
     const snapshot = await getDocs(q);
 
+    console.log('조회된 메세지 수:' , snapshot.docs.length);
+
+    if (snapshot.docs.length === 0) {
+      console.log('메시지가 없습니다! 경로를 확인하세요.');
+      return;
+    }
+
     const batch = writeBatch(db);
+    let updateCount = 0;
 
     snapshot.docs.forEach((msgDoc) => {
       const data = msgDoc.data();
-      const readBy = data.readBy || [];
+      const readBy: string[] = data.readBy || [];
+
+       // ✅ 각 메시지 상태 로그
+      console.log('--- 메시지 ---');
+      console.log('id:', msgDoc.id);
+      console.log('senderId:', data.senderId);
+      console.log('현재 userId:', userId);
+      console.log('내가 보낸 메시지?:', data.senderId === userId);
+      console.log('readBy:', readBy);
+      console.log('이미 읽음?:', readBy.includes(userId));
 
       // 아직 읽지 않은 메세지만 업데이트
-      if (!readBy.includes(userId)) {
+      if (data.senderId !== userId && !readBy.includes(userId)) {
         batch.update(doc(db, "chatRooms", roomId, "messages", msgDoc.id), {
           readBy: [...readBy, userId],
-        });
+           
+        })
+        console.log('→ 업데이트 대상!');
+        updateCount++;
+      }else {
+        console.log('스킵 (내 메세지이거나 이미 읽음)');
       }
     });
-    await batch.commit();
+      console.log('총 업데이트할 메시지 수:', updateCount);
+
+
+    if(updateCount > 0){
+      await batch.commit();
+       console.log('batch.commit() 완료');
+      
+    }else {
+      console.log('읽을 메세지 없음');
+    }
+    
   } catch (error) {
     console.error("메세지 읽음 처리 실패:", error);
   }

@@ -6,10 +6,7 @@ import { useChatRooms } from '@/src/hooks/useChatRoom';
 
 export default function Header() {
   const { user, isLoading } = useAuth();
-  const { chatRooms } = useChatRooms(user?.uid);
-
-  // 읽지 않은 채팅 표시 (lastMessage가 있는 방 수)
-  const hasNewChat = chatRooms.length > 0;
+  const { totalUnread } = useChatRooms(user?.uid);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
@@ -26,8 +23,12 @@ export default function Header() {
               {/* 채팅 아이콘 */}
               <Link href="/chat" className="relative">
                 <span className="text-xl">💬</span>
-                {hasNewChat && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                {totalUnread > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-red-500 rounded-full flex items-center justify-center px-1">
+                    <span className="text-white text-xs font-bold">
+                      {totalUnread > 99 ? '99+' : totalUnread}
+                    </span>
+                  </span>
                 )}
               </Link>
 

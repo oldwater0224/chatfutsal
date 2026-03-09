@@ -26,9 +26,14 @@ export interface MatchCardProps {
     level: string;
   };
 }
-
+export interface FilterState {
+  date: string;
+  region: string;
+  level: string;
+}
 export interface MatchFilterProps {
-  onFilterChange: (filters: { date: string; region: string }) => void;
+  filters : FilterState;
+  onFilterChange: (filters: FilterState) => void;
 }
 
 export interface Match {

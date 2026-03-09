@@ -126,3 +126,12 @@
     @apply bg-background text-foreground;
   }
 }
+/* 스크롤바 숨기기 (날짜 필터용) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

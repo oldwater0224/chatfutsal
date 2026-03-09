@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/src/lib/firebase';
-import { useAuth } from '@/src/hooks/useAuth';
-import { useMessages, sendMessage } from '@/src/hooks/useMessage';
-import { leaveChatRoom, markMessagesAsRead } from '@/src/lib/chatService';
-import ChatRoom from '@/src/components/ChatRoom';
-import { ChatRoom as ChatRoomType } from '@/src/types';
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/src/lib/firebase";
+import { useAuth } from "@/src/hooks/useAuth";
+import { useMessages, sendMessage } from "@/src/hooks/useMessage";
+import { leaveChatRoom, markMessagesAsRead } from "@/src/lib/chatService";
+import ChatRoom from "@/src/components/ChatRoom";
+import { ChatRoom as ChatRoomType } from "@/src/types";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -23,23 +23,38 @@ export default function ChatRoomPage() {
   const [showMenu, setShowMenu] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
+  // 읽음 처리 함수
+  const handleMarkAsRead = useCallback(async () => {
+    if (user && roomId) {
+      await markMessagesAsRead(roomId, user.uid);
+    }
+  }, [user, roomId]);
+
   // 채팅방 정보 가져오기
   useEffect(() => {
+    if (!roomId) {
+     
+      return;
+    }
     const fetchChatRoom = async () => {
-      const roomDoc = await getDoc(doc(db, 'chatRooms', roomId));
+      try {
+        const roomDoc = await getDoc(doc(db, "chatRooms", roomId));
 
-      if (roomDoc.exists()) {
-        const data = roomDoc.data();
-        setChatRoom({
-          id: roomDoc.id,
-          participants: data.participants,
-          participantNames: data.participantNames,
-          participantName: '',
-          lastMessage: data.lastMessage,
-          lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
-          unreadCount: 0,
-          createdAt: data.createdAt?.toDate() || new Date(),
-        });
+        if (roomDoc.exists()) {
+          const data = roomDoc.data();
+          setChatRoom({
+            id: roomDoc.id,
+            participants: data.participants,
+            participantNames: data.participantNames,
+            participantName: "",
+            lastMessage: data.lastMessage,
+            lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
+            unreadCount: 0,
+            createdAt: data.createdAt?.toDate() || new Date(),
+          });
+        }
+      } catch (error) {
+        console.error("채팅방 불러오기 실패:", error);
       }
       setRoomLoading(false);
     };
@@ -47,52 +62,66 @@ export default function ChatRoomPage() {
     fetchChatRoom();
   }, [roomId]);
 
-  // 채팅방 입장 시 메시지 읽음 처리
+  // 채팅방 입장 시 읽음 처리
   useEffect(() => {
-    if (user && roomId && messages.length > 0) {
-      markMessagesAsRead(roomId, user.uid);
+    if (!authLoading && !messagesLoading && user && messages.length > 0) {
+      handleMarkAsRead();
     }
-  }, [user, roomId, messages]);
+  }, [authLoading, messagesLoading, user, messages.length, handleMarkAsRead]);
 
-  // 새 메시지 올 때마다 읽음 처리
+  // 새 메시지 수신 시 읽음 처리
   useEffect(() => {
-    if (user && roomId && messages.length > 0) {
-      const latestMessage = messages[messages.length - 1];
-      if (latestMessage && latestMessage.senderId !== user.uid) {
-        markMessagesAsRead(roomId, user.uid);
+    if (!user || messages.length === 0) return;
+
+    const lastMessage = messages[messages.length - 1];
+
+    // 상대방이 보낸 새 메시지가 있으면 읽음 처리
+    if (lastMessage.senderId !== user.uid) {
+      const readBy = lastMessage.readBy || [];
+      if (!readBy.includes(user.uid)) {
+        handleMarkAsRead();
       }
     }
-  }, [messages , messages.length, user, roomId]);
+  }, [messages, user, handleMarkAsRead]);
+
+  // 페이지 포커스 시 읽음 처리 (탭 전환 후 돌아왔을 때)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && roomId) {
+        handleMarkAsRead();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [user, roomId, handleMarkAsRead]);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, authLoading, router]);
 
   const handleSendMessage = async (text: string) => {
     if (!user) return;
 
-    await sendMessage(
-      roomId,
-      user.uid,
-      user.displayName || '사용자',
-      text
-    );
+    await sendMessage(roomId, user.uid, user.displayName || "사용자", text);
   };
 
   const handleLeaveChatRoom = async () => {
-    const confirmed = window.confirm('채팅방을 나가시겠습니까?\n대화 내용이 모두 삭제됩니다.');
+    const confirmed = window.confirm(
+      "채팅방을 나가시겠습니까?\n대화 내용이 모두 삭제됩니다.",
+    );
 
     if (!confirmed) return;
 
     setIsLeaving(true);
     try {
       await leaveChatRoom(roomId);
-      router.push('/chat');
+      router.push("/chat");
     } catch (error) {
-      console.error('채팅방 나가기 실패:', error);
-      alert('채팅방 나가기에 실패했습니다.');
+      console.error("채팅방 나가기 실패:", error);
+      alert("채팅방 나가기에 실패했습니다.");
     }
     setIsLeaving(false);
   };
@@ -104,6 +133,11 @@ export default function ChatRoomPage() {
       </div>
     );
   }
+  console.log("=== 조건 체크 ===");
+  console.log("user:", user);
+  console.log("user?.uid:", user?.uid);
+  console.log("chatRoom:", chatRoom);
+  console.log("roomId:", roomId);
 
   if (!user || !chatRoom) {
     return (
@@ -118,8 +152,8 @@ export default function ChatRoomPage() {
 
   const otherUserId = chatRoom.participants?.find((id) => id !== user.uid);
   const otherUserName = otherUserId
-    ? chatRoom.participantNames[otherUserId] || '사용자'
-    : '사용자';
+    ? chatRoom.participantNames[otherUserId] || "사용자"
+    : "사용자";
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -130,7 +164,7 @@ export default function ChatRoomPage() {
             ←
           </Link>
           <Link
-            href={otherUserId ? `/users/${otherUserId}` : '#'}
+            href={otherUserId ? `/users/${otherUserId}` : "#"}
             className="flex items-center gap-2"
           >
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -156,7 +190,7 @@ export default function ChatRoomPage() {
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-[140px]">
+              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-35">
                 <button
                   onClick={() => {
                     setShowMenu(false);

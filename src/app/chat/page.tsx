@@ -1,125 +1,104 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/hooks/useAuth';
-import { useChatRooms } from '@/src/hooks/useChatRoom';
-import { startChat } from '@/src/lib/chatService';
-import Header from '@/src/components/Header';
-import BottomNav from '@/src/components/BottomNav';
-import ChatList from '@/src/components/ChatList';
-import UserSearchModal from '@/src/components/UserSearchModal';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/hooks/useAuth";
+import { useChatRooms } from "@/src/hooks/useChatRoom";
+import BottomNav from "@/src/components/BottomNav";
 
-
-export default function ChatPage() {
-  const { user, userData, isLoading: authLoading } = useAuth();
+export default function ChatListPage() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const { chatRooms, isLoading: roomsLoading } = useChatRooms(user?.uid);
-  const [isModalOpen , setIsModalOpen] = useState(false);
-  const [isStartingChat, setIsStartingChat] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
-  // 유저 선택 시 채팅 시작
-  const handleSelectUser = async (selectedUser: {
-    uid: string;
-    displayName: string;
-    email: string;
-  }) => {
-    if (!user || !userData || isStartingChat){
-      console.log("조건 불충족으로 종료");
-      return;
-    }
+  // 로그인 체크
+  if (!authLoading && !user) {
+    router.push("/login");
+    return null;
+  }
 
-    setIsStartingChat(true);
-    try {
-      const roomId = await startChat(
-        { uid: user.uid, displayName: userData.displayName || '사용자' },
-        { uid: selectedUser.uid, displayName: selectedUser.displayName }
-      );
-
-      setIsModalOpen(false);
-      router.push(`/chat/${roomId}`);
-    } catch (e) {
-      console.error('채팅 시작 실패:', e);
-      alert('채팅을 시작할 수 없습니다. 다시 시도해주세요.');
-    }
-    setIsStartingChat(false);
-  };
-
-  if (authLoading) {
+  if (authLoading || roomsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
+        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="pt-14 pb-20">
-        {/* 페이지 헤더 */}
-        <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 pb-16">
+      {/* 헤더 */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
+        <div className=" mx-auto px-4 h-14 flex items-center">
           <h1 className="text-lg font-bold">채팅</h1>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-full hover:bg-green-700 transition-colors"
-          >
-            <span>+</span>
-            <span>새 채팅</span>
-          </button>
         </div>
+      </header>
 
-        {/* 채팅 목록 */}
-        {roomsLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
-          </div>
-        ) : chatRooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <span className="text-5xl mb-4">💬</span>
-            <p className="text-gray-700 font-medium mb-1">채팅이 없어요</p>
-            <p className="text-gray-500 text-sm mb-4">새로운 대화를 시작해보세요!</p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
-            >
-              새 채팅 시작하기
-            </button>
+      {/* 채팅 목록 */}
+      <main className="pt-14 px-4">
+        {chatRooms.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <p className="text-4xl mb-4">💬</p>
+            <p>아직 채팅이 없습니다</p>
+            <p className="text-sm mt-1">매치에 참가하거나 용병을 구해보세요!</p>
           </div>
         ) : (
-          <ChatList chatRooms={chatRooms} currentUserId={user.uid} />
+          <div className="space-y-2 mt-4">
+            {chatRooms.map((room) => {
+              const otherUserId = room.participants?.find(
+                (id) => id !== user?.uid
+              );
+              const otherUserName = otherUserId
+                ? room.participantNames?.[otherUserId] || "사용자"
+                : "사용자";
+
+              return (
+                <Link
+                  key={room.id}
+                  href={`/chat/${room.id}`}
+                  className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* 프로필 아바타 */}
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                      <span className="text-green-600 font-medium">
+                        {otherUserName.charAt(0)}
+                      </span>
+                    </div>
+
+                    {/* 채팅 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium truncate">
+                          {otherUserName}
+                        </span>
+                        <span className="text-xs text-gray-400 shrink-0">
+                          {room.lastMessageAt?.toLocaleDateString("ko-KR", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-sm text-gray-500 truncate">
+                          {room.lastMessage || "새로운 채팅"}
+                        </p>
+                        {room.unreadCount > 0 && (
+                          <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full shrink-0">
+                            {room.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
       </main>
 
       <BottomNav />
-
-      {/* 유저 검색 모달 */}
-      <UserSearchModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSelectUser={handleSelectUser}
-        currentUserId={user.uid}
-      />
-
-      {/* 채팅 시작 로딩  */}
-      {isStartingChat && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-          <div className="bg-white rounded-lg px-6 py-4 flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
-            <span>채팅방 생성 중...</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

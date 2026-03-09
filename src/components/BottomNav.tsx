@@ -2,16 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useChatRooms } from '@/src/hooks/useChatRoom';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const { totalUnread } = useChatRooms(user?.uid);
 
   const navItems = [
-  { href: '/', label: '홈', icon: '⚽', activeIcon: '⚽' },
-  { href: '/recruit', label: '용병모집', icon: '📝', activeIcon: '📝' },
-  { href: '/chat', label: '채팅', icon: '💬', activeIcon: '💬' },
-  { href: '/mypage', label: 'MY', icon: '👤', activeIcon: '👤' },
-];
+    { href: '/', label: '홈', icon: '⚽' },
+    { href: '/recruit', label: '용병', icon: '📝' },
+    { href: '/chat', label: '채팅', icon: '💬', badge: totalUnread },
+    { href: '/mypage', label: 'MY', icon: '👤' },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
@@ -32,9 +36,17 @@ export default function BottomNav() {
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <span className="text-xl">
-                {isActive ? item.activeIcon : item.icon}
-              </span>
+              <div className="relative">
+                <span className="text-xl">{item.icon}</span>
+                {/* 배지 */}
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="absolute -top-2 -right-3 min-w-4 h-4 bg-red-500 rounded-full flex items-center justify-center px-1">
+                    <span className="text-white text-[10px] font-bold">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  </span>
+                )}
+              </div>
               <span className={`text-xs ${isActive ? 'font-bold' : ''}`}>
                 {item.label}
               </span>

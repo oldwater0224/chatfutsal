@@ -1,93 +1,75 @@
-"use client";
+'use client';
 
-import { useMatches } from "@/src/hooks/useMatches";
-import { useState } from "react";
-import Header from "@/src/components/Header";
-import BottomNav from "@/src/components/BottomNav";
-import MatchFilter from "@/src/components/MatchFilter";
-import MatchCard from "@/src/components/MatchCard";
+import { useState } from 'react';
+import { useMatches } from '@/src/hooks/useMatches';
+import Header from '@/src/components/Header';
+import BottomNav from '@/src/components/BottomNav';
+import MatchFilter from '@/src/components/MatchFilter';
+import MatchCard from '@/src/components/MatchCard';
 
-// 임시 더미 데이터 (나중에 Firestore에서 가져올 예정)
-// const dummyMatches = [
-//   {
-//     id: '1',
-//     title: '가산 풋살파크 6vs6',
-//     date: '2025-01-25',
-//     time: '19:00',
-//     location: '서울 금천구 가산동',
-//     currentParticipants: 8,
-//     maxParticipants: 12,
-//     level: 'amateur',
-//   },
-//   {
-//     id: '2',
-//     title: '잠실 실내풋살장',
-//     date: '2025-01-25',
-//     time: '20:00',
-//     location: '서울 송파구 잠실동',
-//     currentParticipants: 12,
-//     maxParticipants: 12,
-//     level: 'semipro',
-//   },
-//   {
-//     id: '3',
-//     title: '판교 풋살클럽 비기너 매치',
-//     date: '2025-01-25',
-//     time: '18:00',
-//     location: '경기 성남시 분당구',
-//     currentParticipants: 5,
-//     maxParticipants: 10,
-//     level: 'beginner',
-//   },
-//   {
-//     id: '4',
-//     title: '인천 청라 주말 매치',
-//     date: '2025-01-26',
-//     time: '10:00',
-//     location: '인천 서구 청라동',
-//     currentParticipants: 6,
-//     maxParticipants: 12,
-//     level: 'pro',
-//   },
-// ];
+interface FilterState {
+  date: string;
+  region: string;
+  level: string;
+}
 
-export default function Home() {
-  const [filters, setFilters] = useState({ date: "", region: "all" });
-  const {matches , isLoading , error} = useMatches(
-    filters.date ? {date: filters.date} : undefined
-  );
+export default function HomePage() {
+  const [filters, setFilters] = useState<FilterState>({
+    date: '',
+    region: '',
+    level: '',
+  });
 
-  const handleFilterChange = (newFilters: { date: string; region: string }) => {
+  const { matches, isLoading } = useMatches(filters);
+
+  const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
-    console.log("필터 변경:", newFilters);
-    // TODO: 필터에 맞는 매치 목록 불러오기
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="pt-14 pb-16">
-        <MatchFilter onFilterChange={handleFilterChange} />
+      <main className="pt-14 pb-20">
+        {/* 필터 */}
+        <MatchFilter filters={filters} onFilterChange={handleFilterChange} />
 
-        <div className="mt-2">
-          {isLoading ? (
-            <div className="flex justify-center py-10">
-              <p className="text-gray-500">매치 불러오는 중...</p>
+        {/* 매치 목록 */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+          </div>
+        ) : matches.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <span className="text-5xl mb-4">⚽</span>
+            <p className="text-gray-700 font-medium mb-1">매치가 없어요</p>
+            <p className="text-gray-500 text-sm">
+              {filters.date || filters.region || filters.level
+                ? '다른 조건으로 검색해보세요'
+                : '곧 새로운 매치가 등록될 거예요'}
+            </p>
+            {(filters.date || filters.region || filters.level) && (
+              <button
+                onClick={() => setFilters({ date: '', region: '', level: '' })}
+                className="mt-4 px-4 py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg"
+              >
+                필터 초기화
+              </button>
+            )}
+          </div>
+        ) : (
+          <div>
+            {/* 결과 개수 */}
+            <div className="px-4 py-2 text-sm text-gray-500">
+              {matches.length}개의 매치
             </div>
-          ) : error ? (
-            <div className="flex justify-center py-10">
-              <p className="text-red-500">{error}</p>
-            </div>
-          ) : matches.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-gray-500">
-              <span className="text-4xl mb-2">⚽</span>
-              <p>해당 날짜에 매치가 없어요</p>
-            </div>
-          ) : (
-            matches.map((match) => <MatchCard key={match.id} match={match} />)
-          )}
-        </div>
+
+            {/* 매치 카드 목록 */}
+            {matches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        )}
       </main>
 
       <BottomNav />

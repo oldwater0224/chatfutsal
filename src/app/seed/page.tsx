@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { seedMatches, deleteAllMatches } from "@/src/lib/seedMatches";
 import {
@@ -10,11 +10,25 @@ import {
   deleteTestUsers,
   deleteAllChatRooms,
 } from "@/src/lib/seedChats";
+import { useRouter } from "next/navigation";
 
 export default function SeedPage() {
   const { user, userData, isLoading } = useAuth();
   const [status, setStatus] = useState<string>("");
   const [isRunning, setIsRunning] = useState(false);
+  const router = useRouter();
+
+  // 프로덕션 환경에서 접근 차단
+  useEffect(() => {
+    if(process.env.NODE_ENV === 'production'){
+      router.push('/');
+    }
+  } , [router]);
+
+  // 프로덕션이면 아무것도 보이지 않게
+  if(process.env.NODE_ENV === 'production'){
+    return null;
+  }
 
   const handleSeedMatches = async () => {
     setIsRunning(true);

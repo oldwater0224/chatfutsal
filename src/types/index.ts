@@ -62,7 +62,7 @@ export interface ChatRoom {
   lastMessage: string;
   lastMessageAt: Date;
   unreadCount: number;
-  createdAt: Date; // ✅ 추가됨
+  createdAt: Date; 
 }
 
 export interface Message {

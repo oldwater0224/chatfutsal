@@ -175,13 +175,7 @@ export default function SeedPage() {
             👤 테스트 유저 6명 생성
           </button>
 
-          <button
-            onClick={handleSeedChats}
-            disabled={isRunning}
-            className="w-full py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            💬 테스트 유저 채팅방 6개 생성 (로그인 불필요)
-          </button>
+         
 
           <hr className="my-4" />
 
@@ -230,12 +224,12 @@ export default function SeedPage() {
             📋 생성되는 테스트 유저
           </p>
           <ul className="text-xs text-blue-700 space-y-1">
-            <li>• 축구왕김철수 (test_user_1)</li>
-            <li>• 골키퍼박영희 (test_user_2)</li>
-            <li>• 드리블러이민수 (test_user_3)</li>
-            <li>• 수비수최지영 (test_user_4)</li>
-            <li>• 공격수정대호 (test_user_5)</li>
-            <li>• 미드필더한소희 (test_user_6)</li>
+            <li>• 테스트1 (test_user_1)</li>
+            <li>• 테스트2 (test_user_2)</li>
+            <li>• 테스트3 (test_user_3)</li>
+            <li>• 테스트4 (test_user_4)</li>
+            <li>• 테스트5 (test_user_5)</li>
+            <li>• 테스트6 (test_user_6)</li>
           </ul>
         </div>
 

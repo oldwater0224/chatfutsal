@@ -12,12 +12,12 @@ export default function MatchFilter({ filters = {date : '' , region: '' , level 
   const regions = [
     { value: "", label: "전체 지역" },
     { value: "seoul", label: "서울" },
-    { value: "gyeonggi", label: "경기" },
-    { value: "incheon", label: "인천" },
-    { value: "busan", label: "부산" },
-    { value: "daegu", label: "대구" },
-    { value: "daejeon", label: "대전" },
-    { value: "gwangju", label: "광주" },
+    { value: "경기", label: "경기" },
+    { value: "인천", label: "인천" },
+    { value: "부산", label: "부산" },
+    { value: "대구", label: "대구" },
+    { value: "대전", label: "대전" },
+    { value: "광주", label: "광주" },
   ];
   const levels = [
     { value: "", label: "전체 레벨" },

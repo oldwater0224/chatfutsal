@@ -173,6 +173,11 @@ export default function CreateRecruitPage() {
               placeholder="예: 강남 OO풋살장"
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
+            
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">구장 위치 *</label>
+            
           </div>
 
           {/* 레벨 */}

@@ -125,8 +125,8 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span>📝</span>
-                <span>용병 모집 글쓰기</span>
+                <span> 📝 </span>
+                <span>작성한 용병모집 게시글</span>
               </div>
               <span className="text-gray-400">→</span>
             </div>

@@ -54,17 +54,17 @@ export default function SeedPage() {
     setIsRunning(false);
   };
 
-  const handleSeedChats = async () => {
-    setIsRunning(true);
-    setStatus("테스트 유저 채팅방 생성 중...");
-    try {
-      await seedChatRooms();
-      setStatus("✅ 테스트 유저 채팅방 6개 생성 완료!");
-    } catch (error) {
-      setStatus("❌ 채팅방 생성 실패: " + error);
-    }
-    setIsRunning(false);
-  };
+  // const handleSeedChats = async () => {
+  //   setIsRunning(true);
+  //   setStatus("테스트 유저 채팅방 생성 중...");
+  //   try {
+  //     await seedChatRooms();
+  //     setStatus("✅ 테스트 유저 채팅방 6개 생성 완료!");
+  //   } catch (error) {
+  //     setStatus("❌ 채팅방 생성 실패: " + error);
+  //   }
+  //   setIsRunning(false);
+  // };
 
   const handleSeedMyChats = async () => {
     if (!user || !userData) {

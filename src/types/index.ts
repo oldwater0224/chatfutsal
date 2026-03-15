@@ -88,3 +88,16 @@ export interface RecruitPost{
   createdAt : Date;
   updatedAt : Date;
 }
+export const LEVEL_LABELS: Record<string, string> = {
+  beginner: '비기너',
+  amateur: '아마추어',
+  'semi-pro': '세미프로',
+  pro: '프로',
+};
+
+export const LEVEL_COLORS: Record<string, string> = {
+  beginner: 'bg-green-100 text-green-700',
+  amateur: 'bg-blue-100 text-blue-700',
+  'semi-pro': 'bg-purple-100 text-purple-700',
+  pro: 'bg-red-100 text-red-700',
+};

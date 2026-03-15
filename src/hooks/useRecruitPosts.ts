@@ -63,6 +63,7 @@ export function useMyRecruitPosts(userId : string | undefined){
         createdAt : doc.data().createdAt?.toDate || new Date(),
         updatedAt : doc.data().updatedAt?.toDate || new Date(),
       })) as RecruitPost[];
+      
 
       setPosts(postList);
       setIsLoading(false);

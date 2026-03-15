@@ -120,7 +120,7 @@ export default function MyPage() {
             </div>
           </Link>
           <Link
-            href="/recruit/create"
+            href="/mypage/recruits"
             className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
           >
             <div className="flex justify-between items-center">

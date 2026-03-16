@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 const LEVEL_LABELS: Record<string, string> = {
   beginner: "비기너",
   amateur: "아마추어",
-  "semi-pro": "세미프로",
+  semipro: "세미프로",
   pro: "프로",
 };
 export default function RecruitDetailPage() {

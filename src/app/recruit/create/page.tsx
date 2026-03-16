@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 const LEVELS = [
   { value: "beginner", label: "비기너" },
   { value: "amateur", label: "아마추어" },
-  { value: "semipro", label: "세미프로" },
+  { value: "semi-pro", label: "세미프로" },
   { value: "pro", label: "프로" },
 ];
 
@@ -173,12 +173,10 @@ export default function CreateRecruitPage() {
               placeholder="예: 강남 OO풋살장"
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
-            
+            {/* 구장 지도 */}
+            <div>구장 지도</div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">구장 위치 *</label>
-            
-          </div>
+           
 
           {/* 레벨 */}
           <div>

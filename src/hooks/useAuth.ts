@@ -11,7 +11,7 @@ interface UserData {
   displayName: string;
   createdAt: Date;
 }
-export function useAuth() {
+export  function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

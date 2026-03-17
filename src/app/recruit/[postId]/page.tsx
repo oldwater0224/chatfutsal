@@ -4,18 +4,13 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { startChat } from "@/src/lib/chatService";
 import { db } from "@/src/lib/firebase";
 import { closeRecruitPost, deleteRecruitPost, reopenRecruitPost } from "@/src/lib/recruitService";
-import { RecruitPost } from "@/src/types";
+import { LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const LEVEL_LABELS: Record<string, string> = {
-  beginner: "비기너",
-  amateur: "아마추어",
-  semipro: "세미프로",
-  pro: "프로",
-};
+
 export default function RecruitDetailPage() {
   const params = useParams();
   const router = useRouter();

@@ -216,6 +216,13 @@ export default function RecruitDetailPage() {
               <p className="font-medium">{LEVEL_LABELS[post.level]}</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xl">👥</span>
+            <div>
+              <p className="text-sm text-gray-500">모집 인원</p>
+              <p className="font-medium">{post.needCount}명</p>
+            </div>
+          </div>
 
           
 

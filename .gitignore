@@ -14,7 +14,7 @@
 /coverage
 
 #test
-/src/test
+/src/app/test
 
 # next.js
 /.next/

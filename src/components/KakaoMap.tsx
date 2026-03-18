@@ -53,7 +53,7 @@ export default function KakaoMap({ lat, lng, address }: KakaoMapProps) {
         }
       }, 100);
 
-      // cleanup
+      // cleanup 함수
       return () => clearInterval(checkKakao);
     }
   }, [lat, lng, address]);

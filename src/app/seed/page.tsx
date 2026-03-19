@@ -25,10 +25,10 @@ export default function SeedPage() {
   //   }
   // } , [router]);
 
-  // 프로덕션이면 아무것도 보이지 않게
-  if(process.env.NODE_ENV === 'production'){
-    return null;
-  }
+  // 배포화면에서 아무것도 보이지 않게
+  // if(process.env.NODE_ENV === 'production'){
+  //   return null;
+  // }
 
   const handleSeedMatches = async () => {
     setIsRunning(true);

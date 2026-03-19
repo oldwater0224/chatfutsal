@@ -18,12 +18,12 @@ export default function SeedPage() {
   const [isRunning, setIsRunning] = useState(false);
   const router = useRouter();
 
-  // 프로덕션 환경에서 접근 차단
-  useEffect(() => {
-    if(process.env.NODE_ENV === 'production'){
-      router.push('/');
-    }
-  } , [router]);
+  // 배포 환경에서 접근 차단
+  // useEffect(() => {
+  //   if(process.env.NODE_ENV === 'production'){
+  //     router.push('/');
+  //   }
+  // } , [router]);
 
   // 프로덕션이면 아무것도 보이지 않게
   if(process.env.NODE_ENV === 'production'){

@@ -21,9 +21,6 @@ export default function RootLayout({
           <Script
             src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY}&autoload=false`}
             strategy="beforeInteractive"
-            onError={(e) => {
-              console.error("Kakao SDK 로드 실패:", e);
-            }}
           />
           {children}
         </ErrorBoundary>

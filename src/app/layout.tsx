@@ -13,7 +13,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // console.log("Kakao Key:", process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY);
+  
   return (
     <html lang="ko">
       <body>
@@ -22,6 +22,7 @@ export default function RootLayout({
             src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY}&autoload=false`}
             strategy="beforeInteractive"
           />
+
           {children}
         </ErrorBoundary>
       </body>

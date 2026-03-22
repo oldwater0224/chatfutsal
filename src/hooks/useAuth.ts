@@ -17,21 +17,21 @@ export  function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log("1. useAuth 시작");
-    console.log("1-1. db 객체:", db);
+    // console.log("1. useAuth 시작");
+    // console.log("1-1. db 객체:", db);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log("2. onAuthStateChanged 콜백 실행 , user:", currentUser);
+      // console.log("2. onAuthStateChanged 콜백 실행 , user:", currentUser);
       setUser(currentUser);
 
       if (currentUser) {
         //Firestore 에서 유저 추가 정보 가져오기
         try {
-          console.log("2-1 . firestore 조회시작 , uid:", currentUser.uid);
+          // console.log("2-1 . firestore 조회시작 , uid:", currentUser.uid);
           const userDoc = await getDoc(doc(db, "users", currentUser.uid));
           if (userDoc.exists()) {
             setUserData(userDoc.data() as UserData);
           }
-          console.log("3. firestore 조회 완료 , exists:", userDoc.exists());
+          //console.log("3. firestore 조회 완료 , exists:", userDoc.exists());
         } catch (e) {
           console.error("firestore 에러:", e);
         } finally {
@@ -39,7 +39,7 @@ export  function useAuth() {
           setIsLoading(false);
         }
 
-        console.log("3. firestore 조회완료");
+        // console.log("3. firestore 조회완료");
       } else {
         setUserData(null);
         setIsLoading(false);

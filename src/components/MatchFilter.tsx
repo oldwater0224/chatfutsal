@@ -30,12 +30,14 @@ export default function MatchFilter({ filters = {date : '' , region: '' , level 
   const generateDates = () => {
     const dates = [];
     const today = new Date();
+   
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
       const dateStr = date.toISOString().split("T")[0];
+      
       const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
       const dayName = dayNames[date.getDay()];
       const month = date.getMonth() + 1;
@@ -54,6 +56,7 @@ export default function MatchFilter({ filters = {date : '' , region: '' , level 
   const dates = generateDates();
 
   const handleDateClick = (dateValue: string) => {
+    console.log("날짜 클릭:", dateValue);
     onFilterChange({
       ...filters,
       date: filters.date === dateValue ? "" : dateValue,

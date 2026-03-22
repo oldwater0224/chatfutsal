@@ -12,9 +12,9 @@ const firebaseConfig = {
 };
 
 // 디버깅용 로그
-console.log("=== Firebase 환경변수 체크 ===");
-console.log("PROJECT_ID:", firebaseConfig.projectId);
-console.log("==============================");
+// console.log("=== Firebase 환경변수 체크 ===");
+// console.log("PROJECT_ID:", firebaseConfig.projectId);
+// console.log("==============================");
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 

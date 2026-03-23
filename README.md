@@ -8,8 +8,8 @@ chatting with futsal
 
 0.1.0 version
 
-용병모집 CRUD
-실시간 채팅 Firebase snapshot
+용병모집 CRUD <br>
+실시간 채팅 Firebase snapshot <br>
 kakao Maps API 연동 위치 안내
 
 0.2.0 목표

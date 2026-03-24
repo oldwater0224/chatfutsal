@@ -8,7 +8,7 @@ chatting with futsal
 용병 모집자와 용병 참여자 간에 실시간으로 채팅이 가능한 앱 입니다.
 
 0.1.0 version
-
+/seed 에서 더미 데이터 생성 가능 <br>
 용병모집 CRUD <br>
 실시간 채팅 Firebase snapshot <br>
 kakao Maps API 연동 위치 안내

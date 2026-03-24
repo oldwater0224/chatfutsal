@@ -27,7 +27,7 @@ export default function UserSearchModal({
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ 유저 불러오기 함수
+  //  유저 불러오기 함수
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -55,14 +55,14 @@ export default function UserSearchModal({
     }
   }, [currentUserId]);
 
-  // ✅ 모달 열릴 때 유저 불러오기
+  //  모달 열릴 때 유저 불러오기
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
     }
   }, [isOpen, fetchUsers]);
 
-  // ✅ 검색어 필터링 - state 대신 계산된 값 사용
+  //  검색어 필터링 - state 대신 계산된 값 사용
   const filteredUsers = searchTerm.trim() === ""
     ? allUsers
     : allUsers.filter(
@@ -71,7 +71,7 @@ export default function UserSearchModal({
           user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-  // ✅ 모달 닫기 - 이벤트 핸들러에서 초기화
+  //  모달 닫기 - 이벤트 핸들러에서 초기화
   const handleClose = () => {
     setSearchTerm("");
     setAllUsers([]);

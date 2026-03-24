@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/src/hooks/useAuth";
-import { createRecruitPost } from "@/src/lib/recruitService";
+import { createRecruitPost } from "@/src/lib/services";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";

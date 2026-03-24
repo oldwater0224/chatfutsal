@@ -6,8 +6,8 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { RecruitPost } from "../types";
-import { db } from "./firebase";
+import { RecruitPost } from "../../types";
+import { db } from "../firebase";
 
 // 게시글 생성
 export async function createRecruitPost(

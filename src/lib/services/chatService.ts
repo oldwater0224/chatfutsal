@@ -9,7 +9,7 @@ import {
   doc,
   writeBatch,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "../firebase";
 
 // 기존 채팅방 찾기
 export async function findExistingChatRoom(
@@ -139,7 +139,7 @@ export async function markMessagesAsRead(
       if (data.senderId !== userId && !readBy.includes(userId)) {
         batch.update(doc(db, "chatRooms", roomId, "messages", msgDoc.id), {
           readBy: [...readBy, userId],
-           
+
         })
         console.log('→ 업데이트 대상!');
         updateCount++;
@@ -153,11 +153,11 @@ export async function markMessagesAsRead(
     if(updateCount > 0){
       await batch.commit();
        console.log('batch.commit() 완료');
-      
+
     }else {
       console.log('읽을 메세지 없음');
     }
-    
+
   } catch (error) {
     console.error("메세지 읽음 처리 실패:", error);
   }

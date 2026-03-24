@@ -1,5 +1,5 @@
 import { collection, addDoc, deleteDoc, getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../firebase';
 
 const locations = [
   { name: '서울 강남 풋살장', address: '서울시 강남구 역삼동 123-45', lat: 37.5012, lng: 127.0396 },

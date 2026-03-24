@@ -1,9 +1,10 @@
 "use client";
 
 import KakaoMap from "@/src/components/KakaoMap";
+import Loading from "@/src/components/Loading";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMatch } from "@/src/hooks/useMatch";
-import { joinMatch, leaveMatch } from "@/src/lib/matchService";
+import { joinMatch, leaveMatch } from "@/src/lib/services";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -33,9 +34,7 @@ export default function MatchDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
+      <Loading />
     );
   }
   if (error || !match) {

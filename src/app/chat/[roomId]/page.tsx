@@ -7,7 +7,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMessages, sendMessage } from "@/src/hooks/useMessage";
-import { leaveChatRoom, markMessagesAsRead } from "@/src/lib/chatService";
+import { leaveChatRoom, markMessagesAsRead } from "@/src/lib/services";
 import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
 
@@ -133,11 +133,11 @@ export default function ChatRoomPage() {
       </div>
     );
   }
-  console.log("=== 조건 체크 ===");
-  console.log("user:", user);
-  console.log("user?.uid:", user?.uid);
-  console.log("chatRoom:", chatRoom);
-  console.log("roomId:", roomId);
+  // console.log("=== 조건 체크 ===");
+  // console.log("user:", user);
+  // console.log("user?.uid:", user?.uid);
+  // console.log("chatRoom:", chatRoom);
+  // console.log("roomId:", roomId);
 
   if (!user || !chatRoom) {
     return (

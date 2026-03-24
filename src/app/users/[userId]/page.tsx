@@ -1,7 +1,8 @@
 'use client'
 
+import Loading from "@/src/components/Loading";
 import { useAuth } from "@/src/hooks/useAuth";
-import { startChat } from "@/src/lib/chatService";
+import { startChat } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { User } from "@/src/types";
 import { doc, getDoc } from "firebase/firestore";
@@ -63,9 +64,7 @@ export default function UserProfilePage () {
 }
 if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
+      <Loading />
     );
   }
 

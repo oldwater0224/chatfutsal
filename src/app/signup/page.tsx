@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/lib/firebase';
+import { getFirebaseErrorMessage } from '@/src/lib/firebase/firebaseError';
 import AuthForm from '@/src/components/AuthForm';
-import { getFirebaseErrorMessage } from '@/src/lib/firebaseError';
 
 export default function SignupPage() {
   const router = useRouter();

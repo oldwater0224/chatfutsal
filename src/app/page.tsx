@@ -59,7 +59,7 @@ export default function HomePage() {
           </div>
         ) : (
           <div>
-            {/* 결과 개수 */}
+            {/* 필터된 매치 결과 개수 */}
             <div className="px-4 py-2 text-sm text-gray-500">
               {matches.length}개의 매치
             </div>

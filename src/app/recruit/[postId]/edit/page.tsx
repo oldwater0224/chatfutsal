@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/lib/firebase";
-import { updateRecruitPost } from "@/src/lib/recruitService";
+import { updateRecruitPost } from "@/src/lib/services";
 import { RecruitPost } from "@/src/types";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";

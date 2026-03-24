@@ -1,5 +1,5 @@
 import { collection, addDoc, doc, setDoc , deleteDoc , getDocs } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../firebase';
 
 // 테스트용 유저 데이터
 const testUsers = [

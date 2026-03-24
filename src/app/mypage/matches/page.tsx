@@ -1,6 +1,7 @@
 "use client";
 
 import BottomNav from "@/src/components/BottomNav";
+import Loading from "@/src/components/Loading";
 import MatchCard from "@/src/components/MatchCard";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMyMatches } from "@/src/hooks/useMyMatches";
@@ -21,9 +22,7 @@ export default function MyMatchesPage() {
 
   if (authLoading || matchesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>로딩 중...</p>
-      </div>
+      <Loading />
     );
   }
 

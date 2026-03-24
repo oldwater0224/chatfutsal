@@ -1,22 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
-import { seedMatches, deleteAllMatches } from "@/src/lib/seedMatches";
-import {
-  seedTestUsers,
-  seedChatRooms,
-  seedChatRoomsWithUser,
-  deleteTestUsers,
-  deleteAllChatRooms,
-} from "@/src/lib/seedChats";
-import { useRouter } from "next/navigation";
+import { seedMatches, deleteAllMatches, seedTestUsers, seedChatRooms, seedChatRoomsWithUser, deleteTestUsers, deleteAllChatRooms } from "@/src/lib/seed";
+
 
 export default function SeedPage() {
   const { user, userData, isLoading } = useAuth();
   const [status, setStatus] = useState<string>("");
   const [isRunning, setIsRunning] = useState(false);
-  const router = useRouter();
+  
 
   // 배포 환경에서 접근 차단
   // useEffect(() => {

@@ -1,9 +1,8 @@
 "use client";
 
 import { useAuth } from "@/src/hooks/useAuth";
-import { startChat } from "@/src/lib/chatService";
+import { startChat, closeRecruitPost, deleteRecruitPost, reopenRecruitPost } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
-import { closeRecruitPost, deleteRecruitPost, reopenRecruitPost } from "@/src/lib/recruitService";
 import { LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";

@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/src/lib/firebase';
+import { getFirebaseErrorMessage } from '@/src/lib/firebase/firebaseError';
 import AuthForm from '@/src/components/AuthForm';
-import { getFirebaseErrorMessage } from '@/src/lib/firebaseError';
 
 export default function LoginPage() {
   const router = useRouter();

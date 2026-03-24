@@ -46,7 +46,7 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm">
               {filters.date || filters.region || filters.level
                 ? '다른 조건으로 검색해보세요'
-                : '곧 새로운 매치가 등록될 거예요'}
+                : '/seed 페이지에서 테스트 매치를 생성해보세요'}
             </p>
             {(filters.date || filters.region || filters.level) && (
               <button

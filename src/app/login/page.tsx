@@ -8,6 +8,7 @@ import AuthForm from '@/src/components/AuthForm';
 
 export default function LoginPage() {
   const router = useRouter();
+  
 
   const handleLogin = async (email: string, password: string) => {
     try {

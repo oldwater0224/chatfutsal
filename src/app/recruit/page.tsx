@@ -87,7 +87,7 @@ export default function RecruitListPage(){
                       📅 {post.date} {post.time}
                     </p>
                     <p>📍 {post.location}</p>
-                    <p>👥 {post.needCount}명 모집</p>
+                    <p>👤 {post.needCount}명 모집</p>
                    
                   </div>
 

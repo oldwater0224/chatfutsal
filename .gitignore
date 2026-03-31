@@ -15,10 +15,12 @@
 
 #test
 /src/app/test
+firebase.md
 
 # next.js
 /.next/
 /out/
+
 
 # production
 /build

@@ -1,6 +1,6 @@
 CHATFUTSAL
 
-chatting with futsal
+futsal with chat
 
 풋살 소셜 모임을 이용중에 생각지 못한 상황때문에 <br>
 경기를 주최하는 사용자와 소통하는 방법이   부족하다는 판단 하에 서비스를 만들어 보자는 생각으로 시작했습니다.
@@ -18,6 +18,7 @@ kakao Maps API 연동 위치 안내
 용병 모집 지도 검색 기능<br>
 UI Update<br>
 GROUP CHAT<br>
+UserSearch <br>
 
 
 

@@ -5,10 +5,7 @@ import Loading from "@/src/components/Loading";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMatch } from "@/src/hooks/useMatch";
 import { joinMatch, leaveMatch } from "@/src/lib/services";
-<<<<<<< HEAD
-=======
-import { Calendar, Locate, LocateFixed, LocateFixedIcon, MapPin, SpotlightIcon, Users } from "lucide-react";
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
+import { Calendar, MapPin, SpotlightIcon, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -25,14 +22,14 @@ export default function MatchDetailPage() {
   const levelLabels: Record<string, string> = {
     beginner: "비기너",
     amateur: "아마추어",
-    semipro: "세미프로",
+    "semi-pro": "세미프로",
     pro: "프로",
   };
 
   const levelColors: Record<string, string> = {
     beginner: "bg-green-100 text-green-700",
     amateur: "bg-blue-100 text-blue-700",
-    semipro: "bg-purple-100 text-purple-700",
+    "semi-pro": "bg-purple-100 text-purple-700",
     pro: "bg-red-100 text-red-700",
   };
 
@@ -116,10 +113,10 @@ export default function MatchDetailPage() {
       <main className="pt-14 pb-24 px-4">
         {/* 매치 정보 카드 */}
         <div className="mt-4 bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex gap-5 items-start mb-4 ">
             <h2 className="text-xl font-bold text-gray-900">{match.title}</h2>
             <span
-              className={`px-2 py-1 rounded text-xs ${levelColors[match.level]}`}
+              className={`px-2 py-1 rounded text-xs  ${levelColors[match.level]}`}
             >
               {levelLabels[match.level]}
             </span>
@@ -172,7 +169,7 @@ export default function MatchDetailPage() {
           {match.lat && match.lng ? (
             <KakaoMap lat={match.lat} lng={match.lng} address={match.address} />
           ) : (
-            <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+            <div className="w-full  h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
               위치 정보가 없습니다.
             </div>
           )}

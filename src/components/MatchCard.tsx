@@ -1,9 +1,6 @@
 import Link from 'next/link';
 import { Match } from '@/src/types';
-<<<<<<< HEAD
-=======
 import { Calendar, MapPin, SpotlightIcon, Users,  } from 'lucide-react';
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
 interface MatchCardProps {
   match: Match;
@@ -26,23 +23,14 @@ export default function MatchCard({ match }: MatchCardProps) {
     pro: '프로',
   };
 
-<<<<<<< HEAD
-  // 참가율 계산
-=======
   // 참가율 계산 
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
   const participantRate =
     (match.currentParticipants / match.maxParticipants) * 100;
 
   return (
     <Link href={`/matches/${match.id}`}>
-<<<<<<< HEAD
-      <div className="bg-white p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-        <div className="flex justify-between items-start mb-2">
-=======
       <div className="bg-white p-4 border-b border-gray-100 transition-colors  ">
         <div className="flex items-start gap-5 mb-2">
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
           <h3 className="font-semibold text-gray-900">{match.title}</h3>
           <span
             className={`px-2 py-1 rounded text-xs font-medium ${
@@ -53,13 +41,6 @@ export default function MatchCard({ match }: MatchCardProps) {
           </span>
         </div>
 
-<<<<<<< HEAD
-        <div className="text-sm text-gray-500 space-y-1">
-          <p>📅 {match.date} {match.time}</p>
-          <p>📍 {match.location}</p>
-          <p>💰 {match.price.toLocaleString()}원</p>
-        </div>
-=======
         
         <div className="space-y-2 text-sm text-gray-600">
             <div className="flex items-center gap-2">
@@ -77,16 +58,12 @@ export default function MatchCard({ match }: MatchCardProps) {
               <span>₩{match.price?.toLocaleString()}</span>
             </div>
           </div>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
         {/* 참가자 프로그레스 바 */}
         <div className="mt-3">
           <div className="flex justify-between items-center mb-1">
-<<<<<<< HEAD
-=======
             <div className='flex items-center gap-1.5'>
               <Users className="w-4 h-4 text-gray-400" />
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <span
               className={`text-sm font-medium ${
                 isFull ? 'text-red-500' : 'text-green-600'
@@ -96,10 +73,7 @@ export default function MatchCard({ match }: MatchCardProps) {
                 ? '마감'
                 : `${match.currentParticipants}/${match.maxParticipants}명`}
             </span>
-<<<<<<< HEAD
-=======
             </div>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <span className="text-xs text-gray-400">
               {isFull ? '' : '자세히 보기 →'}
             </span>

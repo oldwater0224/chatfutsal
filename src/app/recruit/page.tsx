@@ -1,37 +1,9 @@
-<<<<<<< HEAD
 'use client'
-=======
-"use client";
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
 import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRecruitPosts } from "@/src/hooks/useRecruitPosts";
-<<<<<<< HEAD
-import Link from "next/link";
-
-
-const LEVEL_LABELS: Record<string , string> = {
-  beginner : '비기너' ,
-  amateur : '아마추어' , 
-  semipro : '세미프로' , 
-  pro: '프로'
-};
-const LEVEL_COLORS: Record<string, string> = {
-  beginner: 'bg-green-100 text-green-700',
-  amateur: 'bg-blue-100 text-blue-700',
-  semipro: 'bg-purple-100 text-purple-700',
-  pro: 'bg-red-100 text-red-700',
-};
-
-export default function RecruitListPage(){
-  const {user} = useAuth();
-  const {posts , isLoading} = useRecruitPosts();
-
-  return (
-     <div className="min-h-screen bg-gray-50">
-=======
 import { Calendar, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -54,7 +26,6 @@ export default function RecruitListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
       <Header />
 
       <main className="pt-14 pb-20">
@@ -79,10 +50,6 @@ export default function RecruitListPage() {
           </div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-<<<<<<< HEAD
-            
-=======
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <p className="text-gray-700 font-medium mb-1">모집 글이 없어요</p>
             <p className="text-gray-500 text-sm mb-4">
               첫 번째 용병 모집 글을 작성해보세요!
@@ -100,18 +67,12 @@ export default function RecruitListPage() {
           <div>
             {posts.map((post) => (
               <Link key={post.id} href={`/recruit/${post.id}`}>
-<<<<<<< HEAD
-                <div className="bg-white p-4 border-b hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 flex-1 mr-2">
-=======
                 <div
                   className="bg-white p-4 border-b hover:bg-gray-50 transition-colors
                 "
                 >
                   <div className="flex mb-3">
                     <h3 className="font-semibold text-gray-900 mr-4">
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                       {post.title}
                     </h3>
                     <span
@@ -124,14 +85,6 @@ export default function RecruitListPage() {
                   </div>
 
                   <div className="text-sm text-gray-500 space-y-1">
-<<<<<<< HEAD
-                    <p>
-                      📅 {post.date} {post.time}
-                    </p>
-                    <p>📍 {post.location}</p>
-                    <p>👤 {post.needCount}명 모집</p>
-                   
-=======
                     <p className="flex items-center gap-1">
                       <Calendar className="w-4 h-4 text-blue-500" />
                       {post.date} {post.time}
@@ -144,25 +97,16 @@ export default function RecruitListPage() {
                       <Users className="w-4 h-4" />
                       {post.needCount}명 모집
                     </p>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                   </div>
 
                   <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
                     <span>{post.authorName}</span>
                     <span>
-<<<<<<< HEAD
-                      {post.createdAt.toLocaleDateString('ko-KR', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-=======
                       {post.createdAt.toLocaleDateString("ko-KR", {
                         month: "short",
                         day: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                       })}
                     </span>
                   </div>
@@ -175,11 +119,5 @@ export default function RecruitListPage() {
 
       <BottomNav />
     </div>
-<<<<<<< HEAD
-  )
-}
-
-=======
   );
 }
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53

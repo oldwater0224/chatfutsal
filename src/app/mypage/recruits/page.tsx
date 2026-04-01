@@ -4,10 +4,7 @@ import BottomNav from "@/src/components/BottomNav";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMyRecruitPosts } from "@/src/hooks/useRecruitPosts";
 import { LEVEL_COLORS, LEVEL_LABELS } from "@/src/types";
-<<<<<<< HEAD
-=======
 import { Calendar, MapPin } from "lucide-react";
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -114,13 +111,6 @@ export default function MypageRecruit() {
                           </span>
                         </div>
 
-<<<<<<< HEAD
-                        <div className="text-sm text-gray-500 space-y-1">
-                          <p>
-                            📅 {post.date} {post.time}
-                          </p>
-                          <p>📍 {post.location}</p>
-=======
                         <div className="text-sm text-gray-500 space-y-1 ">
                           <div className="flex gap-2">
                             <Calendar className="w-5 h-5 text-blue-500" />
@@ -133,7 +123,6 @@ export default function MypageRecruit() {
                             <MapPin className="w-5 h-5 text-red-500" />
                             <span>{post.location} </span>
                           </div>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                         </div>
 
                         <div className="mt-2 text-xs text-gray-400">
@@ -169,12 +158,6 @@ export default function MypageRecruit() {
                           </div>
 
                           <div className="text-sm text-gray-500 space-y-1">
-<<<<<<< HEAD
-                            <p>
-                              📅 {post.date} {post.time}
-                            </p>
-                            <p>📍 {post.location}</p>
-=======
                             <div className="flex gap-2">
                               <Calendar className="w-5 h-5 text-blue-500" />
                               <span>
@@ -186,7 +169,6 @@ export default function MypageRecruit() {
                               <MapPin className="w-5 h-5 text-red-500" />
                               <span>{post.location}</span>
                             </div>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                           </div>
                         </div>
                       </Link>

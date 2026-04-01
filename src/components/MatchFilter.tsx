@@ -3,17 +3,10 @@
 import { useState } from "react";
 import { MatchFilterProps } from "../types";
 
-<<<<<<< HEAD
-
-
-export default function MatchFilter({ filters = {date : '' , region: '' , level : ''} , onFilterChange }: MatchFilterProps) {
- 
-=======
 export default function MatchFilter({
   filters = { date: "", region: "", level: "" },
   onFilterChange,
 }: MatchFilterProps) {
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
   const [isExpanded, setIsExpanded] = useState(false);
 
   const regions = [
@@ -33,29 +26,16 @@ export default function MatchFilter({
     { value: "semi-pro", label: "세미프로" },
     { value: "pro", label: "프로" },
   ];
-<<<<<<< HEAD
-  // 오늘부터 7일간 날짜 생성
-  const generateDates = () => {
-    const dates = [];
-    const today = new Date();
-   
-=======
   //  날짜 생성
   const generateDates = () => {
     const dates = [];
     const today = new Date();
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
       const dateStr = date.toISOString().split("T")[0];
-<<<<<<< HEAD
-      
-=======
-
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
       const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
       const dayName = dayNames[date.getDay()];
       const month = date.getMonth() + 1;
@@ -88,38 +68,13 @@ export default function MatchFilter({
     onFilterChange({ ...filters, level });
   };
   const handleReset = () => {
-<<<<<<< HEAD
-    onFilterChange({date : '' , region: '' , level: ''});
-  } 
-=======
     onFilterChange({ date: "", region: "", level: "" });
   };
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
   const hasActiveFilters = filters?.date || filters?.region || filters?.level;
   return (
     <div className="bg-white border-b sticky top-14 z-40">
       {/* 날짜 필터 */}
-<<<<<<< HEAD
-      <div className="px-4 py-3">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {dates.map((date) => (
-            <button
-              key={date.value}
-              onClick={() => handleDateClick(date.value)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                filters.date === date.value
-                  ? 'bg-green-600 text-white'
-                  : date.isWeekend
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              <span className="block">{date.label}</span>
-              <span className="block text-xs opacity-75">{date.day}</span>
-            </button>
-          ))}
-=======
       <div className="px-4 py-3 overflow-hidden">
         <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide">
           {dates.map((date) => {
@@ -141,7 +96,6 @@ export default function MatchFilter({
               </button>
             );
           })}
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
         </div>
       </div>
 
@@ -149,23 +103,15 @@ export default function MatchFilter({
       <div className="px-4 pb-3 flex justify-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-<<<<<<< HEAD
-          className="flex items-center  gap-2 text-sm text-gray-600 rounded-b-full"
-=======
           className=" flex items-center gap-1 text-sm text-gray-600  rounded-b-full"
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
         >
           <span> 매치 필터</span>
           {hasActiveFilters && (
             <span className="w-2 h-2 bg-green-500 rounded-full" />
           )}
-<<<<<<< HEAD
-          <span className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-=======
           <span
             className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
           >
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             ▼
           </span>
         </button>
@@ -186,13 +132,8 @@ export default function MatchFilter({
                   onClick={() => handleRegionChange(region.value)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                     filters.region === region.value
-<<<<<<< HEAD
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-=======
                       ? "bg-green-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                   }`}
                 >
                   {region.label}
@@ -213,13 +154,8 @@ export default function MatchFilter({
                   onClick={() => handleLevelChange(level.value)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                     filters.level === level.value
-<<<<<<< HEAD
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-=======
                       ? "bg-green-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                   }`}
                 >
                   {level.label}

@@ -4,18 +4,6 @@ import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useChatRooms } from '@/src/hooks/useChatRoom';
 
-<<<<<<< HEAD
-export default function Header() {
-  const { user, isLoading } = useAuth();
-  const { totalUnread } = useChatRooms(user?.uid);
-
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">
-      <div className=" mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-green-600">
-           ChatFutsal
-        </Link>
-=======
 import { MessageCircleIcon } from 'lucide-react';
 
 export default function Header() {
@@ -31,7 +19,6 @@ export default function Header() {
           ChatFutsal
         </Link>
         
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
         <div className="flex items-center gap-4">
           {isLoading ? (
@@ -40,11 +27,7 @@ export default function Header() {
             <>
               {/* 채팅 아이콘 */}
               <Link href="/chat" className="relative">
-<<<<<<< HEAD
-                <span className="text-xl">💬</span>
-=======
                 <MessageCircleIcon className="w-5 h-5"></MessageCircleIcon>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                 {totalUnread > 0 && (
                   <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-red-500 rounded-full flex items-center justify-center px-1">
                     <span className="text-white text-xs font-bold">

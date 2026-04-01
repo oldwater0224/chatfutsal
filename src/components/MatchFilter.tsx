@@ -76,7 +76,7 @@ export default function MatchFilter({
   return (
     <div className="bg-white border-b sticky top-14 z-40">
       {/* 날짜 필터 */}
-      <div className="px-4 py-3 max-w-lg mx-auto overflow-hidden">
+      <div className="px-4 py-3 overflow-hidden">
         <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide">
           {dates.map((date) => {
             return (

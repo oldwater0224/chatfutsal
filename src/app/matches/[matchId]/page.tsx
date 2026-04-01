@@ -34,13 +34,13 @@ export default function MatchDetailPage() {
   };
 
   if (isLoading) {
-<<<<<<< HEAD
+
     return (
       <Loading />
     );
-=======
-    return <Loading />;
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
+
+  
+
   }
   if (error || !match) {
     return (
@@ -61,11 +61,7 @@ export default function MatchDetailPage() {
       router.push("/login");
       return;
     }
-<<<<<<< HEAD
-    // 참가 신청 로직 구현
-=======
     // 참가 신청 로직
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
     setIsSubmitting(true);
     try {
       await joinMatch(matchId, user.uid);
@@ -96,11 +92,7 @@ export default function MatchDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-<<<<<<< HEAD
-      <header className="fixed top-0 left-0  right-0 bg-white border-b z-50">
-=======
       <header className="fixed top-0 left-0  right-0 bg-white  z-50">
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
         <div className="max-w-md  px-4 h-14 flex items-center">
           <Link href="/" className="text-gray-600 mr-4">
             ←
@@ -124,40 +116,24 @@ export default function MatchDetailPage() {
 
           <div className="space-y-3 text-gray-600">
             <div className="flex items-center gap-2">
-<<<<<<< HEAD
-              <span>📅</span>
-=======
               <Calendar className="w-5 h-5 text-blue-500" />
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
               <span>
                 {match.date} {match.time}
               </span>
             </div>
             <div className="flex items-center gap-2">
-<<<<<<< HEAD
-              <span>📍</span>
-              <span>{match.address}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>👥</span>
-=======
               <MapPin className="w-5 h-5 text-red-500" />
               <span>{match.address}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5" />
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
               <span className={isFull ? "text-red-500" : "text-green-600"}>
                 {match.currentParticipants}/{match.maxParticipants}명
                 {isFull && " (마감)"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-<<<<<<< HEAD
-              <span>💰</span>
-=======
               <SpotlightIcon className="w-5 h-5 text-purple-500"/>
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
               <span>{match.price.toLocaleString()}원</span>
             </div>
           </div>

@@ -16,9 +16,16 @@
 #test
 /src/app/test
 
+<<<<<<< HEAD
+=======
+#firebase
+firebase.md
+
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 # next.js
 /.next/
 /out/
+
 
 # production
 /build

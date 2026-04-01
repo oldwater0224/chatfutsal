@@ -8,6 +8,10 @@ import { doc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
+=======
+import { AudioLines, Calendar, MapPin, Users } from "lucide-react";
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
 
 export default function RecruitDetailPage() {
@@ -191,7 +195,11 @@ export default function RecruitDetailPage() {
         {/* 정보 카드 */}
         <div className="mt-6 bg-white rounded-lg p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-3">
+<<<<<<< HEAD
             <span className="text-xl">📅</span>
+=======
+            <Calendar className="w-5 h-5 text-blue-500"  />
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <div>
               <p className="text-sm text-gray-500">경기 일시</p>
               <p className="font-medium">
@@ -201,7 +209,11 @@ export default function RecruitDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
+<<<<<<< HEAD
             <span className="text-xl">📍</span>
+=======
+            <MapPin className="w-5 h-5 text-red-500" />
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <div>
               <p className="text-sm text-gray-500">장소</p>
               <p className="font-medium">{post.location}</p>
@@ -209,14 +221,22 @@ export default function RecruitDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
+<<<<<<< HEAD
             <span className="text-xl">⚽</span>
+=======
+            <AudioLines className="w-5 h-5 text-purple-500" />
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <div>
               <p className="text-sm text-gray-500">실력 수준</p>
               <p className="font-medium">{LEVEL_LABELS[post.level]}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
+<<<<<<< HEAD
             <span className="text-xl">👥</span>
+=======
+            <Users className="w-5 h-5 "/>
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
             <div>
               <p className="text-sm text-gray-500">모집 인원</p>
               <p className="font-medium">{post.needCount}명</p>

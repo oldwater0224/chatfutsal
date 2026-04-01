@@ -4,7 +4,7 @@ import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRecruitPosts } from "@/src/hooks/useRecruitPosts";
-import { Calendar, MapPin, User } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import Link from "next/link";
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -67,9 +67,12 @@ export default function RecruitListPage() {
           <div>
             {posts.map((post) => (
               <Link key={post.id} href={`/recruit/${post.id}`}>
-                <div className="bg-white p-4 border-b hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 flex-1 mr-2">
+                <div
+                  className="bg-white p-4 border-b hover:bg-gray-50 transition-colors
+                "
+                >
+                  <div className="flex mb-3">
+                    <h3 className="font-semibold text-gray-900 mr-4">
                       {post.title}
                     </h3>
                     <span
@@ -91,10 +94,9 @@ export default function RecruitListPage() {
                       {post.location}
                     </p>
                     <p className="flex items-center gap-1">
-                      <User className="w-4 h-4 text-purple-500" />
+                      <Users className="w-4 h-4" />
                       {post.needCount}명 모집
                     </p>
-                    
                   </div>
 
                   <div className="mt-2 flex items-center justify-between text-xs text-gray-400">

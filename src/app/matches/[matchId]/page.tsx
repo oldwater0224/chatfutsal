@@ -5,6 +5,7 @@ import Loading from "@/src/components/Loading";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMatch } from "@/src/hooks/useMatch";
 import { joinMatch, leaveMatch } from "@/src/lib/services";
+import { Calendar, Locate, LocateFixed, LocateFixedIcon, MapPin, SpotlightIcon, Users } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -33,9 +34,7 @@ export default function MatchDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <Loading />
-    );
+    return <Loading />;
   }
   if (error || !match) {
     return (
@@ -56,7 +55,7 @@ export default function MatchDetailPage() {
       router.push("/login");
       return;
     }
-    // 참가 신청 로직 구현
+    // 참가 신청 로직
     setIsSubmitting(true);
     try {
       await joinMatch(matchId, user.uid);
@@ -87,7 +86,7 @@ export default function MatchDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="fixed top-0 left-0  right-0 bg-white border-b z-50">
+      <header className="fixed top-0 left-0  right-0 bg-white  z-50">
         <div className="max-w-md  px-4 h-14 flex items-center">
           <Link href="/" className="text-gray-600 mr-4">
             ←
@@ -111,24 +110,24 @@ export default function MatchDetailPage() {
 
           <div className="space-y-3 text-gray-600">
             <div className="flex items-center gap-2">
-              <span>📅</span>
+              <Calendar className="w-5 h-5 text-blue-500" />
               <span>
                 {match.date} {match.time}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span>📍</span>
+              <MapPin className="w-5 h-5 text-red-500" />
               <span>{match.address}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>👥</span>
+              <Users className="w-5 h-5" />
               <span className={isFull ? "text-red-500" : "text-green-600"}>
                 {match.currentParticipants}/{match.maxParticipants}명
                 {isFull && " (마감)"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span>💰</span>
+              <SpotlightIcon className="w-5 h-5 text-purple-500"/>
               <span>{match.price.toLocaleString()}원</span>
             </div>
           </div>

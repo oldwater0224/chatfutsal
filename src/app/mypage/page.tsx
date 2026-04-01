@@ -7,7 +7,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useMyMatches } from "@/src/hooks/useMyMatches";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import { MessageCircleIcon } from "lucide-react";
+import { FileTextIcon, MessageCircleIcon } from "lucide-react";
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -66,26 +66,6 @@ export default function MyPage() {
           </div>
         </div>
 
-        {/* 통계 카드 */}
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <Link
-            href="/mypage/matches"
-            className="bg-white rounded-lg p-4 shadow-sm text-center hover:bg-gray-50"
-          >
-            <p className="text-2xl font-bold text-green-600">
-              {upcomingMatchCount}
-            </p>
-            <p className="text-sm text-gray-500">예정된 매치</p>
-          </Link>
-          <Link
-            href="/chat"
-            className="bg-white rounded-lg p-4 shadow-sm text-center hover:bg-gray-50"
-          >
-            <MessageCircleIcon className="mx-auto w-5 h-8"></MessageCircleIcon>
-            <p className="text-sm text-gray-500">채팅</p>
-          </Link>
-        </div>
-
         {/* 메뉴 */}
         <div className="mt-6 space-y-2">
           <Link
@@ -114,7 +94,7 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span>💬</span>
+                <MessageCircleIcon className="w-5 h-5" />
                 <span>채팅 목록</span>
               </div>
               <span className="text-gray-400">→</span>
@@ -126,7 +106,7 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span> 📝 </span>
+                <FileTextIcon className="w-5 h-5" />
                 <span>내가 작성한 용병모집 게시글</span>
               </div>
               <span className="text-gray-400">→</span>

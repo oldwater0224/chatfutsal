@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Match } from '@/src/types';
-import { Calendar, MapPin, SpotlightIcon,  } from 'lucide-react';
+import { Calendar, MapPin, SpotlightIcon, Users,  } from 'lucide-react';
 
 interface MatchCardProps {
   match: Match;
@@ -62,6 +62,8 @@ export default function MatchCard({ match }: MatchCardProps) {
         {/* 참가자 프로그레스 바 */}
         <div className="mt-3">
           <div className="flex justify-between items-center mb-1">
+            <div className='flex items-center gap-1.5'>
+              <Users className="w-4 h-4 text-gray-400" />
             <span
               className={`text-sm font-medium ${
                 isFull ? 'text-red-500' : 'text-green-600'
@@ -71,6 +73,7 @@ export default function MatchCard({ match }: MatchCardProps) {
                 ? '마감'
                 : `${match.currentParticipants}/${match.maxParticipants}명`}
             </span>
+            </div>
             <span className="text-xs text-gray-400">
               {isFull ? '' : '자세히 보기 →'}
             </span>

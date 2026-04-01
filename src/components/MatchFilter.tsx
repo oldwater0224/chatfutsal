@@ -8,7 +8,6 @@ export default function MatchFilter({
   onFilterChange,
 }: MatchFilterProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
 
   const regions = [
     { value: "", label: "전체 지역" },
@@ -54,7 +53,6 @@ export default function MatchFilter({
   };
 
   const dates = generateDates();
-  
 
   const handleDateClick = (dateValue: string) => {
     console.log("날짜 클릭:", dateValue);
@@ -79,17 +77,20 @@ export default function MatchFilter({
     <div className="bg-white border-b sticky top-14 z-40">
       {/* 날짜 필터 */}
       <div className="px-4 py-3 max-w-lg mx-auto overflow-hidden">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+        <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide">
           {dates.map((date) => {
             return (
               <button
                 key={date.value}
                 onClick={() => handleDateClick(date.value)}
-                className={`shrink-0 px-4 py-2 rounded-2xl text-sm font-medium   ${filters.date === date.value
-                    ? "bg-green-600 text-white"
-                    : date.isWeekend
-                      ? "bg-red-50 text-red-600 hover:bg-red-100"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                className={` shrink-0 px-4 py-2 rounded-2xl text-md font-medium hover:cursor-pointer
+                     ${
+                       filters.date === date.value
+                         ? "bg-green-600 text-white"
+                         : date.isWeekend
+                           ? " text-red-600 "
+                           : " text-gray-700 "
+                     }`}
               >
                 <span className="block">{date.label}</span>
                 <span className="block text-xs opacity-75">{date.day}</span>
@@ -103,7 +104,7 @@ export default function MatchFilter({
       <div className="px-4 pb-3 flex justify-end">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center  gap-2 text-sm text-gray-600 rounded-b-full"
+          className=" flex items-center gap-1 text-sm text-gray-600  rounded-b-full"
         >
           <span> 매치 필터</span>
           {hasActiveFilters && (

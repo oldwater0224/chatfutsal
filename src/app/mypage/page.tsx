@@ -7,6 +7,10 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useMyMatches } from "@/src/hooks/useMyMatches";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
+<<<<<<< HEAD
+=======
+import { FileTextIcon, MessageCircleIcon } from "lucide-react";
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -65,6 +69,7 @@ export default function MyPage() {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* 통계 카드 */}
         <div className="mt-4 grid grid-cols-2 gap-4">
           <Link
@@ -85,6 +90,8 @@ export default function MyPage() {
           </Link>
         </div>
 
+=======
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
         {/* 메뉴 */}
         <div className="mt-6 space-y-2">
           <Link
@@ -113,7 +120,11 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
+<<<<<<< HEAD
                 <span>💬</span>
+=======
+                <MessageCircleIcon className="w-5 h-5" />
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                 <span>채팅 목록</span>
               </div>
               <span className="text-gray-400">→</span>
@@ -125,7 +136,11 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
+<<<<<<< HEAD
                 <span> 📝 </span>
+=======
+                <FileTextIcon className="w-5 h-5" />
+>>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
                 <span>내가 작성한 용병모집 게시글</span>
               </div>
               <span className="text-gray-400">→</span>

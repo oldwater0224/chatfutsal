@@ -24,10 +24,10 @@ export default function Header() {
  
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white">
-      <div className=" mx-auto px-4 h-14 flex justify-between items-center">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white ">
+      <div className=" mx-auto px-4 h-14 flex justify-between items-center ">
         {/* 로고 */}
-        <Link href="/" className="text-xl font-bold text-green-600">
+        <Link href="/" className="text-xl font-bold text-green-600 ">
           ChatFutsal
         </Link>
         

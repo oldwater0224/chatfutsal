@@ -174,7 +174,7 @@ export default function CreateRecruitPage() {
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {/* 구장 지도 */}
-            <div>구장 지도</div>
+            
           </div>
            
 

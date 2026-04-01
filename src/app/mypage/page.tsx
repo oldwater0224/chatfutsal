@@ -7,6 +7,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useMyMatches } from "@/src/hooks/useMyMatches";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
+import { MessageCircleIcon } from "lucide-react";
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -80,7 +81,7 @@ export default function MyPage() {
             href="/chat"
             className="bg-white rounded-lg p-4 shadow-sm text-center hover:bg-gray-50"
           >
-            <p className="text-2xl font-bold text-green-600">💬</p>
+            <MessageCircleIcon className="mx-auto w-5 h-8"></MessageCircleIcon>
             <p className="text-sm text-gray-500">채팅</p>
           </Link>
         </div>

@@ -4,6 +4,7 @@ import BottomNav from "@/src/components/BottomNav";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMyRecruitPosts } from "@/src/hooks/useRecruitPosts";
 import { LEVEL_COLORS, LEVEL_LABELS } from "@/src/types";
+import { Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -111,9 +112,9 @@ export default function MypageRecruit() {
                         </div>
 
                         <div className="text-sm text-gray-500 space-y-1">
-                          <p>
+                          <Calendar>
                             📅 {post.date} {post.time}
-                          </p>
+                          </Calendar>
                           <p>📍 {post.location}</p>
                         </div>
 
@@ -150,9 +151,9 @@ export default function MypageRecruit() {
                           </div>
 
                           <div className="text-sm text-gray-500 space-y-1">
-                            <p>
+                            <Calendar>
                               📅 {post.date} {post.time}
-                            </p>
+                            </Calendar>
                             <p>📍 {post.location}</p>
                           </div>
                         </div>

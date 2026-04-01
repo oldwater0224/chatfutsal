@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Match } from '@/src/types';
+import { Calendar, MapPin, SpotlightIcon,  } from 'lucide-react';
 
 interface MatchCardProps {
   match: Match;
@@ -22,14 +23,14 @@ export default function MatchCard({ match }: MatchCardProps) {
     pro: '프로',
   };
 
-  // 참가율 계산
+  // 참가율 계산 
   const participantRate =
     (match.currentParticipants / match.maxParticipants) * 100;
 
   return (
     <Link href={`/matches/${match.id}`}>
-      <div className="bg-white p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-        <div className="flex justify-between items-start mb-2">
+      <div className="bg-white p-4 border-b border-gray-100 transition-colors  ">
+        <div className="flex items-start gap-5 mb-2">
           <h3 className="font-semibold text-gray-900">{match.title}</h3>
           <span
             className={`px-2 py-1 rounded text-xs font-medium ${
@@ -40,11 +41,23 @@ export default function MatchCard({ match }: MatchCardProps) {
           </span>
         </div>
 
-        <div className="text-sm text-gray-500 space-y-1">
-          <p>📅 {match.date} {match.time}</p>
-          <p>📍 {match.location}</p>
-          <p>💰 {match.price.toLocaleString()}원</p>
-        </div>
+        
+        <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-500" />
+              <span>
+                {match.date} {match.time}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-red-500" />
+              <span>{match.location}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <SpotlightIcon className="w-4 h-4 text-purple-300" />
+              <span>₩{match.price?.toLocaleString()}</span>
+            </div>
+          </div>
 
         {/* 참가자 프로그레스 바 */}
         <div className="mt-3">

@@ -64,14 +64,14 @@ export default function RecruitListPage() {
             )}
           </div>
         ) : (
-          <div>
+          <div className="">
             {posts.map((post) => (
               <Link key={post.id} href={`/recruit/${post.id}`}>
                 <div
-                  className="bg-white p-4 border-b hover:bg-gray-50 transition-colors
+                  className="  bg-white p-4 border-b hover:bg-gray-50 transition-colors
                 "
                 >
-                  <div className="flex mb-3">
+                  <div className="flex mb-3 ">
                     <h3 className="font-semibold text-gray-900 mr-4">
                       {post.title}
                     </h3>

@@ -10,6 +10,7 @@ import { useMessages, sendMessage } from "@/src/hooks/useMessage";
 import { leaveChatRoom, markMessagesAsRead } from "@/src/lib/services";
 import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
+import { LogOut } from "lucide-react";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -190,15 +191,15 @@ export default function ChatRoomPage() {
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-35">
+              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-25">
                 <button
                   onClick={() => {
                     setShowMenu(false);
                     handleLeaveChatRoom();
                   }}
-                  className="w-full px-4 py-2 text-left text-red-500 hover:bg-gray-50 text-sm"
+                  className=" w-full px-3 py-2  text-red-500 text-sm flex items-center gap-2"
                 >
-                  🚪 채팅방 나가기
+                  <LogOut className="w-5 h-5 "/> 나가기
                 </button>
               </div>
             </>

@@ -7,7 +7,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useMyMatches } from "@/src/hooks/useMyMatches";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import { FileTextIcon, MessageCircleIcon } from "lucide-react";
+import { FileTextIcon, Hand, LogOut, MessageCircleIcon } from "lucide-react";
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -41,14 +41,14 @@ export default function MyPage() {
   }
 
   // 예정된 매치 수
-  const today = new Date().toISOString().split("T")[0];
-  const upcomingMatchCount = matches.filter((m) => m.date >= today).length;
+  
+ 
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="pt-14 pb-20 px-4">
+      <main className="pt-14 pb-20 px-4  max-w-5xl mx-auto">
         {/* 프로필 카드 */}
         <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-6">
@@ -74,7 +74,7 @@ export default function MyPage() {
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span>⚽</span>
+                <Hand className="w-5 h-5"/>
                 <span>참가 신청한 매치</span>
               </div>
               <div className="flex items-center gap-2">
@@ -115,11 +115,11 @@ export default function MyPage() {
 
           <button
             onClick={handleLogout}
-            className="w-full bg-white p-4 rounded-lg text-left text-red-500 shadow-sm hover:bg-gray-50"
+            className="w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
           >
             <div className="flex items-center gap-3">
-              <span>🚪</span>
-              <span>로그아웃</span>
+              <LogOut className="w-5 h-5"/>
+              <span className="text-red-500">로그아웃</span>
             </div>
           </button>
         </div>

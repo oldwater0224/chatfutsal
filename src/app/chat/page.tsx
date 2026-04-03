@@ -30,13 +30,13 @@ export default function ChatListPage() {
     <div className="min-h-screen bg-gray-50 pb-16">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className=" mx-auto px-4 h-14 flex items-center">
+        <div className=" mx-auto px-4 h-14 flex items-center max-w-5xl ">
           <h1 className="text-lg font-bold">채팅</h1>
         </div>
       </header>
 
       {/* 채팅 목록 */}
-      <main className="pt-14 px-4">
+      <main className="pt-14 px-4 max-w-5xl mx-auto">
         {chatRooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <p className="text-4xl mb-4">💬</p>
@@ -61,8 +61,8 @@ export default function ChatListPage() {
                 >
                   <div className="flex items-center gap-3">
                     {/* 프로필 아바타 */}
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                      <span className="text-green-600 font-medium">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 text-sm font-medium">
                         {otherUserName.charAt(0)}
                       </span>
                     </div>

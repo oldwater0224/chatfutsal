@@ -74,7 +74,7 @@ export default function MatchCard({ match }: MatchCardProps) {
                 : `${match.currentParticipants}/${match.maxParticipants}명`}
             </span>
             </div>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 ">
               {isFull ? '' : '자세히 보기 →'}
             </span>
           </div>

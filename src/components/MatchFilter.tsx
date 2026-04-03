@@ -119,10 +119,10 @@ export default function MatchFilter({
 
       {/* 확장된 필터 */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-3 border-t pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t pt-3 flex gap-5">
           {/* 지역 필터 */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">
+            <label className="block text-xs font-medium text-gray-500 left-2 mb-2">
               지역
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -145,7 +145,7 @@ export default function MatchFilter({
           {/* 레벨 필터 */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-2">
-              실력
+              레벨
             </label>
             <div className="flex gap-2 flex-wrap">
               {levels.map((level) => (

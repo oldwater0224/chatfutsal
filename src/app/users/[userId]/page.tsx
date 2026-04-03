@@ -89,7 +89,7 @@ if (isLoading) {
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className="max-w-md px-4 h-14 flex items-center">
-          <button onClick={() => router.back()} className="text-gray-600 mr-4">
+          <button onClick={() => router.back()} className="text-gray-600 mr-4 hover:cursor:pointer">
             ←
           </button>
           <h1 className="font-bold">프로필</h1>

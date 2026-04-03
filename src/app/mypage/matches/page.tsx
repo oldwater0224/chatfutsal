@@ -37,7 +37,7 @@ export default function MyMatchesPage() {
      <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-md px-4 h-14 flex items-center">
+        <div className="max-w-lg px-4 h-14 flex items-center">
           <Link href="/mypage" className="text-gray-600 mr-4">
             ←
           </Link>

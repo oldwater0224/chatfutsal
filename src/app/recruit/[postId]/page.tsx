@@ -88,7 +88,7 @@ export default function RecruitDetailPage() {
 
       router.push(`/chat/${roomId}`);
     }catch(error){
-      alert('채팅 시작에 실패했습니다.')
+      alert('채팅 시작에 실패했습니다.');
     }
   };
 
@@ -146,13 +146,15 @@ export default function RecruitDetailPage() {
                     </Link>
                     <button
                       onClick={handleToggleStatus}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50
+                      hover:cursor-pointer"
                     >
                       {post.status === 'open' ? '🔒 마감하기' : '🔓 재오픈'}
                     </button>
+
                     <button
                       onClick={handleDelete}
-                      className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-50"
+                      className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-50 hover:cursor-pointer"
                     >
                       🗑️ 삭제
                     </button>
@@ -165,7 +167,7 @@ export default function RecruitDetailPage() {
       </header>
 
       {/* 본문 */}
-      <main className="pt-14 pb-24 px-4">
+      <main className="pt-14 pb-24 px-4 ml-[25%] mr-[25%]">
         {/* 상태 배지 */}
         {post.status === 'closed' && (
           <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">

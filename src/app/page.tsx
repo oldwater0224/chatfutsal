@@ -58,10 +58,11 @@ export default function HomePage() {
             )}
           </div>
         ) : (
-          <div>
+          <div className='bg-white'>
             {/* 필터된 매치 결과 개수 */}
-            <div className="px-4 py-2 text-sm text-gray-500">
+            <div className="px-4 py-2 text-sm  ml-[25%]">
               {matches.length}개의 매치
+              
             </div>
 
             {/* 매치 카드 목록 */}

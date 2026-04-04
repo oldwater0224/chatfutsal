@@ -89,8 +89,8 @@ export default function MypageRecruit() {
             <>
               {/* 모집 중 */}
               {openPosts.length > 0 && (
-                <div>
-                  <div className="px-4 py-3 bg-green-50">
+                <div className="ml-[25%] mr-[25%]">
+                  <div className="px-4 py-3 bg-green-50 ">
                     <h2 className="font-bold text-green-700">
                       모집 중 ({openPosts.length})
                     </h2>
@@ -136,7 +136,7 @@ export default function MypageRecruit() {
 
               {/* 마감됨 */}
               {closedPosts.length > 0 && (
-                <div className="mt-4">
+                <div className="mt-4 ml-[25%] mr-[25%]">
                   <div className="px-4 py-3 bg-gray-100">
                     <h2 className="font-bold text-gray-600">
                       마감됨 ({closedPosts.length})

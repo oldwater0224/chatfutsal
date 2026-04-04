@@ -30,7 +30,7 @@ export function useMatches(filters?: FilterState) {
 
     //날짜에 대한 필터 적용
     if (filters?.date) {
-      console.log("날짜 필터 적용", filters.date);
+      // console.log("날짜 필터 적용", filters.date);
       q = query(
         matchesRef,
         where("date", "==", filters.date),

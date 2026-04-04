@@ -1,15 +1,21 @@
 "use client";
 
-import {  useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
-import { seedMatches, deleteAllMatches, seedTestUsers, seedChatRooms, seedChatRoomsWithUser, deleteTestUsers, deleteAllChatRooms } from "@/src/lib/seed";
-
+import {
+  seedMatches,
+  deleteAllMatches,
+  seedTestUsers,
+  seedChatRooms,
+  seedChatRoomsWithUser,
+  deleteTestUsers,
+  deleteAllChatRooms,
+} from "@/src/lib/seed";
 
 export default function SeedPage() {
   const { user, userData, isLoading } = useAuth();
   const [status, setStatus] = useState<string>("");
   const [isRunning, setIsRunning] = useState(false);
-  
 
   // 배포 환경에서 접근 차단
   // useEffect(() => {
@@ -35,17 +41,17 @@ export default function SeedPage() {
     setIsRunning(false);
   };
 
-  const handleSeedUsers = async () => {
-    setIsRunning(true);
-    setStatus("테스트 유저 생성 중...");
-    try {
-      await seedTestUsers();
-      setStatus("✅ 테스트 유저 6명 생성 완료!");
-    } catch (error) {
-      setStatus("❌ 유저 생성 실패: " + error);
-    }
-    setIsRunning(false);
-  };
+  // const handleSeedUsers = async () => {
+  //   setIsRunning(true);
+  //   setStatus("테스트 유저 생성 중...");
+  //   try {
+  //     await seedTestUsers();
+  //     setStatus("✅ 테스트 유저 6명 생성 완료!");
+  //   } catch (error) {
+  //     setStatus("❌ 유저 생성 실패: " + error);
+  //   }
+  //   setIsRunning(false);
+  // };
 
   // const handleSeedChats = async () => {
   //   setIsRunning(true);
@@ -89,7 +95,7 @@ export default function SeedPage() {
       await seedChatRooms();
 
       setStatus(
-        "✅ 전체 더미 데이터 생성 완료!\n\n테스트 유저로 로그인하려면:\n- 이메일: player1@test.com ~ player6@test.com\n- (Firebase Auth에 등록 필요)"
+        "✅ 전체 더미 데이터 생성 완료!\n\n테스트 유저로 로그인하려면:\n- 이메일: player1@test.com ~ player6@test.com\n- (Firebase Auth에 등록 필요)",
       );
     } catch (error) {
       setStatus("❌ 생성 실패: " + error);
@@ -100,7 +106,7 @@ export default function SeedPage() {
   // 전체 삭제
   const handleDeleteAll = async () => {
     const confirmed = window.confirm(
-      "⚠️ 정말 모든 더미 데이터를 삭제하시겠습니까?\n\n삭제되는 데이터:\n- 모든 매치\n- 테스트 유저 6명\n- 모든 채팅방 및 메시지\n\n이 작업은 되돌릴 수 없습니다."
+      "⚠️ 정말 모든 더미 데이터를 삭제하시겠습니까?\n\n삭제되는 데이터:\n- 모든 매치\n- 테스트 유저 6명\n- 모든 채팅방 및 메시지\n\n이 작업은 되돌릴 수 없습니다.",
     );
 
     if (!confirmed) return;
@@ -159,16 +165,6 @@ export default function SeedPage() {
           >
             ⚽ 매치 20개 생성
           </button>
-
-          <button
-            onClick={handleSeedUsers}
-            disabled={isRunning}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            👤 테스트 유저 6명 생성
-          </button>
-
-         
 
           <hr className="my-4" />
 

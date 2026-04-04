@@ -54,7 +54,7 @@ export default function MatchFilter({
   const dates = generateDates();
 
   const handleDateClick = (dateValue: string) => {
-    console.log("날짜 클릭:", dateValue);
+    
     onFilterChange({
       ...filters,
       date: filters.date === dateValue ? "" : dateValue,
@@ -73,10 +73,11 @@ export default function MatchFilter({
 
   const hasActiveFilters = filters?.date || filters?.region || filters?.level;
   return (
-    <div className="bg-white border-b sticky top-14 z-40">
+    <div className="bg-white">
+    <div className="bg-white  sticky border-b  top-14 z-40">
       {/* 날짜 필터 */}
-      <div className="px-4 py-3 overflow-hidden">
-        <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide">
+      <div className="px-4 py-3 overflow-hidden ml-[25%] mr-[25%]">
+        <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide ">
           {dates.map((date) => {
             return (
               <button
@@ -100,7 +101,7 @@ export default function MatchFilter({
       </div>
 
       {/* 추가 필터 토글 */}
-      <div className="px-4 pb-3 flex justify-end">
+      <div className="px-4 pb-3 flex justify-end mr-[25%]">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className=" flex items-center gap-1 text-sm text-gray-600  rounded-b-full"
@@ -119,7 +120,7 @@ export default function MatchFilter({
 
       {/* 확장된 필터 */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-3 border-t pt-3 flex gap-5">
+        <div className="px-4 pb-4 space-y-3 border-t pt-3 flex gap-5 ml-[25%] ">
           {/* 지역 필터 */}
           <div>
             <label className="block text-xs font-medium text-gray-500 left-2 mb-2">
@@ -175,6 +176,7 @@ export default function MatchFilter({
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }

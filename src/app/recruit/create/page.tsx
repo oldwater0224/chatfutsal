@@ -174,11 +174,7 @@ export default function CreateRecruitPage() {
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             {/* 구장 지도 */}
-<<<<<<< HEAD
-            <div>구장 지도</div>
-=======
             
->>>>>>> ffc5b7a1662e590ccb683fb96f33a18bf9771d53
           </div>
            
 
@@ -254,7 +250,7 @@ export default function CreateRecruitPage() {
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              placeholder="추가로 알려주고 싶은 내용을 작성해주세요"
+              placeholder="추가로 알려주고 싶은 내용을 작성해주세요."
               rows={5}
               className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
             />

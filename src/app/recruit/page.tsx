@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
@@ -25,12 +25,12 @@ export default function RecruitListPage() {
   const { posts, isLoading } = useRecruitPosts();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header />
 
       <main className="pt-14 pb-20">
         {/* 페이지 헤더 */}
-        <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+        <div className="bg-white border-b px-4 py-3 flex items-center justify-around">
           <h1 className="text-lg font-bold">용병 모집</h1>
           {user && (
             <Link
@@ -64,12 +64,16 @@ export default function RecruitListPage() {
             )}
           </div>
         ) : (
-          <div className="">
+          <div className="bg-white">
             {posts.map((post) => (
-              <Link key={post.id} href={`/recruit/${post.id}`}>
+              <Link
+                key={post.id}
+                href={`/recruit/${post.id}`}
+                className="block ml-[25%] mr-[25%]"
+              >
                 <div
-                  className="  bg-white p-4 border-b hover:bg-gray-50 transition-colors
-                "
+                  className=" bg-white p-4 border-b transition-colors
+                 "
                 >
                   <div className="flex mb-3 ">
                     <h3 className="font-semibold text-gray-900 mr-4">

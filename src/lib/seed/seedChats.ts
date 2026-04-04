@@ -3,12 +3,12 @@ import { db } from '../firebase';
 
 // 테스트용 유저 데이터
 const testUsers = [
-  { uid: 'test_user_1', email: 'player1@test.com', displayName: '축구왕김철수' },
-  { uid: 'test_user_2', email: 'player2@test.com', displayName: '골키퍼박영희' },
-  { uid: 'test_user_3', email: 'player3@test.com', displayName: '드리블러이민수' },
-  { uid: 'test_user_4', email: 'player4@test.com', displayName: '수비수최지영' },
-  { uid: 'test_user_5', email: 'player5@test.com', displayName: '공격수정대호' },
-  { uid: 'test_user_6', email: 'player6@test.com', displayName: '미드필더한소희' },
+  { uid: 'test_user_1', email: 'player1@test.com', displayName: '테스트유저1' },
+  { uid: 'test_user_2', email: 'player2@test.com', displayName: '테스트유저2' },
+  { uid: 'test_user_3', email: 'player3@test.com', displayName: '테스트유저3' },
+  { uid: 'test_user_4', email: 'player4@test.com', displayName: '테스트유저4' },
+  { uid: 'test_user_5', email: 'player5@test.com', displayName: '테스트유저5' },
+  { uid: 'test_user_6', email: 'player6@test.com', displayName: '테스트유저6' },
 ];
 
 // 테스트용 채팅 메시지 시나리오

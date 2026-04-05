@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+
 import { MatchFilterProps } from "../types";
 
 export default function MatchFilter({
   filters = { date: "", region: "", level: "" },
   onFilterChange,
 }: MatchFilterProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  
 
   const regions = [
     { value: "", label: "전체 지역" },
@@ -74,7 +74,7 @@ export default function MatchFilter({
   const hasActiveFilters = filters?.date || filters?.region || filters?.level;
   return (
     <div className="bg-white">
-    <div className="bg-white  sticky border-b  top-14 z-40">
+    <div className="bg-white  sticky  top-14 z-40">
       {/* 날짜 필터 */}
       <div className="px-4 py-3 overflow-hidden ml-[25%] mr-[25%]">
         <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide ">
@@ -100,30 +100,15 @@ export default function MatchFilter({
         </div>
       </div>
 
-      {/* 추가 필터 토글 */}
-      <div className="px-4 pb-3 flex justify-end mr-[25%]">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className=" flex items-center gap-1 text-sm text-gray-600  rounded-b-full"
-        >
-          <span> 매치 필터</span>
-          {hasActiveFilters && (
-            <span className="w-2 h-2 bg-green-500 rounded-full" />
-          )}
-          <span
-            className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
-          >
-            ▼
-          </span>
-        </button>
-      </div>
+      
+     
 
-      {/* 확장된 필터 */}
-      {isExpanded && (
-        <div className="px-4 pb-4 space-y-3 border-t pt-3 flex gap-5 ml-[25%] ">
+      
+      
+        <div className="px-4 pb-4 space-y-3  pt-3 flex  gap-3 ml-[22%] ">
           {/* 지역 필터 */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 left-2 mb-2">
+            <label className=" ml-2 block text-xs font-medium text-gray-500 left-2 mb-2">
               지역
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -145,7 +130,7 @@ export default function MatchFilter({
 
           {/* 레벨 필터 */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">
+            <label className=" ml-2 block text-xs font-medium text-gray-500 mb-2">
               레벨
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -166,16 +151,16 @@ export default function MatchFilter({
           </div>
 
           {/* 필터 초기화 */}
-          {hasActiveFilters && (
+          
             <button
               onClick={handleReset}
-              className="text-sm text-red-500 hover:text-red-600"
+              className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
             >
               필터 초기화
             </button>
-          )}
+          
         </div>
-      )}
+      
     </div>
     </div>
   );

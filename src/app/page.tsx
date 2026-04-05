@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useMatches } from '@/src/hooks/useMatches';
-import Header from '@/src/components/Header';
-import BottomNav from '@/src/components/BottomNav';
-import MatchFilter from '@/src/components/MatchFilter';
-import MatchCard from '@/src/components/MatchCard';
+import { useState } from "react";
+import { useMatches } from "@/src/hooks/useMatches";
+import Header from "@/src/components/Header";
+import BottomNav from "@/src/components/BottomNav";
+import MatchFilter from "@/src/components/MatchFilter";
+import MatchCard from "@/src/components/MatchCard";
 
 interface FilterState {
   date: string;
@@ -15,9 +15,9 @@ interface FilterState {
 
 export default function HomePage() {
   const [filters, setFilters] = useState<FilterState>({
-    date: '',
-    region: '',
-    level: '',
+    date: "",
+    region: "",
+    level: "",
   });
 
   const { matches, isLoading } = useMatches(filters);
@@ -29,11 +29,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-
+     
+     
       <main className="pt-14 pb-20">
-        {/* 필터 */}
-        <MatchFilter filters={filters} onFilterChange={handleFilterChange} />
-
+         {/* 매치 필터 */}
+         <MatchFilter filters={filters} onFilterChange={handleFilterChange} />
         {/* 매치 목록 */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -45,24 +45,24 @@ export default function HomePage() {
             <p className="text-gray-700 font-medium mb-1">매치가 없어요</p>
             <p className="text-gray-500 text-sm">
               {filters.date || filters.region || filters.level
-                ? '다른 조건으로 검색해보세요'
-                : '/seed 페이지에서 테스트 매치를 생성해보세요' }
+                ? "다른 조건으로 검색해보세요"
+                : "/seed 페이지에서 테스트 매치를 생성해보세요"}
             </p>
-            {(filters.date || filters.region || filters.level) && (
+            {/* {(filters.date || filters.region || filters.level) && (
               <button
-                onClick={() => setFilters({ date: '', region: '', level: '' })}
-                className="mt-4 px-4 py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg"
+                onClick={() => setFilters({ date: "", region: "", level: "" })}
+                className="mt-4 px-4 py-2 text-red-600 font-medium
+                hover:cursor-pointer"
               >
-                필터 초기화
+                
               </button>
-            )}
+            )} */}
           </div>
         ) : (
-          <div className='bg-white'>
+          <div className="bg-white">
             {/* 필터된 매치 결과 개수 */}
-            <div className="px-4 py-2 text-sm  ml-[25%]">
+            <div className="px-4 py-2 text-sm ml-[25%]">
               {matches.length}개의 매치
-              
             </div>
 
             {/* 매치 카드 목록 */}

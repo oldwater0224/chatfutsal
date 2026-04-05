@@ -71,7 +71,7 @@ export default function MatchFilter({
     onFilterChange({ date: "", region: "", level: "" });
   };
 
-  const hasActiveFilters = filters?.date || filters?.region || filters?.level;
+  
   return (
     <div className="bg-white">
     <div className="bg-white  sticky  top-14 z-40">

@@ -63,13 +63,14 @@ export default function UserSearchModal({
   }, [isOpen, fetchUsers]);
 
   //  검색어 필터링 - state 대신 계산된 값 사용
-  const filteredUsers = searchTerm.trim() === ""
-    ? allUsers
-    : allUsers.filter(
-        (user) =>
-          user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const filteredUsers =
+    searchTerm.trim() === ""
+      ? allUsers
+      : allUsers.filter(
+          (user) =>
+            user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
 
   //  모달 닫기 - 이벤트 핸들러에서 초기화
   const handleClose = () => {
@@ -123,9 +124,6 @@ export default function UserSearchModal({
                 {searchTerm
                   ? "검색 결과가 없어요"
                   : "채팅할 수 있는 유저가 없어요"}
-              </p>
-              <p className="text-xs mt-2 text-gray-400">
-                /seed 페이지에서 테스트 유저를 생성해보세요
               </p>
             </div>
           ) : (

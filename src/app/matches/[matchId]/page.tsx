@@ -102,9 +102,9 @@ export default function MatchDetailPage() {
       </header>
 
       {/* 본문 */}
-      <main className="pt-14 pb-24 px-4">
+      <main className="pt-14 pb-24 px-4 ml-[25%] mr-[25%]">
         {/* 매치 정보 카드 */}
-        <div className="mt-4 bg-white rounded-lg p-6 shadow-sm">
+        <div className="mt-4 bg-white rounded-lg p-6 shadow-sm ">
           <div className="flex gap-5 items-start mb-4 ">
             <h2 className="text-xl font-bold text-gray-900">{match.title}</h2>
             <span

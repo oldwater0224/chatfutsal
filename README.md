@@ -22,8 +22,8 @@ UserSearch <br>
 
 
 
-Firebase 데이터 설계
-
+### Firebase 데이터 설계
+```
 firestore/
 ├── users/
 │   └── {userId}                    # 사용자 정보
@@ -34,6 +34,7 @@ firestore/
 │       └── messages/{messageId}    # 메시지 (서브컬렉션)
 └── recruitPosts/
 └── {postId}   
+```
 
 ### 1. 회원가입 / 로그인
 ![Auth Flow](./docs/images/chatfutsal_auth_sequence.svg)

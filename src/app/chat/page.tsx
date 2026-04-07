@@ -32,7 +32,7 @@ export default function ChatListPage() {
       {/* 헤더 */}
       <Header />
       <div className="pt-14 bg-white border-b">
-      <div className=" mx-auto px-4 h-14 flex items-center max-w-5xl ml-[20%]">
+      <div className=" mx-auto px-4 h-14 flex items-center max-w-5xl ">
         <h1 className="text-lg font-bold">채팅</h1>
       </div>
       </div>
@@ -61,7 +61,7 @@ export default function ChatListPage() {
                   href={`/chat/${room.id}`}
                   className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 ">
                     {/* 프로필 아바타 */}
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                       <span className="text-green-600 text-sm font-medium">

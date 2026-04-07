@@ -167,7 +167,7 @@ export default function RecruitDetailPage() {
       </header>
 
       {/* 본문 */}
-      <main className="pt-14 pb-24 px-4 ml-[25%] mr-[25%]">
+      <main className="pt-14 pb-24 px-4 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
         {/* 상태 배지 */}
         {post.status === 'closed' && (
           <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">

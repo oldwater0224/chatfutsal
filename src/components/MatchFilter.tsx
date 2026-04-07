@@ -1,14 +1,11 @@
 "use client";
 
-
 import { MatchFilterProps } from "../types";
 
 export default function MatchFilter({
   filters = { date: "", region: "", level: "" },
   onFilterChange,
 }: MatchFilterProps) {
-  
-
   const regions = [
     { value: "", label: "전체 지역" },
     { value: "seoul", label: "서울" },
@@ -54,7 +51,6 @@ export default function MatchFilter({
   const dates = generateDates();
 
   const handleDateClick = (dateValue: string) => {
-    
     onFilterChange({
       ...filters,
       date: filters.date === dateValue ? "" : dateValue,
@@ -71,19 +67,18 @@ export default function MatchFilter({
     onFilterChange({ date: "", region: "", level: "" });
   };
 
-  
   return (
     <div className="bg-white">
-    <div className="bg-white  sticky  top-14 z-40">
-      {/* 날짜 필터 */}
-      <div className="px-4 py-3 overflow-hidden ml-[25%] mr-[25%]">
-        <div className="flex justify-around gap-2 overflow-x-auto scrollbar-hide ">
-          {dates.map((date) => {
-            return (
-              <button
-                key={date.value}
-                onClick={() => handleDateClick(date.value)}
-                className={` shrink-0 px-4 py-2 rounded-2xl text-md font-medium hover:cursor-pointer
+      <div className="bg-white  sticky  top-14 z-40">
+        {/* 날짜 필터 */}
+        <div className="px-4 py-3 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
+          <div className="flex justify-between gap-2 overflow-x-auto scrollbar-hide ">
+            {dates.map((date) => {
+              return (
+                <button
+                  key={date.value}
+                  onClick={() => handleDateClick(date.value)}
+                  className={` shrink-0 px-4 py-2 rounded-2xl text-md font-medium hover:cursor-pointer
                      ${
                        filters.date === date.value
                          ? "bg-green-600 text-white"
@@ -91,21 +86,16 @@ export default function MatchFilter({
                            ? " text-red-600 "
                            : " text-gray-700 "
                      }`}
-              >
-                <span className="block">{date.label}</span>
-                <span className="block text-xs opacity-75">{date.day}</span>
-              </button>
-            );
-          })}
+                >
+                  <span className="block">{date.label}</span>
+                  <span className="block text-xs opacity-75">{date.day}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      
-     
-
-      
-      
-        <div className="px-4 pb-4 space-y-3  pt-3 flex  gap-3 ml-[22%] ">
+        <div className="px-4 pb-4   flex flex-col gap-3 mx-auto w-full max-w-3xl sm:max-w-2xl">
           {/* 지역 필터 */}
           <div>
             <label className=" ml-2 block text-xs font-medium text-gray-500 left-2 mb-2">
@@ -151,17 +141,15 @@ export default function MatchFilter({
           </div>
 
           {/* 필터 초기화 */}
-          
-            <button
-              onClick={handleReset}
-              className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
-            >
-              필터 초기화
-            </button>
-          
+
+          <button
+            onClick={handleReset}
+            className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+          >
+            필터 초기화
+          </button>
         </div>
-      
-    </div>
+      </div>
     </div>
   );
 }

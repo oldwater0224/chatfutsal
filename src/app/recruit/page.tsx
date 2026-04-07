@@ -69,7 +69,7 @@ export default function RecruitListPage() {
               <Link
                 key={post.id}
                 href={`/recruit/${post.id}`}
-                className="block ml-[25%] mr-[25%]"
+                className="block overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl"
               >
                 <div
                   className=" bg-white p-4 border-b transition-colors

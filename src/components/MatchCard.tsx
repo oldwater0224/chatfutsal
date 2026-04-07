@@ -29,7 +29,7 @@ export default function MatchCard({ match }: MatchCardProps) {
 
   return (
     <Link href={`/matches/${match.id}`}
-  className="block ml-[25%] mr-[25%]">
+  className="block overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
       <div className="bg-white p-4 border-b border-gray-100 transition-colors">
         <div className="">
           <div className="flex items-start gap-5 mb-2">

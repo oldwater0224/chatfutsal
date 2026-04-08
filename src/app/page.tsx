@@ -27,7 +27,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Header />
      
      
@@ -61,7 +61,7 @@ export default function HomePage() {
         ) : (
           <div className="bg-white">
             {/* 필터된 매치 결과 개수 */}
-            <div className="px-4 py-2 text-sm max-w-2xl mx-auto">
+            <div className="px-4 py-6 text-sm max-w-2xl mx-auto">
               {matches.length}개의 매치
             </div>
 

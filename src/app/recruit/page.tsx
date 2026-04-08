@@ -30,7 +30,7 @@ export default function RecruitListPage() {
 
       <main className="pt-14 pb-20">
         {/* 페이지 헤더 */}
-        <div className="bg-white border-b px-4 py-3 flex items-center justify-between md:justify-around lg:justify-evenly">
+        <div className="bg-white border-b px-4 py-3 flex items-center justify-between md:justify-around">
           <h1 className="text-lg font-bold">용병 모집</h1>
           {user && (
             <Link

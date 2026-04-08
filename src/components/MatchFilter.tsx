@@ -95,10 +95,10 @@ export default function MatchFilter({
           </div>
         </div>
 
-        <div className="px-4 pb-4   flex flex-col gap-3 mx-auto w-full max-w-3xl sm:max-w-2xl">
+        <div className="px-4 pb-4  flex flex-col gap-3 max-w-3xl sm:max-w-2xl mx-auto">
           {/* 지역 필터 */}
           <div>
-            <label className=" ml-2 block text-xs font-medium text-gray-500 left-2 mb-2">
+            <label className="  block text-xs font-medium text-gray-500 left-2 mb-2">
               지역
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -120,7 +120,7 @@ export default function MatchFilter({
 
           {/* 레벨 필터 */}
           <div>
-            <label className=" ml-2 block text-xs font-medium text-gray-500 mb-2">
+            <label className=" block text-xs font-medium text-gray-500 mb-2">
               레벨
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -139,16 +139,17 @@ export default function MatchFilter({
               ))}
             </div>
           </div>
-
-          {/* 필터 초기화 */}
-
-          <button
-            onClick={handleReset}
-            className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
-          >
-            필터 초기화
-          </button>
+          
         </div>
+        {/* 필터 초기화 */}
+          <div className="max-w-2xl mx-auto px-5">
+            <button
+              onClick={handleReset}
+              className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+            >
+              필터 초기화
+            </button>
+          </div>
       </div>
     </div>
   );

@@ -145,7 +145,7 @@ export default function MatchDetailPage() {
           {match.lat && match.lng ? (
             <KakaoMap lat={match.lat} lng={match.lng} address={match.address} />
           ) : (
-            <div className="w-full  h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+            <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
               위치 정보가 없습니다.
             </div>
           )}

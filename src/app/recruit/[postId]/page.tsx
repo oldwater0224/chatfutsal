@@ -1,15 +1,28 @@
 "use client";
 
 import { useAuth } from "@/src/hooks/useAuth";
-import { startChat, closeRecruitPost, deleteRecruitPost, reopenRecruitPost } from "@/src/lib/services";
+import {
+  startChat,
+  closeRecruitPost,
+  deleteRecruitPost,
+  reopenRecruitPost,
+} from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, onSnapshot } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AudioLines, Calendar, MapPin, Users } from "lucide-react";
-
+import {
+  AudioLines,
+  Calendar,
+  CopyMinus,
+  CopyPlus,
+  MapPin,
+  PencilOff,
+  Trash2,
+  Users,
+} from "lucide-react";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -57,51 +70,50 @@ export default function RecruitDetailPage() {
     }
   };
 
-
   const handleToggleStatus = async () => {
-    if(!post) return;
+    if (!post) return;
 
-    try{
-      if(post.status === 'open'){
+    try {
+      if (post.status === "open") {
         await closeRecruitPost(postId);
-      }else{
+      } else {
         await reopenRecruitPost(postId);
       }
-    }catch(error){
-      alert('상태 변경에 실패했습니다.');
+    } catch (error) {
+      alert("상태 변경에 실패했습니다.");
     }
   };
 
   const handleStartChat = async () => {
-    if(!user || !userData || !post) return;
+    if (!user || !userData || !post) return;
 
-    if(user.uid === post.authorId){
-      alert('본인에게는 채팅을 보낼 수 없습니다.');
+    if (user.uid === post.authorId) {
+      alert("본인에게는 채팅을 보낼 수 없습니다.");
       return;
     }
 
-    try{
+    try {
       const roomId = await startChat(
-        {uid : user.uid , displayName : userData.displayName || '사용자'} , 
-        {uid : post.authorId , displayName : post.authorName} ,
+        { uid: user.uid, displayName: userData.displayName || "사용자" },
+        { uid: post.authorId, displayName: post.authorName },
       );
 
       router.push(`/chat/${roomId}`);
-    }catch(error){
-      alert('채팅 시작에 실패했습니다.');
+    } catch (error) {
+      alert("채팅 시작에 실패했습니다.");
     }
   };
 
-   if (isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
       </div>
     );
   }
-  if(!post){
+  if (!post) {
     return (
-       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="text-gray-500">게시글을 찾을 수 없습니다</p>
         <Link href="/recruit" className="text-green-600">
           목록으로 돌아가기
@@ -142,21 +154,32 @@ export default function RecruitDetailPage() {
                       href={`/recruit/${postId}/edit`}
                       className="block px-4 py-2 text-sm hover:bg-gray-50"
                     >
-                      ✏️ 수정
+                      <PencilOff className="w-4 h-4 inline mr-2" />
+                      수정
                     </Link>
                     <button
                       onClick={handleToggleStatus}
                       className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50
                       hover:cursor-pointer"
                     >
-                      {post.status === 'open' ? '🔒 마감하기' : '🔓 재오픈'}
+                      {post.status === "open" ? (
+                        <>
+                          <CopyMinus className="w-4 h-4 inline mr-2" />
+                          마감하기
+                        </>
+                      ) : (
+                        <>
+                          <CopyPlus className="w-4 h-4 inline mr-2" /> 재오픈
+                        </>
+                      )}
                     </button>
 
                     <button
                       onClick={handleDelete}
                       className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-50 hover:cursor-pointer"
                     >
-                      🗑️ 삭제
+                      <Trash2 className="w-4 h-4  inline mr-2" />
+                      삭제
                     </button>
                   </div>
                 </>
@@ -169,7 +192,7 @@ export default function RecruitDetailPage() {
       {/* 본문 */}
       <main className="pt-14 pb-24 px-4 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
         {/* 상태 배지 */}
-        {post.status === 'closed' && (
+        {post.status === "closed" && (
           <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">
             <span className="text-gray-500 font-medium">모집 마감</span>
           </div>
@@ -183,10 +206,10 @@ export default function RecruitDetailPage() {
           <span>{post.authorName}</span>
           <span>·</span>
           <span>
-            {post.createdAt.toLocaleDateString('ko-KR', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
+            {post.createdAt.toLocaleDateString("ko-KR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </span>
         </div>
@@ -194,7 +217,7 @@ export default function RecruitDetailPage() {
         {/* 정보 카드 */}
         <div className="mt-6 bg-white rounded-lg p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-blue-500"  />
+            <Calendar className="w-5 h-5 text-blue-500" />
             <div>
               <p className="text-sm text-gray-500">경기 일시</p>
               <p className="font-medium">
@@ -219,31 +242,31 @@ export default function RecruitDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 "/>
+            <Users className="w-5 h-5 " />
             <div>
               <p className="text-sm text-gray-500">모집 인원</p>
               <p className="font-medium">{post.needCount}명</p>
             </div>
           </div>
-
-          
-
-          
         </div>
 
         {/* 상세 내용 */}
         {post.content && (
           <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">상세 내용</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              상세 내용
+            </h3>
             <div className="bg-white rounded-lg p-4 shadow-sm">
-              <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {post.content}
+              </p>
             </div>
           </div>
         )}
       </main>
 
       {/* 하단 채팅 버튼 */}
-      {user && !isAuthor && post.status === 'open' && (
+      {user && !isAuthor && post.status === "open" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
           <div className="max-w-lg mx-auto">
             <button
@@ -256,6 +279,5 @@ export default function RecruitDetailPage() {
         </div>
       )}
     </div>
-  )
-
+  );
 }

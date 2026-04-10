@@ -32,7 +32,7 @@ export default function ChatListPage() {
       {/* 헤더 */}
       <Header />
       <div className="pt-14 bg-white border-b">
-      <div className=" mx-auto px-4 h-14 flex items-center max-w-5xl ">
+      <div className="  px-4 h-14 flex items-center max-w-4xl mx-auto">
         <h1 className="text-lg font-bold">채팅</h1>
       </div>
       </div>

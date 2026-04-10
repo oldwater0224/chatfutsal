@@ -37,7 +37,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className="relative flex flex-col items-center gap-1 min-w-[64px] py-1"
+              className="relative flex flex-col items-center gap-1 min-w-16 py-1"
             >
               {/* 아이콘 컨테이너 */}
               <div
@@ -49,7 +49,7 @@ export default function BottomNav() {
 
                 {/* 배지 */}
                 {badge > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 rounded-full flex items-center justify-center px-1 animate-pulse">
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 bg-red-500 rounded-full flex items-center justify-center px-1 animate-pulse">
                     <span className="text-white text-[10px] font-bold">
                       {badge > 99 ? "99+" : badge}
                     </span>

@@ -8,7 +8,7 @@ export default function MatchFilter({
 }: MatchFilterProps) {
   const regions = [
     { value: "", label: "전체 지역" },
-    { value: "seoul", label: "서울" },
+    { value: "서울", label: "서울" },
     { value: "경기", label: "경기" },
     { value: "인천", label: "인천" },
     { value: "부산", label: "부산" },

@@ -8,6 +8,13 @@ declare global {
     kakao: any;
   }
 }
+interface KakaoPlace {
+  place_name: string;
+  road_address_name: string;
+  address_name: string;
+  x: string;  // 경도
+  y: string;  // 위도
+}
 
 interface LocationData {
   name: string; // 구장명
@@ -29,7 +36,7 @@ export default function KakaoMapSearch({
   const [map, setMap] = useState<any>(null);
   const [marker, setMarker] = useState<any>(null);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [searchResults, setSearchResults] = useState<unknown[]>([]);
+  const [searchResults, setSearchResults] = useState<KakaoPlace[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<LocationData | null>(
     initialLocation || null,
   );

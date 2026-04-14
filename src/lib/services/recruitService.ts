@@ -19,8 +19,12 @@ export async function createRecruitPost(
     date: string;
     time: string;
     location: string;
+    locationCoord : {
+      lat : number;
+      lng : number;
+      address : string;
+    };
     level: string;
-
     needCount: number;
   },
 ): Promise<string> {

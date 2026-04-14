@@ -23,6 +23,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import KakaoMap from "@/src/components/KakaoMap";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -231,6 +232,11 @@ export default function RecruitDetailPage() {
             <div>
               <p className="text-sm text-gray-500">장소</p>
               <p className="font-medium">{post.location}</p>
+              {post.locationCoord?.address && (
+                <p className="text-xs text-gray-400">
+                  {post.locationCoord.address}
+                </p>
+              )}
             </div>
           </div>
 
@@ -249,6 +255,17 @@ export default function RecruitDetailPage() {
             </div>
           </div>
         </div>
+        {/* 👇 지도 영역 추가 */}
+        {post.locationCoord?.lat && post.locationCoord?.lng && (
+          <div className="mt-4 bg-white rounded-lg p-4 shadow-sm">
+            <h3 className="font-bold mb-3">구장 위치</h3>
+            <KakaoMap
+              lat={post.locationCoord.lat}
+              lng={post.locationCoord.lng}
+              address={post.location}
+            />
+          </div>
+        )}
 
         {/* 상세 내용 */}
         {post.content && (

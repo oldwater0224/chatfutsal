@@ -2,6 +2,7 @@
 
 import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
+import KakaoMap from "@/src/components/KakaoMap";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRecruitPosts } from "@/src/hooks/useRecruitPosts";
 import { Calendar, MapPin, Users } from "lucide-react";
@@ -96,6 +97,8 @@ export default function RecruitListPage() {
                     <p className="flex items-center gap-1">
                       <MapPin className="w-4 h-4 text-red-500" />
                       {post.location}
+                      
+                      
                     </p>
                     <p className="flex items-center gap-1">
                       <Users className="w-4 h-4" />

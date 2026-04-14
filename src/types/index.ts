@@ -82,6 +82,11 @@ export interface RecruitPost {
   date: string;
   time: string;
   location: string;
+  locationCoord : {
+    lat : number;
+    lng : number;
+    address : string;
+  },
   level: "beginner" | "amateur" | "semipro" | "pro";
   needCount: number; // 모집 인원
   status: "open" | "closed"; // 모집 상태

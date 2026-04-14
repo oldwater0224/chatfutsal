@@ -1,5 +1,6 @@
 "use client";
 
+import KakaoMapSearch from "@/src/components/KakaoMapSearch";
 import { useAuth } from "@/src/hooks/useAuth";
 import { createRecruitPost } from "@/src/lib/services";
 
@@ -25,6 +26,11 @@ export default function CreateRecruitPage() {
     date: "",
     time: "",
     location: "",
+    locationCoord: {
+      lat: 0,
+      lng: 0,
+      address: "",
+    },
     level: "amateur",
     needCount: 1,
   });
@@ -53,7 +59,7 @@ export default function CreateRecruitPage() {
       alert("경기 시간을 선택해주세요");
       return;
     }
-    if (!formData.location.trim()) {
+    if (!formData.location.trim() || formData.locationCoord.lat === 0) {
       alert("장소를 선택해주세요.");
       return;
     }
@@ -162,21 +168,22 @@ export default function CreateRecruitPage() {
           {/* 장소 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              장소 *
+              구장 선택 *
             </label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
-              placeholder="예: 강남 OO풋살장"
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            <KakaoMapSearch
+              onSelect={(loc) => {
+                setFormData({
+                  ...formData,
+                  location: loc.name,
+                  locationCoord: {
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    address: loc.address,
+                  },
+                });
+              }}
             />
-            {/* 구장 지도 */}
-            
           </div>
-           
 
           {/* 레벨 */}
           <div>

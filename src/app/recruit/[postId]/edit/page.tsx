@@ -8,6 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import KakaoMapSearch from "@/src/components/KakaoMapSearch";  // 👈 추가
 
 const level_labels = [
   { value: "beginner", label: "비기너" },
@@ -27,22 +28,32 @@ export default function EditRecruitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<{
-  title: string;
-  content: string;
-  date: string;
-  time: string;
-  location: string;
-  level: typeof level_labels[number]['value']
-  needCount: number;
-}>({
-  title: "",
-  content: "",
-  date: "",
-  time: "",
-  location: "",
-  level: "amateur",
-  needCount: 1,
-});
+    title: string;
+    content: string;
+    date: string;
+    time: string;
+    location: string;
+    locationCoord: {        // 👈 추가
+      lat: number;
+      lng: number;
+      address: string;
+    };
+    level: (typeof level_labels)[number]["value"];
+    needCount: number;
+  }>({
+    title: "",
+    content: "",
+    date: "",
+    time: "",
+    location: "",
+    locationCoord: {        // 👈 추가
+      lat: 0,
+      lng: 0,
+      address: "",
+    },
+    level: "amateur",
+    needCount: 1,
+  });
 
   // 기존 데이터 불러오기
   useEffect(() => {
@@ -67,6 +78,11 @@ export default function EditRecruitPage() {
             date: data.date || "",
             time: data.time || "",
             location: data.location || "",
+            locationCoord: data.locationCoord || {  // 👈 추가
+              lat: 0,
+              lng: 0,
+              address: "",
+            },
             level: data.level || "amateur",
             needCount: data.needCount || 1,
           });
@@ -111,8 +127,9 @@ export default function EditRecruitPage() {
       alert("경기 시간을 선택해주세요.");
       return;
     }
-    if (!formData.location.trim()) {
-      alert("장소를 입력해주세요.");
+    // 👇 수정: 지도 선택 확인
+    if (!formData.location.trim() || formData.locationCoord.lat === 0) {
+      alert("구장을 지도에서 선택해주세요.");
       return;
     }
 
@@ -129,9 +146,9 @@ export default function EditRecruitPage() {
     setIsSubmitting(false);
   };
 
-  if (authLoading && isLoading) {
+  if (authLoading || isLoading) {  // 👈 || 로 수정 (둘 중 하나라도 로딩 중이면)
     return (
-      <div className="min-h-screen , flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
       </div>
     );
@@ -209,19 +226,33 @@ export default function EditRecruitPage() {
             </div>
           </div>
 
-          {/* 장소 */}
+          {/* 👇 구장 선택 (지도) - 수정된 부분 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              장소 *
+              구장 선택 *
             </label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
+            <KakaoMapSearch
+              onSelect={(loc) => {
+                setFormData({
+                  ...formData,
+                  location: loc.name,
+                  locationCoord: {
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    address: loc.address,
+                  },
+                });
+              }}
+              initialLocation={
+                formData.locationCoord.lat !== 0
+                  ? {
+                      name: formData.location,
+                      address: formData.locationCoord.address,
+                      lat: formData.locationCoord.lat,
+                      lng: formData.locationCoord.lng,
+                    }
+                  : null
               }
-              placeholder="예: 강남 OO풋살장"
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 

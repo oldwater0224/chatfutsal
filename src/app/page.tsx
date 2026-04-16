@@ -29,11 +29,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
-     
-     
+
       <main className="pt-14 pb-20">
-         {/* 매치 필터 */}
-         <MatchFilter filters={filters} onFilterChange={handleFilterChange} />
+        {/* 매치 필터 */}
+        <MatchFilter filters={filters} onFilterChange={handleFilterChange} />
         {/* 매치 목록 */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -42,11 +41,11 @@ export default function HomePage() {
         ) : matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <span className="text-5xl mb-4">⚽</span>
-            <p className="text-gray-700 font-medium mb-1">매치가 없어요</p>
+            <p className="text-gray-700 font-medium mb-1">
+              로그인 후 이용 가능합니다.
+            </p>
             <p className="text-gray-500 text-sm">
-              {filters.date || filters.region || filters.level
-                ? "다른 조건으로 검색해보세요"
-                : "/seed 페이지에서 테스트 매치를 생성해보세요"}
+              {filters.date || filters.region || filters.level}
             </p>
             {/* {(filters.date || filters.region || filters.level) && (
               <button

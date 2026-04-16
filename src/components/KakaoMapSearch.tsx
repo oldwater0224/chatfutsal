@@ -208,7 +208,7 @@ export default function KakaoMapSearch({
         <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
           <div>
             <p className="font-medium text-green-800 flex items-center gap-1">
-              {" "}
+             
               <Pin className="w-4 h-4 text-red-500" /> {selectedPlace.name}
             </p>
             <p className="text-sm text-green-600">{selectedPlace.address}</p>

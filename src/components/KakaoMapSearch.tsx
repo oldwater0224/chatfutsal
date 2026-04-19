@@ -92,7 +92,7 @@ export default function KakaoMapSearch({
     setIsSearching(true);
     const ps = new window.kakao.maps.services.Places();
 
-    ps.keywordSearch(searchKeyword, (data: any[], status: any) => {
+    ps.keywordSearch(searchKeyword, (data: any[], status : any ) => {
       setIsSearching(false);
       if (status === window.kakao.maps.services.Status.OK) {
         setSearchResults(data.slice(0, 5)); // 최대 5개
@@ -104,7 +104,7 @@ export default function KakaoMapSearch({
   };
 
   // 검색 결과에서 장소 선택
-  const handleSelectPlace = (place: any) => {
+  const handleSelectPlace = (place : any) => {
     const lat = parseFloat(place.y);
     const lng = parseFloat(place.x);
 

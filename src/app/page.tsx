@@ -42,7 +42,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center justify-center py-20">
             <span className="text-5xl mb-4">⚽</span>
             <p className="text-gray-700 font-medium mb-1">
-              로그인 후 이용 가능합니다.
+              매치가 없어요.
             </p>
             <p className="text-gray-500 text-sm">
               {filters.date || filters.region || filters.level}

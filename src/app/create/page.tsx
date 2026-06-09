@@ -72,7 +72,7 @@ export default function CreateRecruitPage() {
         formData,
       );
       alert("게시글이 등록되었습니다.");
-      router.push("/recruit");
+      router.push("/");
     } catch (error) {
       console.error("게시글 등록 실패:", error);
       alert("게시글 등록에 실패했습니다. 다시 시도해주세요");
@@ -99,7 +99,7 @@ export default function CreateRecruitPage() {
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className=" mx-auto  px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/recruit" className="text-gray-600 text-xl">
+            <Link href="/" className="text-gray-600 text-xl">
               ←
             </Link>
             <h1 className="font-bold">용병 모집 글쓰기</h1>

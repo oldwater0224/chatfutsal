@@ -4,16 +4,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useMyMatches } from "@/src/hooks/useMyMatches";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import { FileTextIcon, Hand, LogOut, MessageCircleIcon } from "lucide-react";
+import { FileTextIcon, LogOut, MessageCircleIcon } from "lucide-react";
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
   const router = useRouter();
-  const { matches } = useMyMatches(user?.uid);
-
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
@@ -40,10 +37,6 @@ export default function MyPage() {
     return null;
   }
 
-  // 예정된 매치 수
-  
- 
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -68,26 +61,6 @@ export default function MyPage() {
 
         {/* 메뉴 */}
         <div className="mt-6 space-y-2">
-          <Link
-            href="/mypage/matches"
-            className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Hand className="w-5 h-5"/>
-                <span>참가 신청한 매치</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {matches.length > 0 && (
-                  <span className="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">
-                    {matches.length}
-                  </span>
-                )}
-                <span className="text-gray-400">→</span>
-              </div>
-            </div>
-          </Link>
-
           <Link
             href="/chat"
             className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"

@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileText, MessageCircle, User } from "lucide-react";
+import { Home, MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useChatRooms } from "@/src/hooks/useChatRoom";
 import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "홈", icon: Home },
-  { href: "/recruit", label: "용병", icon: FileText },
   { href: "/chat", label: "채팅", icon: MessageCircle },
   { href: "/mypage", label: "MY", icon: User },
 ];

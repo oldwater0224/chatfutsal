@@ -1,11 +1,20 @@
 "use client";
 
-import { MatchFilterProps } from "../types";
+interface FilterState {
+  date: string;
+  region: string;
+  level: string;
+}
 
-export default function MatchFilter({
+interface RecruitFilterProps {
+  filters: FilterState;
+  onFilterChange: (filters: FilterState) => void;
+}
+
+export default function RecruitFilter({
   filters = { date: "", region: "", level: "" },
   onFilterChange,
-}: MatchFilterProps) {
+}: RecruitFilterProps) {
   const regions = [
     { value: "", label: "전체 지역" },
     { value: "서울", label: "서울" },
@@ -20,10 +29,10 @@ export default function MatchFilter({
     { value: "", label: "전체 레벨" },
     { value: "beginner", label: "비기너" },
     { value: "amateur", label: "아마추어" },
-    { value: "semi-pro", label: "세미프로" },
+    { value: "semipro", label: "세미프로" },
     { value: "pro", label: "프로" },
   ];
-  //  날짜 생성
+
   const generateDates = () => {
     const dates = [];
     const today = new Date();
@@ -69,36 +78,32 @@ export default function MatchFilter({
 
   return (
     <div className="bg-white">
-      <div className="bg-white  sticky  top-14 z-40">
-        {/* 날짜 필터 */}
+      <div className="bg-white sticky top-14 z-40">
         <div className="px-4 py-3 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
-          <div className="flex justify-between gap-2 overflow-x-auto scrollbar-hide ">
-            {dates.map((date) => {
-              return (
-                <button
-                  key={date.value}
-                  onClick={() => handleDateClick(date.value)}
-                  className={` shrink-0 px-4 py-2 rounded-2xl text-md font-medium hover:cursor-pointer
-                     ${
-                       filters.date === date.value
-                         ? "bg-green-600 text-white"
-                         : date.isWeekend
-                           ? " text-red-600 "
-                           : " text-gray-700 "
-                     }`}
-                >
-                  <span className="block">{date.label}</span>
-                  <span className="block text-xs opacity-75">{date.day}</span>
-                </button>
-              );
-            })}
+          <div className="flex justify-between gap-2 overflow-x-auto scrollbar-hide">
+            {dates.map((date) => (
+              <button
+                key={date.value}
+                onClick={() => handleDateClick(date.value)}
+                className={`shrink-0 px-4 py-2 rounded-2xl text-md font-medium hover:cursor-pointer
+                  ${
+                    filters.date === date.value
+                      ? "bg-green-600 text-white"
+                      : date.isWeekend
+                        ? "text-red-600"
+                        : "text-gray-700"
+                  }`}
+              >
+                <span className="block">{date.label}</span>
+                <span className="block text-xs opacity-75">{date.day}</span>
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="px-4 pb-4  flex flex-col gap-3 max-w-3xl sm:max-w-2xl mx-auto">
-          {/* 지역 필터 */}
+        <div className="px-4 pb-4 flex flex-col gap-3 max-w-3xl sm:max-w-2xl mx-auto">
           <div>
-            <label className="  block text-xs font-medium text-gray-500 left-2 mb-2">
+            <label className="block text-xs font-medium text-gray-500 left-2 mb-2">
               지역
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -118,9 +123,8 @@ export default function MatchFilter({
             </div>
           </div>
 
-          {/* 레벨 필터 */}
           <div>
-            <label className=" block text-xs font-medium text-gray-500 mb-2">
+            <label className="block text-xs font-medium text-gray-500 mb-2">
               레벨
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -139,17 +143,15 @@ export default function MatchFilter({
               ))}
             </div>
           </div>
-          
         </div>
-        {/* 필터 초기화 */}
-          <div className="max-w-2xl mx-auto px-5">
-            <button
-              onClick={handleReset}
-              className=" pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
-            >
-              필터 초기화
-            </button>
-          </div>
+        <div className="max-w-2xl mx-auto px-5">
+          <button
+            onClick={handleReset}
+            className="pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+          >
+            필터 초기화
+          </button>
+        </div>
       </div>
     </div>
   );

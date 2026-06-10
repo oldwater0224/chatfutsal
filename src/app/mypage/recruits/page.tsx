@@ -79,7 +79,7 @@ export default function MypageRecruit() {
               <span className="text-5xl mb-4">📝</span>
               <p className="font-medium">작성한 게시글이 없어요</p>
               <Link
-                href="/recruit/create"
+                href="/create"
                 className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"
               >
                 용병 모집 글쓰기

@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
 import {
-  seedMatches,
-  deleteAllMatches,
   seedTestUsers,
   seedChatRooms,
   seedChatRoomsWithUser,
@@ -28,18 +26,6 @@ export default function SeedPage() {
   // if(process.env.NODE_ENV === 'production'){
   //   return null;
   // }
-
-  const handleSeedMatches = async () => {
-    setIsRunning(true);
-    setStatus("매치 데이터 생성 중...");
-    try {
-      await seedMatches(20);
-      setStatus("✅ 매치 20개 생성 완료!");
-    } catch (error) {
-      setStatus("❌ 매치 생성 실패: " + error);
-    }
-    setIsRunning(false);
-  };
 
   // const handleSeedUsers = async () => {
   //   setIsRunning(true);
@@ -85,13 +71,10 @@ export default function SeedPage() {
   const handleSeedAll = async () => {
     setIsRunning(true);
     try {
-      setStatus("1/3 매치 데이터 생성 중...");
-      await seedMatches(20);
-
-      setStatus("2/3 테스트 유저 생성 중...");
+      setStatus("1/2 테스트 유저 생성 중...");
       await seedTestUsers();
 
-      setStatus("3/3 테스트 유저 채팅방 생성 중...");
+      setStatus("2/2 테스트 유저 채팅방 생성 중...");
       await seedChatRooms();
 
       setStatus(
@@ -106,21 +89,18 @@ export default function SeedPage() {
   // 전체 삭제
   const handleDeleteAll = async () => {
     const confirmed = window.confirm(
-      "⚠️ 정말 모든 더미 데이터를 삭제하시겠습니까?\n\n삭제되는 데이터:\n- 모든 매치\n- 테스트 유저 6명\n- 모든 채팅방 및 메시지\n\n이 작업은 되돌릴 수 없습니다.",
+      "⚠️ 정말 모든 더미 데이터를 삭제하시겠습니까?\n\n삭제되는 데이터:\n- 테스트 유저 6명\n- 모든 채팅방 및 메시지\n\n이 작업은 되돌릴 수 없습니다.",
     );
 
     if (!confirmed) return;
 
     setIsRunning(true);
     try {
-      setStatus("1/3 모든 채팅방 삭제 중...");
+      setStatus("1/2 모든 채팅방 삭제 중...");
       await deleteAllChatRooms();
 
-      setStatus("2/3 테스트 유저 삭제 중...");
+      setStatus("2/2 테스트 유저 삭제 중...");
       await deleteTestUsers();
-
-      setStatus("3/3 모든 매치 삭제 중...");
-      await deleteAllMatches();
 
       setStatus("✅ 전체 더미 데이터 삭제 완료!");
     } catch (error) {
@@ -157,16 +137,6 @@ export default function SeedPage() {
         {/* 생성 버튼들 */}
         <div className="space-y-3">
           <p className="text-sm font-bold text-gray-700">📥 데이터 생성</p>
-
-          <button
-            onClick={handleSeedMatches}
-            disabled={isRunning}
-            className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-          >
-            ⚽ 매치 20개 생성
-          </button>
-
-          <hr className="my-4" />
 
           <button
             onClick={handleSeedAll}

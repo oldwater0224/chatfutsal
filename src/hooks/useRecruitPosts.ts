@@ -5,35 +5,47 @@ import { RecruitPost } from "../types";
 import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-// 전체 게시글 (모집 중)
+interface RecruitFilters {
+  date: string;
+  region: string;
+  level: string;
+}
 
-export function useRecruitPosts(){
+export function useRecruitPosts(filters?: RecruitFilters){
   const [posts , setPosts] = useState<RecruitPost[]>([]);
-  const [isLoading , setIsLoading] = useState(true);;
+  const [isLoading , setIsLoading] = useState(true);
 
   useEffect(() => {
     const postRef = collection(db , 'recruitPosts');
-    const q = query(postRef , 
-      where('status' , '==' , 'open') , 
+    const q = query(postRef ,
+      where('status' , '==' , 'open') ,
       orderBy('createdAt' , 'desc')
     );
 
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const postList : RecruitPost[] =snapshot.docs.map((doc) => ({
+      let postList : RecruitPost[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
         createdAt : doc.data().createdAt?.toDate() || new Date(),
         updatedAt : doc.data().updatedAt?.toDate() || new Date(),
       })) as RecruitPost[];
 
+      if (filters?.date) {
+        postList = postList.filter((post) => post.date === filters.date);
+      }
+      if (filters?.region) {
+        postList = postList.filter((post) => post.location.includes(filters.region));
+      }
+      if (filters?.level) {
+        postList = postList.filter((post) => post.level === filters.level);
+      }
+
       setPosts(postList);
       setIsLoading(false);
     });
 
-
     return () => unsubscribe();
-  } , [])
+  } , [filters?.date, filters?.region, filters?.level])
 
   return {posts , isLoading};
 }

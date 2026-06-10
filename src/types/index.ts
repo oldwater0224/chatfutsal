@@ -14,45 +14,6 @@ export interface AuthFormProps {
   ) => Promise<void>;
 }
 
-export interface MatchCardProps {
-  match: {
-    id: string;
-    title: string;
-    date: string;
-    time: string;
-    location: string;
-    currentParticipants: number;
-    maxParticipants: number;
-    level: string;
-  };
-}
-export interface FilterState {
-  date: string;
-  region: string;
-  level: string;
-}
-export interface MatchFilterProps {
-  filters: FilterState;
-  onFilterChange: (filters: FilterState) => void;
-}
-
-export interface Match {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  address: string;
-  lat?: number;
-  lng?: number;
-  maxParticipants: number;
-  currentParticipants: number;
-  participants: string[];
-  level: "beginner" | "amateur" | "semipro" | "pro";
-  price: number;
-  status: "open" | "confirmed" | "completed" | "cancelled";
-  createdAt: Date;
-}
 
 export interface ChatRoom {
   id: string;

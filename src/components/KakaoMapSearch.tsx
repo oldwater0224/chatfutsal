@@ -3,17 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Pin, Search, X } from "lucide-react";
 
+import { KakaoSDK, KakaoMap, KakaoMarker, KakaoPlaceSearchResult } from "@/src/types";
+
 declare global {
   interface Window {
-    kakao: any;
+    kakao: KakaoSDK;
   }
-}
-interface KakaoPlace {
-  place_name: string;
-  road_address_name: string;
-  address_name: string;
-  x: string;  // 경도
-  y: string;  // 위도
 }
 
 interface LocationData {
@@ -33,10 +28,10 @@ export default function KakaoMapSearch({
   initialLocation,
 }: KakaoMapSearchProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
-  const [marker, setMarker] = useState<any>(null);
+  const [map, setMap] = useState<KakaoMap | null>(null);
+  const [marker, setMarker] = useState<KakaoMarker | null>(null);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [searchResults, setSearchResults] = useState<KakaoPlace[]>([]);
+  const [searchResults, setSearchResults] = useState<KakaoPlaceSearchResult[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<LocationData | null>(
     initialLocation || null,
   );
@@ -55,7 +50,7 @@ export default function KakaoMapSearch({
         level: 5,
       };
 
-      const newMap = new window.kakao.maps.Map(mapRef.current, options);
+      const newMap = new window.kakao.maps.Map(mapRef.current!, options);
       setMap(newMap);
 
       // 초기 마커 (선택된 위치가 있으면)
@@ -92,7 +87,7 @@ export default function KakaoMapSearch({
     setIsSearching(true);
     const ps = new window.kakao.maps.services.Places();
 
-    ps.keywordSearch(searchKeyword, (data: any[], status : any ) => {
+    ps.keywordSearch(searchKeyword, (data: KakaoPlaceSearchResult[], status: string) => {
       setIsSearching(false);
       if (status === window.kakao.maps.services.Status.OK) {
         setSearchResults(data.slice(0, 5)); // 최대 5개
@@ -104,14 +99,14 @@ export default function KakaoMapSearch({
   };
 
   // 검색 결과에서 장소 선택
-  const handleSelectPlace = (place : any) => {
+  const handleSelectPlace = (place: KakaoPlaceSearchResult) => {
     const lat = parseFloat(place.y);
     const lng = parseFloat(place.x);
 
     // 지도 이동
     const moveLatLng = new window.kakao.maps.LatLng(lat, lng);
-    map.setCenter(moveLatLng);
-    map.setLevel(3);
+    map!.setCenter(moveLatLng);
+    map!.setLevel(3);
 
     // 기존 마커 제거 후 새 마커
     if (marker) {

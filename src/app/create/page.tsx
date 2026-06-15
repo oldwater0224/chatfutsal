@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 const LEVELS = [
   { value: "beginner", label: "비기너" },
   { value: "amateur", label: "아마추어" },
-  { value: "semi-pro", label: "세미프로" },
+  { value: "semipro", label: "세미프로" },
   { value: "pro", label: "프로" },
 ];
 

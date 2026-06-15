@@ -54,6 +54,62 @@ export interface RecruitPost {
   createdAt: Date;
   updatedAt: Date;
 }
+// Kakao Maps SDK 타입
+export interface KakaoLatLng {
+  getLat(): number;
+  getLng(): number;
+}
+
+export interface KakaoMap {
+  setCenter(latlng: KakaoLatLng): void;
+  setLevel(level: number): void;
+}
+
+export interface KakaoMarker {
+  setMap(map: KakaoMap | null): void;
+}
+
+export interface KakaoPlaceSearchResult {
+  place_name: string;
+  road_address_name: string;
+  address_name: string;
+  x: string;
+  y: string;
+}
+
+export interface KakaoMaps {
+  LatLng: new (lat: number, lng: number) => KakaoLatLng;
+  Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
+  Marker: new (options: { position: KakaoLatLng }) => KakaoMarker;
+  InfoWindow: new (options: { content: string }) => { open(map: KakaoMap, marker: KakaoMarker): void };
+  load(callback: () => void): void;
+  services: {
+    Places: new () => {
+      keywordSearch(keyword: string, callback: (data: KakaoPlaceSearchResult[], status: string) => void): void;
+    };
+    Status: { OK: string };
+  };
+}
+
+export interface KakaoSDK {
+  maps: KakaoMaps;
+}
+
+// Firestore Timestamp 호환 타입
+export interface FirestoreTimestamp {
+  seconds: number;
+  nanoseconds: number;
+  toDate(): Date;
+}
+
+export type DateLike = Date | FirestoreTimestamp;
+
+// Firebase Auth 에러 타입
+export interface FirebaseAuthError {
+  code: string;
+  message: string;
+}
+
 export const LEVEL_LABELS: Record<string, string> = {
   beginner: "비기너",
   amateur: "아마추어",

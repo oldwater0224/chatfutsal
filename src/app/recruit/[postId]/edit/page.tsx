@@ -8,7 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import KakaoMapSearch from "@/src/components/KakaoMapSearch";  // 👈 추가
+import KakaoMapSearch from "@/src/components/KakaoMapSearch"; // 👈 추가
 
 const level_labels = [
   { value: "beginner", label: "비기너" },
@@ -33,7 +33,8 @@ export default function EditRecruitPage() {
     date: string;
     time: string;
     location: string;
-    locationCoord: {        // 👈 추가
+    locationCoord: {
+      // 👈 추가
       lat: number;
       lng: number;
       address: string;
@@ -46,7 +47,8 @@ export default function EditRecruitPage() {
     date: "",
     time: "",
     location: "",
-    locationCoord: {        // 👈 추가
+    locationCoord: {
+      // 👈 추가
       lat: 0,
       lng: 0,
       address: "",
@@ -78,7 +80,8 @@ export default function EditRecruitPage() {
             date: data.date || "",
             time: data.time || "",
             location: data.location || "",
-            locationCoord: data.locationCoord || {  // 👈 추가
+            locationCoord: data.locationCoord || {
+              // 👈 추가
               lat: 0,
               lng: 0,
               address: "",
@@ -146,7 +149,8 @@ export default function EditRecruitPage() {
     setIsSubmitting(false);
   };
 
-  if (authLoading || isLoading) {  // 👈 || 로 수정 (둘 중 하나라도 로딩 중이면)
+  if (authLoading || isLoading) {
+    // 👈 || 로 수정 (둘 중 하나라도 로딩 중이면)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
@@ -185,6 +189,7 @@ export default function EditRecruitPage() {
               제목 *
             </label>
             <input
+              required
               type="text"
               value={formData.title}
               onChange={(e) =>
@@ -203,6 +208,7 @@ export default function EditRecruitPage() {
                 경기 날짜 *
               </label>
               <input
+              required
                 type="date"
                 value={formData.date}
                 onChange={(e) =>
@@ -216,6 +222,7 @@ export default function EditRecruitPage() {
                 경기 시간 *
               </label>
               <input
+              required
                 type="time"
                 value={formData.time}
                 onChange={(e) =>
@@ -232,6 +239,7 @@ export default function EditRecruitPage() {
               구장 선택 *
             </label>
             <KakaoMapSearch
+            
               onSelect={(loc) => {
                 setFormData({
                   ...formData,

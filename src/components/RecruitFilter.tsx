@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+
 interface FilterState {
   date: string;
   region: string;
@@ -79,7 +81,7 @@ export default function RecruitFilter({
   return (
     <div className="bg-white">
       <div className="bg-white sticky top-14 z-40">
-        <div className="px-4 py-3 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
+        <div className="px-4 py-3 overflow-hidden mx-auto w-full max-w-2xl">
           <div className="flex justify-between gap-2 overflow-x-auto scrollbar-hide">
             {dates.map((date) => (
               <button
@@ -101,53 +103,58 @@ export default function RecruitFilter({
           </div>
         </div>
 
-        <div className="px-4 pb-4 flex flex-col gap-3 max-w-3xl sm:max-w-2xl mx-auto">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 left-2 mb-2">
-              지역
-            </label>
-            <div className="flex gap-2 flex-wrap">
+        <div className="px-4 pb-4 flex items-center gap-2 max-w-2xl mx-auto">
+          <div className="relative">
+            <select
+              value={filters.region}
+              onChange={(e) => handleRegionChange(e.target.value)}
+              aria-label="지역 필터"
+              className={`appearance-none pl-3 pr-7 py-1.5 rounded-full text-sm transition-colors hover:cursor-pointer focus:outline-none ${
+                filters.region
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
               {regions.map((region) => (
-                <button
-                  key={region.value}
-                  onClick={() => handleRegionChange(region.value)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    filters.region === region.value
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
+                <option key={region.value} value={region.value}>
                   {region.label}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
+            <ChevronDown
+              className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                filters.region ? "text-white" : "text-gray-500"
+              }`}
+            />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">
-              레벨
-            </label>
-            <div className="flex gap-2 flex-wrap">
+          <div className="relative">
+            <select
+              value={filters.level}
+              onChange={(e) => handleLevelChange(e.target.value)}
+              aria-label="레벨 필터"
+              className={`appearance-none pl-3 pr-7 py-1.5 rounded-full text-sm transition-colors hover:cursor-pointer focus:outline-none ${
+                filters.level
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
               {levels.map((level) => (
-                <button
-                  key={level.value}
-                  onClick={() => handleLevelChange(level.value)}
-                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    filters.level === level.value
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
+                <option key={level.value} value={level.value}>
                   {level.label}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
+            <ChevronDown
+              className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
+                filters.level ? "text-white" : "text-gray-500"
+              }`}
+            />
           </div>
-        </div>
-        <div className="max-w-2xl mx-auto px-5">
+
           <button
             onClick={handleReset}
-            className="pt-3 text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+            className="ml-auto text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
           >
             필터 초기화
           </button>

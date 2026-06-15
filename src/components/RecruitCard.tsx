@@ -10,7 +10,7 @@ export default function RecruitCard({ post }: RecruitCardProps) {
   return (
     <Link
       href={`/recruit/${post.id}`}
-      className="block overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl"
+      className="block overflow-hidden mx-auto w-full max-w-2xl"
     >
       <div className="bg-white p-4 border-b transition-colors">
         <div className="flex mb-3">

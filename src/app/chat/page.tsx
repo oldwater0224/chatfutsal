@@ -32,13 +32,13 @@ export default function ChatListPage() {
       {/* 헤더 */}
       <Header />
       <div className="pt-14 bg-white border-b">
-      <div className="  px-4 h-14 flex items-center max-w-4xl mx-auto">
+      <div className="px-4 h-14 flex items-center max-w-2xl mx-auto">
         <h1 className="text-lg font-bold">채팅</h1>
       </div>
       </div>
 
       {/* 채팅 목록 */}
-      <main className=" px-4 max-w-5xl mx-auto">
+      <main className="px-4 max-w-2xl mx-auto">
         {chatRooms.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <p className="text-4xl mb-4">💬</p>

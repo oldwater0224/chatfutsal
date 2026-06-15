@@ -9,20 +9,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-// ✅ 날짜 변환 함수 추가
-const formatDate = (date: any): string => {
+import { DateLike, FirestoreTimestamp } from "@/src/types";
+
+const formatDate = (date: DateLike | null | undefined): string => {
   if (!date) return "";
 
-  // Firestore Timestamp인 경우
-  if (date?.seconds) {
-    return new Date(date.seconds * 1000).toLocaleDateString("ko-KR", {
+  if ("seconds" in date) {
+    return new Date((date as FirestoreTimestamp).seconds * 1000).toLocaleDateString("ko-KR", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   }
 
-  // 이미 Date 객체인 경우
   if (date instanceof Date) {
     return date.toLocaleDateString("ko-KR", {
       year: "numeric",

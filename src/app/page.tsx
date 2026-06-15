@@ -80,9 +80,11 @@ export default function HomePage() {
               {posts.length}개의 모집
             </div>
 
-            {posts.map((post) => (
-              <RecruitCard key={post.id} post={post} />
-            ))}
+            <div className="space-y-4 px-4 pb-4">
+              {posts.map((post) => (
+                <RecruitCard key={post.id} post={post} />
+              ))}
+            </div>
           </div>
         )}
       </main>

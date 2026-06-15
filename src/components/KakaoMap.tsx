@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+import { KakaoSDK } from "@/src/types";
+
 declare global {
   interface Window {
-    kakao : any;
+    kakao: KakaoSDK;
   }
 }
 
@@ -27,7 +29,7 @@ export default function KakaoMap({ lat, lng, address }: KakaoMapProps) {
         level: 3,
       };
 
-      const map = new window.kakao.maps.Map(mapRef.current, options);
+      const map = new window.kakao.maps.Map(mapRef.current!, options);
 
       const markerPosition = new window.kakao.maps.LatLng(lat, lng);
       const marker = new window.kakao.maps.Marker({

@@ -34,7 +34,9 @@ export function useRecruitPosts(filters?: RecruitFilters){
         postList = postList.filter((post) => post.date === filters.date);
       }
       if (filters?.region) {
-        postList = postList.filter((post) => post.location.includes(filters.region));
+        postList = postList.filter((post) =>
+          post.locationCoord?.address?.includes(filters.region)
+        );
       }
       if (filters?.level) {
         postList = postList.filter((post) => post.level === filters.level);

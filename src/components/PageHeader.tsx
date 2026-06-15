@@ -26,7 +26,7 @@ export default function PageHeader({
   }
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-      <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
+      <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
         {showBack && (
           <button
             onClick={handleBack}

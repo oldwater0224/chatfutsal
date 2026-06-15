@@ -88,7 +88,7 @@ if (isLoading) {
      <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-md px-4 h-14 flex items-center">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
           <button onClick={() => router.back()} className="text-gray-600 mr-4 hover:cursor:pointer">
             ←
           </button>
@@ -97,7 +97,7 @@ if (isLoading) {
       </header>
 
       {/* 본문 */}
-      <main className="pt-14 pb-24 px-4">
+      <main className="pt-14 pb-24 px-4 max-w-2xl mx-auto">
         <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -116,7 +116,7 @@ if (isLoading) {
       {/* 하단 버튼 */}
       {!isMe && currentUser && (
         <div className="fixed bottom-0  left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-md mx-auto">
+          <div className="max-w-2xl mx-auto">
             <button
               onClick={handleStartChat}
               disabled={startingChat}

@@ -158,63 +158,65 @@ export default function ChatRoomPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
-      {/* 헤더 */}
-      <header className="bg-white border-b px-4 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/chat" className="text-gray-600 text-xl">
-            ←
-          </Link>
-          <Link
-            href={otherUserId ? `/users/${otherUserId}` : "#"}
-            className="flex items-center gap-2"
-          >
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 text-sm font-medium">
-                {otherUserName.charAt(0)}
-              </span>
-            </div>
-            <span className="font-medium">{otherUserName}</span>
-          </Link>
-        </div>
-
-        <div className="relative">
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full"
-          >
-            ⋮
-          </button>
-
-          {showMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setShowMenu(false)}
-              />
-              <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-25">
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    handleLeaveChatRoom();
-                  }}
-                  className=" w-full px-3 py-2  text-red-500 text-sm flex items-center gap-2"
-                >
-                  <LogOut className="w-5 h-5 "/> 나가기
-                </button>
+      <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-white md:border-x">
+        {/* 헤더 */}
+        <header className="border-b px-4 h-14 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <Link href="/chat" className="text-gray-600 text-xl">
+              ←
+            </Link>
+            <Link
+              href={otherUserId ? `/users/${otherUserId}` : "#"}
+              className="flex items-center gap-2"
+            >
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 text-sm font-medium">
+                  {otherUserName.charAt(0)}
+                </span>
               </div>
-            </>
-          )}
-        </div>
-      </header>
+              <span className="font-medium">{otherUserName}</span>
+            </Link>
+          </div>
 
-      {/* 채팅방 */}
-      <div className="flex-1 overflow-hidden">
-        <ChatRoom
-          messages={messages}
-          currentUserId={user.uid}
-          onSendMessage={handleSendMessage}
-          loading={messagesLoading}
-        />
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full"
+            >
+              ⋮
+            </button>
+
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                />
+                <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-25">
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      handleLeaveChatRoom();
+                    }}
+                    className=" w-full px-3 py-2  text-red-500 text-sm flex items-center gap-2"
+                  >
+                    <LogOut className="w-5 h-5 "/> 나가기
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* 채팅방 */}
+        <div className="flex-1 overflow-hidden">
+          <ChatRoom
+            messages={messages}
+            currentUserId={user.uid}
+            onSendMessage={handleSendMessage}
+            loading={messagesLoading}
+          />
+        </div>
       </div>
 
       {isLeaving && (

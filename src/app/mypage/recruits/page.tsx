@@ -64,7 +64,7 @@ export default function MypageRecruit() {
       <div className="min-h-screen bg-gray-50">
         {/* 헤더 */}
         <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-          <div className=" mx-auto px-4 h-14 flex items-center">
+          <div className="max-w-2xl mx-auto px-4 h-14 flex items-center">
             <Link href="/mypage" className="text-gray-600 mr-4 text-xl">
               ←
             </Link>
@@ -89,7 +89,7 @@ export default function MypageRecruit() {
             <>
               {/* 모집 중 */}
               {openPosts.length > 0 && (
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-2xl mx-auto">
                   <div className="px-4 py-3 bg-green-50 ">
                     <h2 className="font-bold text-green-700">
                       모집 중 ({openPosts.length})
@@ -136,7 +136,7 @@ export default function MypageRecruit() {
 
               {/* 마감됨 */}
               {closedPosts.length > 0 && (
-                <div className="mt-4 max-w-3xl mx-auto">
+                <div className="mt-4 max-w-2xl mx-auto">
                   <div className="px-4 py-3 bg-gray-100">
                     <h2 className="font-bold text-gray-600">
                       마감됨 ({closedPosts.length})

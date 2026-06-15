@@ -159,7 +159,7 @@ export default function EditRecruitPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href={`/recruit/${postId}`} className="text-gray-600 text-xl">
               ←
@@ -177,7 +177,7 @@ export default function EditRecruitPage() {
       </header>
 
       {/* 폼 */}
-      <main className="pt-14 pb-10 px-4">
+      <main className="pt-14 pb-10 px-4 max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           {/* 제목 */}
           <div>

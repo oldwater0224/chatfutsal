@@ -41,7 +41,7 @@ export default function MyPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="pt-14 pb-20 px-4  max-w-5xl mx-auto">
+      <main className="pt-14 pb-20 px-4 max-w-2xl mx-auto">
         {/* 프로필 카드 */}
         <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center gap-4 mb-6">

@@ -35,17 +35,19 @@ export default function HomePage() {
 
       <main className="pt-14 pb-20">
         {/* 페이지 헤더 */}
-        <div className="bg-white border-b px-4 py-3 flex items-center justify-between md:justify-around lg:justify-evenly">
-          <h1 className="text-lg font-bold">용병 모집</h1>
-          {user && (
-            <Link
-              href="/create"
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-full hover:bg-green-700"
-            >
-              <span>+</span>
-              <span>글쓰기</span>
-            </Link>
-          )}
+        <div className="bg-white border-b">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 className="text-lg font-bold">용병 모집</h1>
+            {user && (
+              <Link
+                href="/create"
+                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-full hover:bg-green-700"
+              >
+                <span>+</span>
+                <span>글쓰기</span>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* 필터 */}

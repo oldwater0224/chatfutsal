@@ -127,7 +127,7 @@ export default function RecruitDetailPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className=" mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/recruit" className="text-gray-600 text-xl">
               ←
@@ -191,7 +191,7 @@ export default function RecruitDetailPage() {
       </header>
 
       {/* 본문 */}
-      <main className="pt-14 pb-24 px-4 overflow-hidden mx-auto w-full max-w-3xl sm:max-w-2xl">
+      <main className="pt-14 pb-24 px-4 overflow-hidden mx-auto w-full max-w-2xl">
         {/* 상태 배지 */}
         {post.status === "closed" && (
           <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">
@@ -285,7 +285,7 @@ export default function RecruitDetailPage() {
       {/* 하단 채팅 버튼 */}
       {user && !isAuthor && post.status === "open" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-2xl mx-auto">
             <button
               onClick={handleStartChat}
               className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"

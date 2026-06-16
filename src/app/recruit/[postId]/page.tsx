@@ -66,7 +66,7 @@ export default function RecruitDetailPage() {
     try {
       await deleteRecruitPost(postId);
       router.push("/recruit");
-    } catch (error) {
+    } catch {
       alert("삭제에 실패했습니다.");
     }
   };
@@ -80,7 +80,7 @@ export default function RecruitDetailPage() {
       } else {
         await reopenRecruitPost(postId);
       }
-    } catch (error) {
+    } catch {
       alert("상태 변경에 실패했습니다.");
     }
   };
@@ -100,7 +100,7 @@ export default function RecruitDetailPage() {
       );
 
       router.push(`/chat/${roomId}`);
-    } catch (error) {
+    } catch {
       alert("채팅 시작에 실패했습니다.");
     }
   };
@@ -216,7 +216,7 @@ export default function RecruitDetailPage() {
         </div>
 
         {/* 정보 카드 */}
-        <div className="mt-6 bg-white rounded-lg p-4 space-y-3 shadow-sm">
+        <div className="mt-6 bg-white rounded-2xl border-gray-100 p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-blue-500" />
             <div>
@@ -257,7 +257,7 @@ export default function RecruitDetailPage() {
         </div>
         {/* 👇 지도 영역 추가 */}
         {post.locationCoord?.lat && post.locationCoord?.lng && (
-          <div className="mt-4 bg-white rounded-lg p-4 shadow-sm">
+          <div className="mt-4 bg-white rounded-2xl border-gray-100 p-4 shadow-sm">
             <h3 className="font-bold mb-3">구장 위치</h3>
             <KakaoMap
               lat={post.locationCoord.lat}
@@ -273,7 +273,7 @@ export default function RecruitDetailPage() {
             <h3 className="text-sm font-medium text-gray-500 mb-2">
               상세 내용
             </h3>
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="bg-white rounded-2xl border-gray-100 p-4 shadow-sm">
               <p className="text-gray-700 whitespace-pre-wrap">
                 {post.content}
               </p>

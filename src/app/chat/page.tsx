@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useChatRooms } from "@/src/hooks/useChatRoom";
 import BottomNav from "@/src/components/BottomNav";
-import UserSearchModal from "@/src/components/UserSearchModal";
+
 import Header from "@/src/components/Header";
 
 export default function ChatListPage() {
@@ -40,7 +40,7 @@ export default function ChatListPage() {
       {/* 채팅 목록 */}
       <main className="px-4 max-w-2xl mx-auto">
         {chatRooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500 ">
             <p className="text-4xl mb-4">💬</p>
             <p>아직 채팅이 없습니다</p>
             <p className="text-sm mt-1">매치에 참가하거나 용병을 구해보세요!</p>
@@ -59,7 +59,7 @@ export default function ChatListPage() {
                 <Link
                   key={room.id}
                   href={`/chat/${room.id}`}
-                  className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="block bg-white rounded-2xl border-gray-100 p-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 ">
                     {/* 프로필 아바타 */}

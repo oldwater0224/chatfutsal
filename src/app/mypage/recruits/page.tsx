@@ -89,14 +89,14 @@ export default function MypageRecruit() {
               {/* 모집 중 */}
               {openPosts.length > 0 && (
                 <div className="max-w-2xl mx-auto">
-                  <div className="px-4 py-3 bg-green-50 ">
+                  <div className="px-4 py-3 bg-green-50 rounded-2xl">
                     <h2 className="font-bold text-green-700">
                       모집 중 ({openPosts.length})
                     </h2>
                   </div>
                   {openPosts.map((post) => (
                     <Link key={post.id} href={`/recruit/${post.id}`}>
-                      <div className="bg-white p-4 border-b hover:bg-gray-50 transition-colors">
+                      <div className="bg-white p-4 border-b hover:bg-gray-50 transition-colors rounded-2xl">
                         <div className=" flex items-center gap-2 mb-2">
                           <h3 className="font-semibold text-gray-900 flex">
                             {post.title}
@@ -136,7 +136,7 @@ export default function MypageRecruit() {
               {/* 마감됨 */}
               {closedPosts.length > 0 && (
                 <div className="mt-4 max-w-2xl mx-auto">
-                  <div className="px-4 py-3 bg-gray-100">
+                  <div className="px-4 py-3 bg-gray-100 rounded-2xl">
                     <h2 className="font-bold text-gray-600">
                       마감됨 ({closedPosts.length})
                     </h2>

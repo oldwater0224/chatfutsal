@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RotateCcw } from "lucide-react";
 
 interface FilterState {
   date: string;
@@ -154,9 +154,9 @@ export default function RecruitFilter({
 
           <button
             onClick={handleReset}
-            className="ml-auto text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
+            className=" text-sm text-red-500 hover:text-red-600 hover:cursor-pointer"
           >
-            필터 초기화
+              <RotateCcw className="w-5 h-4"/>
           </button>
         </div>
       </div>

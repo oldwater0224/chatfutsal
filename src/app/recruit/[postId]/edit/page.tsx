@@ -34,7 +34,6 @@ export default function EditRecruitPage() {
     time: string;
     location: string;
     locationCoord: {
-      // 👈 추가
       lat: number;
       lng: number;
       address: string;
@@ -48,7 +47,6 @@ export default function EditRecruitPage() {
     time: "",
     location: "",
     locationCoord: {
-      // 👈 추가
       lat: 0,
       lng: 0,
       address: "",
@@ -81,7 +79,7 @@ export default function EditRecruitPage() {
             time: data.time || "",
             location: data.location || "",
             locationCoord: data.locationCoord || {
-              // 👈 추가
+              
               lat: 0,
               lng: 0,
               address: "",
@@ -130,7 +128,7 @@ export default function EditRecruitPage() {
       alert("경기 시간을 선택해주세요.");
       return;
     }
-    // 👇 수정: 지도 선택 확인
+    //지도 선택 확인
     if (!formData.location.trim() || formData.locationCoord.lat === 0) {
       alert("구장을 지도에서 선택해주세요.");
       return;
@@ -150,7 +148,7 @@ export default function EditRecruitPage() {
   };
 
   if (authLoading || isLoading) {
-    // 👈 || 로 수정 (둘 중 하나라도 로딩 중이면)
+    //둘 중 하나라도 로딩 중이면
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
@@ -208,7 +206,7 @@ export default function EditRecruitPage() {
                 경기 날짜 *
               </label>
               <input
-              required
+                required
                 type="date"
                 value={formData.date}
                 onChange={(e) =>
@@ -222,7 +220,7 @@ export default function EditRecruitPage() {
                 경기 시간 *
               </label>
               <input
-              required
+                required
                 type="time"
                 value={formData.time}
                 onChange={(e) =>
@@ -239,7 +237,6 @@ export default function EditRecruitPage() {
               구장 선택 *
             </label>
             <KakaoMapSearch
-            
               onSelect={(loc) => {
                 setFormData({
                   ...formData,

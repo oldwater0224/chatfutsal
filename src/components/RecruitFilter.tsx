@@ -2,7 +2,7 @@
 
 import { ChevronDown, RotateCcw } from "lucide-react";
 
-interface FilterState {
+export interface FilterState {
   date: string;
   region: string;
   level: string;

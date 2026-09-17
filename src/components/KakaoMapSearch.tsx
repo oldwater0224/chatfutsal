@@ -3,13 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Pin, Search, X } from "lucide-react";
 
-import { KakaoSDK, KakaoMap, KakaoMarker, KakaoPlaceSearchResult } from "@/src/types";
-
-declare global {
-  interface Window {
-    kakao: KakaoSDK;
-  }
-}
+import { KakaoMap, KakaoMarker, KakaoPlaceSearchResult } from "@/src/types";
 
 interface LocationData {
   name: string; // 구장명

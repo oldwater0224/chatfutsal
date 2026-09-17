@@ -3,19 +3,14 @@
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/lib/firebase";
 import { updateRecruitPost } from "@/src/lib/services";
-import { RecruitPost } from "@/src/types";
+import { LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import KakaoMapSearch from "@/src/components/KakaoMapSearch"; // 👈 추가
+import KakaoMapSearch from "@/src/components/KakaoMapSearch";
 
-const level_labels = [
-  { value: "beginner", label: "비기너" },
-  { value: "amateur", label: "아마추어" },
-  { value: "semipro", label: "세미프로" },
-  { value: "pro", label: "프로" },
-] as const;
+const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({ value: value as RecruitPost["level"], label }));
 
 export default function EditRecruitPage() {
   const params = useParams();
@@ -38,7 +33,7 @@ export default function EditRecruitPage() {
       lng: number;
       address: string;
     };
-    level: (typeof level_labels)[number]["value"];
+    level: RecruitPost["level"];
     needCount: number;
   }>({
     title: "",
@@ -267,7 +262,7 @@ export default function EditRecruitPage() {
               실력 수준 *
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {level_labels.map((level) => (
+              {LEVELS.map((level) => (
                 <button
                   key={level.value}
                   type="button"

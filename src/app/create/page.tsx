@@ -3,17 +3,13 @@
 import KakaoMapSearch from "@/src/components/KakaoMapSearch";
 import { useAuth } from "@/src/hooks/useAuth";
 import { createRecruitPost } from "@/src/lib/services";
+import { LEVEL_LABELS } from "@/src/types";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const LEVELS = [
-  { value: "beginner", label: "비기너" },
-  { value: "amateur", label: "아마추어" },
-  { value: "semipro", label: "세미프로" },
-  { value: "pro", label: "프로" },
-];
+const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({ value, label }));
 
 export default function CreateRecruitPage() {
   const { user, userData, isLoading: authLoading } = useAuth();

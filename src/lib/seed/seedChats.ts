@@ -104,7 +104,6 @@ export async function seedChatRooms() {
       // 채팅방 생성
       const participants = [user1.uid, user2.uid].sort();
       const lastMessage = scenario.messages[scenario.messages.length - 1];
-      const lastSender = testUsers[scenario.users[lastMessage.sender]];
 
       const chatRoomRef = await addDoc(collection(db, 'chatRooms'), {
         participants,

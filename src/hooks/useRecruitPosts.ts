@@ -74,8 +74,8 @@ export function useMyRecruitPosts(userId : string | undefined){
       const postList : RecruitPost[] = snapshot.docs.map((doc)=> ({
         id: doc.id,
         ...doc.data(),
-        createdAt : doc.data().createdAt?.toDate || new Date(),
-        updatedAt : doc.data().updatedAt?.toDate || new Date(),
+        createdAt : doc.data().createdAt?.toDate() || new Date(),
+        updatedAt : doc.data().updatedAt?.toDate() || new Date(),
       })) as RecruitPost[];
       
 

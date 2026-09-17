@@ -25,8 +25,9 @@ export default function SignupPage() {
       });
 
       router.push('/');
-    } catch (error :any) {
-      throw new Error(getFirebaseErrorMessage(error.code));
+    } catch (error) {
+      const firebaseError = error as { code: string };
+      throw new Error(getFirebaseErrorMessage(firebaseError.code));
     }
   };
 

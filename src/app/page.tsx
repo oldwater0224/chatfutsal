@@ -5,15 +5,9 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useRecruitPosts } from "@/src/hooks/useRecruitPosts";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import RecruitFilter from "@/src/components/RecruitFilter";
+import RecruitFilter, { FilterState } from "@/src/components/RecruitFilter";
 import RecruitCard from "@/src/components/RecruitCard";
 import Link from "next/link";
-
-interface FilterState {
-  date: string;
-  region: string;
-  level: string;
-}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -24,10 +18,6 @@ export default function HomePage() {
   });
 
   const { posts, isLoading } = useRecruitPosts(filters);
-
-  const handleFilterChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
-  };
 
   return (
     <div className="min-h-screen">
@@ -51,7 +41,7 @@ export default function HomePage() {
         </div>
 
         {/* 필터 */}
-        <RecruitFilter filters={filters} onFilterChange={handleFilterChange} />
+        <RecruitFilter filters={filters} onFilterChange={setFilters} />
 
         {/* 모집글 목록 */}
         {isLoading ? (

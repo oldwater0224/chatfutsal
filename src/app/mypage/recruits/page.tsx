@@ -40,7 +40,7 @@ export default function MypageRecruit() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("login");
+      router.push("/login");
     }
   }, [authLoading, router, user]);
 

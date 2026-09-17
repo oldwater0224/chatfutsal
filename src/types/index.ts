@@ -104,12 +104,6 @@ export interface FirestoreTimestamp {
 
 export type DateLike = Date | FirestoreTimestamp;
 
-// Firebase Auth 에러 타입
-export interface FirebaseAuthError {
-  code: string;
-  message: string;
-}
-
 export const LEVEL_LABELS: Record<string, string> = {
   beginner: "비기너",
   amateur: "아마추어",

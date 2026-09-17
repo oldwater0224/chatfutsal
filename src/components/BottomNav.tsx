@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation";
 import { Home, MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useChatRooms } from "@/src/hooks/useChatRoom";
-import { useState } from "react";
-
 const navItems = [
   { href: "/", label: "홈", icon: Home },
   { href: "/chat", label: "채팅", icon: MessageCircle },
@@ -17,18 +15,15 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { totalUnread } = useChatRooms(user?.uid);
-  const [pressedIndex, setPressedIndex] = useState<number | null>(null);
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-gray-100 z-50">
       <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
-        {navItems.map((item, index) => {
+        {navItems.map((item) => {
           const isActive =
             item.href === "/"
               ? pathname === "/"
               : pathname.startsWith(item.href);
 
-          const isPressed = pressedIndex === index;
           const Icon = item.icon;
           const badge = item.href === "/chat" ? totalUnread : 0;
 
@@ -65,7 +60,7 @@ export default function BottomNav() {
               <span
                 className={`text-xs font-medium transition-all duration-300 ${
                   isActive ? "text-emerald-600" : "text-gray-400"
-                } ${isPressed ? "scale-90" : "scale-100"}`}
+                }`}
               >
                 {item.label}
               </span>

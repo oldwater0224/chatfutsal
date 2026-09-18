@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/src/hooks/useAuth";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import { FileTextIcon, LogOut, MessageCircleIcon } from "lucide-react";
+import { ClipboardList, FileTextIcon, LogOut, MessageCircleIcon } from "lucide-react";
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -81,6 +81,18 @@ export default function MyPage() {
               <div className="flex items-center gap-3">
                 <FileTextIcon className="w-5 h-5" />
                 <span>내가 작성한 용병모집 게시글</span>
+              </div>
+              <span className="text-gray-400">→</span>
+            </div>
+          </Link>
+          <Link
+            href="/mypage/applications"
+            className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
+          >
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <ClipboardList className="w-5 h-5" />
+                <span> 참가 신청 내역</span>
               </div>
               <span className="text-gray-400">→</span>
             </div>

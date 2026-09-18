@@ -50,7 +50,22 @@ export interface RecruitPost {
   },
   level: "beginner" | "amateur" | "semipro" | "pro";
   needCount: number; // 모집 인원
+  acceptedCount: number; // 수락된 인원 수
+  applicantIds: string[]; // 신청한 유저 ID 목록
   status: "open" | "closed"; // 모집 상태
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Application {
+  id: string;
+  postId: string;
+  postTitle: string;
+  applicantId: string;
+  applicantName: string;
+  authorId: string;
+  message: string;
+  status: "pending" | "accepted" | "rejected";
   createdAt: Date;
   updatedAt: Date;
 }

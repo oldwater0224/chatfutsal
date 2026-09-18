@@ -50,7 +50,17 @@ export default function RecruitCard({ post }: RecruitCardProps) {
             <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
               <Users className="w-4 h-4 text-green-600" />
             </div>
-            <span className="font-medium">{post.needCount}명 모집</span>
+            <div className="flex items-center gap-2 flex-1">
+              <span className="font-medium">{post.acceptedCount || 0}/{post.needCount}명</span>
+              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(((post.acceptedCount || 0) / post.needCount) * 100, 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

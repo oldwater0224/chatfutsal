@@ -6,6 +6,8 @@ import {
   closeRecruitPost,
   deleteRecruitPost,
   reopenRecruitPost,
+  applyToPost,
+  cancelApplication,
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_LABELS, RecruitPost } from "@/src/types";
@@ -24,6 +26,9 @@ import {
   Users,
 } from "lucide-react";
 import KakaoMap from "@/src/components/KakaoMap";
+import ApplicationModal from "@/src/components/ApplicationModal";
+import ApplicationList from "@/src/components/ApplicationList";
+import { usePostApplications } from "@/src/hooks/useApplications";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -34,6 +39,8 @@ export default function RecruitDetailPage() {
   const [post, setPost] = useState<RecruitPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const { applications } = usePostApplications(postId);
 
   // 실시간 게시글 불러오기
   useEffect(() => {
@@ -249,9 +256,19 @@ export default function RecruitDetailPage() {
           </div>
           <div className="flex items-center gap-3">
             <Users className="w-5 h-5 text-green-600" />
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-gray-500">모집 인원</p>
-              <p className="font-medium">{post.needCount}명</p>
+              <p className="font-medium">
+                {post.acceptedCount || 0}/{post.needCount}명
+              </p>
+              <div className="mt-1.5 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(((post.acceptedCount || 0) / post.needCount) * 100, 100)}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -280,21 +297,81 @@ export default function RecruitDetailPage() {
             </div>
           </div>
         )}
+
+        {/* 신청 현황 (작성자에게만 표시) */}
+        {isAuthor && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              신청 현황 ({applications.length}건)
+            </h3>
+            <div className="bg-white rounded-2xl border-gray-100 px-4 shadow-sm">
+              <ApplicationList
+                applications={applications}
+                needCount={post.needCount}
+                postId={postId}
+              />
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* 하단 채팅 버튼 */}
+      {/* 하단 버튼 (비작성자) */}
       {user && !isAuthor && post.status === "open" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto flex gap-3">
             <button
               onClick={handleStartChat}
-              className="w-full py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+              className="flex-1 py-3 border border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50"
             >
-              💬 채팅으로 연락하기
+              💬 채팅하기
             </button>
+            {post.applicantIds?.includes(user.uid) ? (
+              <button
+                onClick={async () => {
+                  const myApp = applications.find(
+                    (a) => a.applicantId === user.uid && a.status === "pending",
+                  );
+                  if (myApp) {
+                    const confirmed = window.confirm("신청을 취소하시겠습니까?");
+                    if (!confirmed) return;
+                    await cancelApplication(myApp.id, postId, user.uid);
+                  } else {
+                    alert("이미 처리된 신청입니다.");
+                  }
+                }}
+                className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200"
+              >
+                신청 취소
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowApplyModal(true)}
+                className="flex-1 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+              >
+                참가 신청
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      {/* 신청 모달 */}
+      <ApplicationModal
+        isOpen={showApplyModal}
+        onClose={() => setShowApplyModal(false)}
+        postTitle={post.title}
+        onSubmit={async (message) => {
+          if (!user || !userData) return;
+          await applyToPost(
+            postId,
+            post.title,
+            user.uid,
+            userData.displayName || "사용자",
+            post.authorId,
+            message,
+          );
+        }}
+      />
     </div>
   );
 }

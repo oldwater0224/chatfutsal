@@ -9,6 +9,7 @@ interface RecruitFilters {
   date: string;
   region: string;
   level: string;
+  keyword: string;
 }
 
 export function useRecruitPosts(filters?: RecruitFilters){
@@ -41,13 +42,22 @@ export function useRecruitPosts(filters?: RecruitFilters){
       if (filters?.level) {
         postList = postList.filter((post) => post.level === filters.level);
       }
+      if (filters?.keyword) {
+        const kw = filters.keyword.toLowerCase();
+        postList = postList.filter(
+          (post) =>
+            post.title.toLowerCase().includes(kw) ||
+            post.content.toLowerCase().includes(kw) ||
+            post.location.toLowerCase().includes(kw)
+        );
+      }
 
       setPosts(postList);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  } , [filters?.date, filters?.region, filters?.level])
+  } , [filters?.date, filters?.region, filters?.level, filters?.keyword])
 
   return {posts , isLoading};
 }

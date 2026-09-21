@@ -6,6 +6,7 @@ export interface FilterState {
   date: string;
   region: string;
   level: string;
+  keyword: string;
 }
 
 interface RecruitFilterProps {
@@ -14,7 +15,7 @@ interface RecruitFilterProps {
 }
 
 export default function RecruitFilter({
-  filters = { date: "", region: "", level: "" },
+  filters = { date: "", region: "", level: "", keyword: "" },
   onFilterChange,
 }: RecruitFilterProps) {
   const regions = [
@@ -75,7 +76,7 @@ export default function RecruitFilter({
     onFilterChange({ ...filters, level });
   };
   const handleReset = () => {
-    onFilterChange({ date: "", region: "", level: "" });
+    onFilterChange({ date: "", region: "", level: "", keyword: filters.keyword });
   };
 
   return (

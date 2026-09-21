@@ -7,6 +7,7 @@ import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
 import RecruitFilter, { FilterState } from "@/src/components/RecruitFilter";
 import RecruitCard from "@/src/components/RecruitCard";
+import SearchBar from "@/src/components/SearchBar";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -15,6 +16,7 @@ export default function HomePage() {
     date: "",
     region: "",
     level: "",
+    keyword: "",
   });
 
   const { posts, isLoading } = useRecruitPosts(filters);
@@ -40,6 +42,16 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 검색바 */}
+        <div className="bg-white border-b">
+          <div className="max-w-2xl mx-auto px-4 py-2">
+            <SearchBar
+              value={filters.keyword}
+              onChange={(keyword) => setFilters((prev) => ({ ...prev, keyword }))}
+            />
+          </div>
+        </div>
+
         {/* 필터 */}
         <RecruitFilter filters={filters} onFilterChange={setFilters} />
 
@@ -50,12 +62,18 @@ export default function HomePage() {
           </div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <span className="text-5xl mb-4">⚽</span>
-            <p className="text-gray-700 font-medium mb-1">모집 글이 없어요</p>
-            <p className="text-gray-500 text-sm mb-4">
-              첫 번째 용병 모집 글을 작성해보세요!
+            <span className="text-5xl mb-4">{filters.keyword ? "🔍" : "⚽"}</span>
+            <p className="text-gray-700 font-medium mb-1">
+              {filters.keyword
+                ? `"${filters.keyword}" 검색 결과가 없어요`
+                : "모집 글이 없어요"}
             </p>
-            {user && (
+            <p className="text-gray-500 text-sm mb-4">
+              {filters.keyword
+                ? "다른 키워드로 검색해보세요"
+                : "첫 번째 용병 모집 글을 작성해보세요!"}
+            </p>
+            {!filters.keyword && user && (
               <Link
                 href="/create"
                 className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700"

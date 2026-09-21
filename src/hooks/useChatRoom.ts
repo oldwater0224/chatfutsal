@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   collection,
   query,
@@ -17,12 +17,15 @@ interface ChatRoomWithUnread extends ChatRoom {
 
 export function useChatRooms(userId: string | undefined) {
   const [chatRooms, setChatRooms] = useState<ChatRoomWithUnread[]>([]);
-  const [isLoading, setIsLoading] = useState(!!userId); //  userId 있으면 true
+  const [isLoading, setIsLoading] = useState(!!userId);
+
+  const handleError = useCallback((error: Error) => {
+    console.error("채팅방 불러오기 에러:", error);
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (!userId) {
-      return;
-    }
+    if (!userId) return;
 
     const chatRoomsRef = collection(db, "chatRooms");
     const q = query(
@@ -31,14 +34,12 @@ export function useChatRooms(userId: string | undefined) {
       orderBy("lastMessageAt", "desc"),
     );
 
-    // 메시지 구독 해제 함수들 저장
     const messageUnsubscribes: (() => void)[] = [];
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        // 이전 메시지 구독 해제
-        messageUnsubscribes.forEach((unsubscribe) => unsubscribe());
+        messageUnsubscribes.forEach((unsub) => unsub());
         messageUnsubscribes.length = 0;
 
         const rooms: ChatRoomWithUnread[] = snapshot.docs.map((docSnap) => {
@@ -55,24 +56,20 @@ export function useChatRooms(userId: string | undefined) {
           };
         });
 
-        // 초기 상태 설정
         setChatRooms(rooms);
         setIsLoading(false);
 
-        // 각 채팅방의 메시지 실시간 구독
         rooms.forEach((room) => {
           const messagesRef = collection(db, "chatRooms", room.id, "messages");
           const messagesQuery = query(messagesRef);
 
           const msgUnsubscribe = onSnapshot(messagesQuery, (msgSnapshot) => {
-            // 읽지 않은 메시지 수 계산
             const unreadCount = msgSnapshot.docs.filter((msgDoc) => {
               const msgData = msgDoc.data();
               const readBy = msgData.readBy || [];
               return msgData.senderId !== userId && !readBy.includes(userId);
             }).length;
 
-            // 해당 채팅방의 unreadCount 업데이트
             setChatRooms((prevRooms) => {
               const newRooms = [...prevRooms];
               const roomIndex = newRooms.findIndex((r) => r.id === room.id);
@@ -86,19 +83,15 @@ export function useChatRooms(userId: string | undefined) {
           messageUnsubscribes.push(msgUnsubscribe);
         });
       },
-      (error) => {
-        console.error("채팅방 불러오기 에러:", error);
-        setIsLoading(false);
-      },
+      handleError,
     );
 
     return () => {
       unsubscribe();
-      messageUnsubscribes.forEach((unsubscribe) => unsubscribe());
+      messageUnsubscribes.forEach((unsub) => unsub());
     };
-  }, [userId]);
+  }, [userId, handleError]);
 
-  // ✅ totalUnread 계산 
   const totalUnread = chatRooms.reduce(
     (sum, room) => sum + room.unreadCount,
     0,

@@ -5,6 +5,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   increment,
   query,
@@ -13,6 +14,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { createNotification } from "./notificationService";
 
 // 참가 신청
 export async function applyToPost(
@@ -41,6 +43,14 @@ export async function applyToPost(
     applicantIds: arrayUnion(applicantId),
   });
 
+  await createNotification(
+    authorId,
+    "application_received",
+    `${applicantName}님이 참가 신청했어요`,
+    postTitle,
+    `/recruit/${postId}`,
+  );
+
   return docRef.id;
 }
 
@@ -65,6 +75,9 @@ export async function acceptApplication(
   needCount: number,
 ): Promise<void> {
   const appRef = doc(db, "applications", applicationId);
+  const appSnap = await getDoc(appRef);
+  const appData = appSnap.data();
+
   await updateDoc(appRef, {
     status: "accepted",
     updatedAt: serverTimestamp(),
@@ -75,6 +88,16 @@ export async function acceptApplication(
     acceptedCount: increment(1),
     updatedAt: serverTimestamp(),
   });
+
+  if (appData) {
+    await createNotification(
+      appData.applicantId,
+      "application_accepted",
+      "참가 신청이 수락되었어요!",
+      appData.postTitle,
+      `/recruit/${postId}`,
+    );
+  }
 
   // 수락 후 정원이 찼는지 확인 → 자동 마감
   const appsQuery = query(
@@ -99,6 +122,9 @@ export async function rejectApplication(
   applicantId: string,
 ): Promise<void> {
   const appRef = doc(db, "applications", applicationId);
+  const appSnap = await getDoc(appRef);
+  const appData = appSnap.data();
+
   await updateDoc(appRef, {
     status: "rejected",
     updatedAt: serverTimestamp(),
@@ -109,4 +135,14 @@ export async function rejectApplication(
   await updateDoc(postRef, {
     applicantIds: arrayRemove(applicantId),
   });
+
+  if (appData) {
+    await createNotification(
+      applicantId,
+      "application_rejected",
+      "참가 신청이 거절되었어요",
+      appData.postTitle,
+      `/recruit/${postId}`,
+    );
+  }
 }

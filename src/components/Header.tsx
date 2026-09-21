@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useChatRooms } from '@/src/hooks/useChatRoom';
+import { useNotifications } from '@/src/hooks/useNotifications';
 
-import { MessageCircleIcon } from 'lucide-react';
+import { MessageCircleIcon, Bell } from 'lucide-react';
 
 export default function Header() {
   const { user, isLoading } = useAuth();
   const { totalUnread } = useChatRooms(user?.uid);
+  const { unreadCount: notifUnread } = useNotifications(user?.uid);
  
 
   return (
@@ -25,6 +27,18 @@ export default function Header() {
             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
           ) : user ? (
             <>
+              {/* 알림 아이콘 */}
+              <Link href="/notifications" className="relative">
+                <Bell className="w-5 h-5" />
+                {notifUnread > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-red-500 rounded-full flex items-center justify-center px-1">
+                    <span className="text-white text-xs font-bold">
+                      {notifUnread > 99 ? '99+' : notifUnread}
+                    </span>
+                  </span>
+                )}
+              </Link>
+
               {/* 채팅 아이콘 */}
               <Link href="/chat" className="relative">
                 <MessageCircleIcon className="w-5 h-5"></MessageCircleIcon>

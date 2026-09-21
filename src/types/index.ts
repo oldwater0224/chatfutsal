@@ -69,6 +69,23 @@ export interface Application {
   createdAt: Date;
   updatedAt: Date;
 }
+export type NotificationType =
+  | "new_message"
+  | "application_received"
+  | "application_accepted"
+  | "application_rejected";
+
+export interface Notification {
+  id: string;
+  recipientId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
 // Kakao Maps SDK 타입
 export interface KakaoLatLng {
   getLat(): number;

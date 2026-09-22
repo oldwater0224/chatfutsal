@@ -73,14 +73,6 @@ export default function RecruitCard({ post }: RecruitCardProps) {
             </div>
             <div>
               <span className="text-sm font-medium text-gray-700">{post.authorName}</span>
-              <span className="text-xs text-gray-400 ml-2">
-                {post.createdAt instanceof Date
-                  ? post.createdAt.toLocaleDateString("ko-KR", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  : ""}
-              </span>
             </div>
           </div>
           <div className="flex items-center gap-1 text-green-600 text-sm font-medium">

@@ -220,14 +220,6 @@ export default function RecruitDetailPage() {
         {/* 작성자 정보 */}
         <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
           <span>{post.authorName}</span>
-          <span>·</span>
-          <span>
-            {post.createdAt.toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
         </div>
 
         {/* 정보 카드 */}

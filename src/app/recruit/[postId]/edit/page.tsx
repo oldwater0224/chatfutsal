@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import KakaoMapSearch from "@/src/components/KakaoMapSearch";
+import { getTodayString } from "@/src/lib/utils/dateUtils";
 
 const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({ value: value as RecruitPost["level"], label }));
 
@@ -204,6 +205,7 @@ export default function EditRecruitPage() {
                 required
                 type="date"
                 value={formData.date}
+                min={getTodayString()}
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }

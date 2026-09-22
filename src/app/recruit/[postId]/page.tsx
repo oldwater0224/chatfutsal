@@ -11,7 +11,7 @@ import {
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_LABELS, RecruitPost } from "@/src/types";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,6 +29,7 @@ import KakaoMap from "@/src/components/KakaoMap";
 import ApplicationModal from "@/src/components/ApplicationModal";
 import ApplicationList from "@/src/components/ApplicationList";
 import { usePostApplications } from "@/src/hooks/useApplications";
+import { isPostExpired } from "@/src/lib/utils/dateUtils";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -49,12 +50,19 @@ export default function RecruitDetailPage() {
     const unsubscribe = onSnapshot(postRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setPost({
+        const postData = {
           id: snapshot.id,
           ...data,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
-        } as RecruitPost);
+        } as RecruitPost;
+
+        if (postData.status === "open" && isPostExpired(postData.date, postData.time)) {
+          updateDoc(postRef, { status: "closed", updatedAt: serverTimestamp() }).catch(() => {});
+          postData.status = "closed";
+        }
+
+        setPost(postData);
       } else {
         setPost(null);
       }
@@ -212,14 +220,6 @@ export default function RecruitDetailPage() {
         {/* 작성자 정보 */}
         <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
           <span>{post.authorName}</span>
-          <span>·</span>
-          <span>
-            {post.createdAt.toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
         </div>
 
         {/* 정보 카드 */}

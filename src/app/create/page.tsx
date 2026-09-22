@@ -4,6 +4,7 @@ import KakaoMapSearch from "@/src/components/KakaoMapSearch";
 import { useAuth } from "@/src/hooks/useAuth";
 import { createRecruitPost } from "@/src/lib/services";
 import { LEVEL_LABELS } from "@/src/types";
+import { getTodayString } from "@/src/lib/utils/dateUtils";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -86,8 +87,7 @@ export default function CreateRecruitPage() {
 
   if (!user) return null;
 
-  //오늘 날짜 (최소 선택 가능한 날짜)
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayString();
 
   return (
     <div className="min-h-screen bg-gray-50">

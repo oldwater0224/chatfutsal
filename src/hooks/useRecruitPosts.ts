@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { RecruitPost } from "../types";
-import { collection, onSnapshot, orderBy, query, where, QuerySnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, orderBy, query, where, QuerySnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { isPostExpired } from "../lib/utils/dateUtils";
 
 interface RecruitFilters {
   date: string;
@@ -17,12 +18,21 @@ export function useRecruitPosts(filters?: RecruitFilters){
   const [isLoading , setIsLoading] = useState(true);
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    let postList : RecruitPost[] = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt : doc.data().createdAt?.toDate() || new Date(),
-      updatedAt : doc.data().updatedAt?.toDate() || new Date(),
+    let postList : RecruitPost[] = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+      createdAt : d.data().createdAt?.toDate() || new Date(),
+      updatedAt : d.data().updatedAt?.toDate() || new Date(),
     })) as RecruitPost[];
+
+    const expiredPosts = postList.filter((post) => isPostExpired(post.date, post.time));
+    expiredPosts.forEach((post) => {
+      updateDoc(doc(db, "recruitPosts", post.id), {
+        status: "closed",
+        updatedAt: serverTimestamp(),
+      }).catch(() => {});
+    });
+    postList = postList.filter((post) => !isPostExpired(post.date, post.time));
 
     if (filters?.date) {
       postList = postList.filter((post) => post.date === filters.date);

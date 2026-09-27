@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import { AuthFormProps } from "../types";
 
+const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code`;
+
 export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -113,6 +115,31 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                   : "회원가입"}
             </button>
           </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 text-gray-500">또는</span>
+            </div>
+          </div>
+
+          <a
+            href={KAKAO_AUTH_URL}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md shadow-sm font-medium transition-colors"
+            style={{ backgroundColor: "#FEE500", color: "rgba(0,0,0,0.85)" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M9 0.6C4.029 0.6 0 3.713 0 7.554c0 2.467 1.644 4.636 4.114 5.867l-1.05 3.848c-.093.34.297.607.586.4l4.514-2.987c.276.02.556.03.836.03 4.971 0 9-3.112 9-6.958C18 3.713 13.971 0.6 9 0.6"
+                fill="black"
+              />
+            </svg>
+            카카오로 시작하기
+          </a>
 
           <p className="text-center text-sm text-gray-600">
             {mode === "login" ? (

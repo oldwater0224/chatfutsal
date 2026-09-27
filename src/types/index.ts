@@ -1,7 +1,9 @@
 export interface User {
   uid: string;
-  email: string;
+  email: string | null;
   displayName: string;
+  provider?: "email" | "kakao";
+  profileImage?: string;
   createdAt: Date;
 }
 

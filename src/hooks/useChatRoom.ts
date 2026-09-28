@@ -9,6 +9,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
+import { isHiddenForUser, parseLeftAt } from "@/src/lib/services/chatService";
 import { ChatRoom } from "@/src/types";
 
 interface ChatRoomWithUnread extends ChatRoom {
@@ -42,19 +43,25 @@ export function useChatRooms(userId: string | undefined) {
         messageUnsubscribes.forEach((unsub) => unsub());
         messageUnsubscribes.length = 0;
 
-        const rooms: ChatRoomWithUnread[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            participants: data.participants,
-            participantNames: data.participantNames,
-            participantName: "",
-            lastMessage: data.lastMessage || "",
-            lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
-            createdAt: data.createdAt?.toDate() || new Date(),
-            unreadCount: 0,
-          };
-        });
+        const rooms: ChatRoomWithUnread[] = snapshot.docs
+          .map((docSnap) => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              participants: data.participants,
+              participantNames: data.participantNames,
+              participantName: "",
+              lastMessage: data.lastMessage || "",
+              lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
+              createdAt: data.createdAt?.toDate() || new Date(),
+              leftAt: parseLeftAt(data.leftAt),
+              unreadCount: 0,
+            };
+          })
+          // 내가 나간 뒤 새 메시지가 없는 방은 목록에서 숨김
+          .filter(
+            (room) => !isHiddenForUser(room.leftAt, room.lastMessageAt, userId),
+          );
 
         setChatRooms(rooms);
         setIsLoading(false);
@@ -62,11 +69,17 @@ export function useChatRooms(userId: string | undefined) {
         rooms.forEach((room) => {
           const messagesRef = collection(db, "chatRooms", room.id, "messages");
           const messagesQuery = query(messagesRef);
+          const myLeftAt = room.leftAt?.[userId];
 
           const msgUnsubscribe = onSnapshot(messagesQuery, (msgSnapshot) => {
             const unreadCount = msgSnapshot.docs.filter((msgDoc) => {
               const msgData = msgDoc.data();
               const readBy = msgData.readBy || [];
+              // 나가기 전 메시지는 안 읽음 수에서 제외
+              if (myLeftAt) {
+                const createdAt: Date = msgData.createdAt?.toDate() || new Date();
+                if (createdAt.getTime() <= myLeftAt.getTime()) return false;
+              }
               return msgData.senderId !== userId && !readBy.includes(userId);
             }).length;
 

@@ -80,13 +80,18 @@ export async function startChat(
 export async function leaveChatRoom(roomId: string): Promise<void> {
   try {
     // 메세지 서브컬렉션 삭제
-    const messageRef = collection(db, "chatRooms", roomId, "message");
-    const messageSnapshot = await getDocs(messageRef);
+    const messagesRef = collection(db, "chatRooms", roomId, "messages");
+    const messageSnapshot = await getDocs(messagesRef);
 
-    const deletePromises = messageSnapshot.docs.map((msgDoc) =>
-      deleteDoc(doc(db, "chatRooms", roomId, "message", msgDoc.id)),
-    );
-    await Promise.all(deletePromises);
+    // writeBatch는 한 번에 최대 500개 작업까지 가능하므로 나눠서 커밋
+    const BATCH_LIMIT = 500;
+    for (let i = 0; i < messageSnapshot.docs.length; i += BATCH_LIMIT) {
+      const batch = writeBatch(db);
+      messageSnapshot.docs
+        .slice(i, i + BATCH_LIMIT)
+        .forEach((msgDoc) => batch.delete(msgDoc.ref));
+      await batch.commit();
+    }
 
     // 채팅방 삭제
     await deleteDoc(doc(db, "chatRooms", roomId));

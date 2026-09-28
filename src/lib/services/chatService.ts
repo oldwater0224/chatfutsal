@@ -7,9 +7,34 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
+  getDoc,
+  updateDoc,
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+
+// Firestore의 leftAt 맵({ uid: Timestamp })을 { uid: Date }로 변환
+export function parseLeftAt(
+  raw: Record<string, { toDate?: () => Date } | null> | undefined,
+): Record<string, Date> {
+  const result: Record<string, Date> = {};
+  if (!raw) return result;
+  Object.entries(raw).forEach(([uid, value]) => {
+    // serverTimestamp 반영 전(null)에는 방금 나간 것으로 간주
+    result[uid] = value?.toDate ? value.toDate() : new Date();
+  });
+  return result;
+}
+
+// 해당 유저 기준으로 채팅방이 숨김 상태인지 (나간 뒤 새 메시지가 없음)
+export function isHiddenForUser(
+  leftAt: Record<string, Date> | undefined,
+  lastMessageAt: Date,
+  userId: string,
+): boolean {
+  const myLeftAt = leftAt?.[userId];
+  return !!myLeftAt && lastMessageAt.getTime() <= myLeftAt.getTime();
+}
 
 // 기존 채팅방 찾기
 export async function findExistingChatRoom(
@@ -76,28 +101,56 @@ export async function startChat(
   return newRoomId;
 }
 
-// 채팅방 나가기
-export async function leaveChatRoom(roomId: string): Promise<void> {
-  try {
-    // 메세지 서브컬렉션 삭제
-    const messagesRef = collection(db, "chatRooms", roomId, "messages");
-    const messageSnapshot = await getDocs(messagesRef);
+// 채팅방 완전 삭제 (메시지 서브컬렉션 + 채팅방 문서)
+async function deleteChatRoomCompletely(roomId: string): Promise<void> {
+  const messagesRef = collection(db, "chatRooms", roomId, "messages");
+  const messageSnapshot = await getDocs(messagesRef);
 
-    // writeBatch는 한 번에 최대 500개 작업까지 가능하므로 나눠서 커밋
-    const BATCH_LIMIT = 500;
-    for (let i = 0; i < messageSnapshot.docs.length; i += BATCH_LIMIT) {
-      const batch = writeBatch(db);
-      messageSnapshot.docs
-        .slice(i, i + BATCH_LIMIT)
-        .forEach((msgDoc) => batch.delete(msgDoc.ref));
-      await batch.commit();
+  // writeBatch는 한 번에 최대 500개 작업까지 가능하므로 나눠서 커밋
+  const BATCH_LIMIT = 500;
+  for (let i = 0; i < messageSnapshot.docs.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    messageSnapshot.docs
+      .slice(i, i + BATCH_LIMIT)
+      .forEach((msgDoc) => batch.delete(msgDoc.ref));
+    await batch.commit();
+  }
+
+  await deleteDoc(doc(db, "chatRooms", roomId));
+}
+
+// 채팅방 나가기
+// - 나간 유저의 목록에서만 숨긴다 (leftAt에 나간 시각 기록)
+// - 상대가 새 메시지를 보내면 다시 목록에 나타나며, 나간 이후 메시지만 보인다
+// - 모든 참여자가 나간 상태가 되면 채팅방과 메시지를 완전히 삭제한다
+export async function leaveChatRoom(
+  roomId: string,
+  userId: string,
+): Promise<void> {
+  try {
+    const roomRef = doc(db, "chatRooms", roomId);
+    const roomSnap = await getDoc(roomRef);
+    if (!roomSnap.exists()) return;
+
+    const data = roomSnap.data();
+    const participants: string[] = data.participants || [];
+    const leftAt = parseLeftAt(data.leftAt);
+    const lastMessageAt: Date = data.lastMessageAt?.toDate?.() || new Date(0);
+
+    const othersAllLeft = participants
+      .filter((id) => id !== userId)
+      .every((id) => isHiddenForUser(leftAt, lastMessageAt, id));
+
+    if (othersAllLeft) {
+      await deleteChatRoomCompletely(roomId);
+      return;
     }
 
-    // 채팅방 삭제
-    await deleteDoc(doc(db, "chatRooms", roomId));
-
+    await updateDoc(roomRef, {
+      [`leftAt.${userId}`]: serverTimestamp(),
+    });
   } catch (e) {
-    console.error("채팅방 삭제 실패", e);
+    console.error("채팅방 나가기 실패", e);
     throw e;
   }
 }

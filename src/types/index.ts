@@ -26,6 +26,8 @@ export interface ChatRoom {
   lastMessageAt: Date;
   unreadCount: number;
   createdAt: Date;
+  // 유저별 나간 시각. 이 시각 이후 메시지만 해당 유저에게 보인다.
+  leftAt?: Record<string, Date>;
 }
 
 export interface Message {

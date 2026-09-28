@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMessages, sendMessage } from "@/src/hooks/useMessage";
-import { leaveChatRoom, markMessagesAsRead } from "@/src/lib/services";
+import {
+  leaveChatRoom,
+  markMessagesAsRead,
+  parseLeftAt,
+} from "@/src/lib/services";
 import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
 import { LogOut } from "lucide-react";
@@ -18,7 +22,8 @@ export default function ChatRoomPage() {
   const roomId = params.roomId as string;
 
   const { user, isLoading: authLoading } = useAuth();
-  const { messages, isLoading: messagesLoading } = useMessages(roomId);
+  const { messages: allMessages, isLoading: messagesLoading } =
+    useMessages(roomId);
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [roomLoading, setRoomLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -52,6 +57,7 @@ export default function ChatRoomPage() {
             lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
             unreadCount: 0,
             createdAt: data.createdAt?.toDate() || new Date(),
+            leftAt: parseLeftAt(data.leftAt),
           });
         }
       } catch (error) {
@@ -62,6 +68,15 @@ export default function ChatRoomPage() {
 
     fetchChatRoom();
   }, [roomId]);
+
+  // 내가 나간 적이 있으면 나간 이후 메시지만 표시
+  const myLeftAt = user ? chatRoom?.leftAt?.[user.uid] : undefined;
+  const messages = useMemo(() => {
+    if (!myLeftAt) return allMessages;
+    return allMessages.filter(
+      (msg) => msg.createdAt.getTime() > myLeftAt.getTime(),
+    );
+  }, [allMessages, myLeftAt]);
 
   // 채팅방 입장 시 읽음 처리
   useEffect(() => {
@@ -111,14 +126,14 @@ export default function ChatRoomPage() {
 
   const handleLeaveChatRoom = async () => {
     const confirmed = window.confirm(
-      "채팅방을 나가시겠습니까?\n대화 내용이 모두 삭제됩니다.",
+      "채팅방을 나가시겠습니까?\n내 채팅 목록에서 대화 내용이 사라집니다.",
     );
 
-    if (!confirmed) return;
+    if (!confirmed || !user) return;
 
     setIsLeaving(true);
     try {
-      await leaveChatRoom(roomId);
+      await leaveChatRoom(roomId, user.uid);
       router.push("/chat");
     } catch (error) {
       console.error("채팅방 나가기 실패:", error);

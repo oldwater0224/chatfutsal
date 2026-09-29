@@ -1,7 +1,8 @@
 "use client";
 
-import { auth } from "@/src/lib/firebase";
+import { auth, db } from "@/src/lib/firebase";
 import { signInWithCustomToken } from "firebase/auth";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
@@ -28,6 +29,21 @@ function KakaoCallbackContent() {
         }
 
         await signInWithCustomToken(auth, data.token);
+
+        const userRef = doc(db, "users", data.user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          await setDoc(userRef, {
+            uid: data.user.uid,
+            email: null,
+            displayName: data.user.nickname,
+            provider: "kakao",
+            profileImage: data.user.profileImage,
+            createdAt: serverTimestamp(),
+          });
+        }
+
         router.push("/");
       } catch (e) {
         setError(e instanceof Error ? e.message : "로그인 처리 중 오류 발생");

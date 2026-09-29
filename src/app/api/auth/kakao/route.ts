@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminAuth, getAdminDb } from "@/src/lib/firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { createCustomToken } from "@/src/lib/firebase-admin";
 
 interface KakaoTokenResponse {
   access_token: string;
@@ -69,29 +68,12 @@ export async function POST(request: NextRequest) {
     const profileImage =
       kakaoUser.kakao_account?.profile?.profile_image_url ?? null;
 
-    const adminDb = getAdminDb();
-    const userRef = adminDb.collection("users").doc(uid);
-    const userDoc = await userRef.get();
+    const firebaseToken = createCustomToken(uid);
 
-    if (!userDoc.exists) {
-      await userRef.set({
-        uid,
-        email: kakaoUser.kakao_account?.email ?? null,
-        displayName: nickname,
-        provider: "kakao",
-        profileImage,
-        createdAt: FieldValue.serverTimestamp(),
-      });
-    } else {
-      await userRef.update({
-        profileImage,
-        displayName: nickname,
-      });
-    }
-
-    const firebaseToken = await getAdminAuth().createCustomToken(uid);
-
-    return NextResponse.json({ token: firebaseToken });
+    return NextResponse.json({
+      token: firebaseToken,
+      user: { uid, nickname, profileImage },
+    });
   } catch (error) {
     console.error("카카오 로그인 에러:", error);
     return NextResponse.json(

@@ -6,6 +6,8 @@ import { createRecruitPost } from "@/src/lib/services";
 import { LEVEL_LABELS } from "@/src/types";
 import { getTodayString } from "@/src/lib/utils/dateUtils";
 
+import { ChevronLeft } from "lucide-react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -92,18 +94,18 @@ export default function CreateRecruitPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-gray-600 text-xl">
-              ←
+            <Link href="/" className="text-gray-600">
+              <ChevronLeft className="w-6 h-6" />
             </Link>
             <h1 className="font-bold">용병 모집 글쓰기</h1>
           </div>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-300"
+            className="px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded-full hover:bg-green-700 disabled:bg-gray-300"
           >
             {isSubmitting ? "등록 중..." : "등록"}
           </button>

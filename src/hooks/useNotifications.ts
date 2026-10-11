@@ -15,10 +15,8 @@ export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(!!userId);
-  const [prevUserId, setPrevUserId] = useState(userId);
 
-  if (prevUserId !== userId) {
-    setPrevUserId(userId);
+  useEffect(() => {
     if (!userId) {
       setNotifications([]);
       setUnreadCount(0);
@@ -26,7 +24,7 @@ export function useNotifications(userId: string | undefined) {
     } else {
       setIsLoading(true);
     }
-  }
+  }, [userId]);
 
   const handleSnapshot = useCallback((snapshot: import("firebase/firestore").QuerySnapshot) => {
     const list = snapshot.docs.map((doc) => ({

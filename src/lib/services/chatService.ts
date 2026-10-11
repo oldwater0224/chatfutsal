@@ -166,22 +166,23 @@ export async function markMessagesAsRead(
 
     if (snapshot.docs.length === 0) return;
 
-    const batch = writeBatch(db);
-    let updateCount = 0;
-
-    snapshot.docs.forEach((msgDoc) => {
+    const unreadDocs = snapshot.docs.filter((msgDoc) => {
       const data = msgDoc.data();
       const readBy: string[] = data.readBy || [];
+      return data.senderId !== userId && !readBy.includes(userId);
+    });
 
-      if (data.senderId !== userId && !readBy.includes(userId)) {
+    if (unreadDocs.length === 0) return;
+
+    const BATCH_LIMIT = 500;
+    for (let i = 0; i < unreadDocs.length; i += BATCH_LIMIT) {
+      const batch = writeBatch(db);
+      unreadDocs.slice(i, i + BATCH_LIMIT).forEach((msgDoc) => {
+        const readBy: string[] = msgDoc.data().readBy || [];
         batch.update(doc(db, "chatRooms", roomId, "messages", msgDoc.id), {
           readBy: [...readBy, userId],
         });
-        updateCount++;
-      }
-    });
-
-    if (updateCount > 0) {
+      });
       await batch.commit();
     }
   } catch (error) {

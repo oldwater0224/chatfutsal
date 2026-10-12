@@ -146,7 +146,7 @@ export default function KakaoMapSearch({
             onChange={(e) => setSearchKeyword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="구장명 또는 주소 검색"
-            className="w-full px-4 py-2.5 pr-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full h-12 px-4 pr-10 rounded-xl border border-gray-200 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/15"
           />
           {searchKeyword && (
             <button
@@ -165,7 +165,7 @@ export default function KakaoMapSearch({
           type="button"
           onClick={handleSearch}
           disabled={isSearching}
-          className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300"
+          className="w-12 h-12 shrink-0 flex items-center justify-center bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:bg-gray-300 cursor-pointer"
         >
           <Search className="w-5 h-5" />
         </button>
@@ -173,7 +173,7 @@ export default function KakaoMapSearch({
 
       {/* 검색 결과 목록 */}
       {searchResults.length > 0 && (
-        <ul className="border rounded-lg divide-y max-h-48 overflow-y-auto bg-white">
+        <ul className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-48 overflow-y-auto bg-white">
           {searchResults.map((place, idx) => (
             <li
               key={idx}
@@ -190,11 +190,11 @@ export default function KakaoMapSearch({
       )}
 
       {/* 지도 */}
-      <div ref={mapRef} className="w-full h-48 rounded-lg bg-gray-200" />
+      <div ref={mapRef} className="w-full h-48 rounded-xl bg-gray-100" />
 
       {/* 선택된 장소 표시 */}
       {selectedPlace && selectedPlace.name && (
-        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+        <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
           <div>
             <p className="font-medium text-green-800 flex items-center gap-1">
              

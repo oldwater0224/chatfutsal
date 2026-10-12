@@ -60,5 +60,5 @@ export default function KakaoMap({ lat, lng, address }: KakaoMapProps) {
     }
   }, [lat, lng, address]);
 
-  return <div ref={mapRef} className="w-full h-48 rounded-lg bg-gray-200" />;
+  return <div ref={mapRef} className="w-full h-48 rounded-xl bg-gray-100" />;
 }

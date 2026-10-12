@@ -1,11 +1,12 @@
 "use client";
 
+import SubHeader, { headerActionButtonClass } from "@/src/components/SubHeader";
+import { fieldInputClass, fieldLabelClass, fieldTextareaClass, spinnerClass } from "@/src/components/ui/styles";
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/lib/firebase";
 import { updateRecruitPost } from "@/src/lib/services";
 import { LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, getDoc } from "firebase/firestore";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import KakaoMapSearch from "@/src/components/KakaoMapSearch";
@@ -85,7 +86,7 @@ export default function EditRecruitPage() {
           });
         } else {
           alert("게시글을 찾을 수 없습니다.");
-          router.push("/recruit");
+          router.push("/");
         }
       } catch (error) {
         console.error("게시글 불러오기 실패", error);
@@ -147,39 +148,30 @@ export default function EditRecruitPage() {
     //둘 중 하나라도 로딩 중이면
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+        <div className={spinnerClass} />
       </div>
     );
   }
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href={`/recruit/${postId}`} className="text-gray-600 text-xl">
-              ←
-            </Link>
-            <h1 className="font-bold">게시글 수정</h1>
-          </div>
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-4 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-300"
-          >
+    <div className="min-h-screen bg-white">
+      <SubHeader
+        title="모집글 수정"
+        backHref={`/recruit/${postId}`}
+        right={
+          <button onClick={handleSubmit} disabled={isSubmitting} className={headerActionButtonClass}>
             {isSubmitting ? "수정 중..." : "완료"}
           </button>
-        </div>
-      </header>
+        }
+      />
 
       {/* 폼 */}
-      <main className="pt-14 pb-10 px-4 max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <main className="pt-14 pb-16 px-4 max-w-2xl mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-7 pt-6">
           {/* 제목 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={fieldLabelClass}>
               제목 *
             </label>
             <input
@@ -190,7 +182,7 @@ export default function EditRecruitPage() {
                 setFormData({ ...formData, title: e.target.value })
               }
               placeholder="예: 토요일 저녁 풋살 용병 구합니다"
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={fieldInputClass}
               maxLength={50}
             />
           </div>
@@ -198,7 +190,7 @@ export default function EditRecruitPage() {
           {/* 경기 날짜 & 시간 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={fieldLabelClass}>
                 경기 날짜 *
               </label>
               <input
@@ -209,11 +201,11 @@ export default function EditRecruitPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={fieldInputClass}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={fieldLabelClass}>
                 경기 시간 *
               </label>
               <input
@@ -223,14 +215,14 @@ export default function EditRecruitPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, time: e.target.value })
                 }
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={fieldInputClass}
               />
             </div>
           </div>
 
           {/* 👇 구장 선택 (지도) - 수정된 부분 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={fieldLabelClass}>
               구장 선택 *
             </label>
             <KakaoMapSearch
@@ -260,7 +252,7 @@ export default function EditRecruitPage() {
 
           {/* 레벨 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={fieldLabelClass}>
               실력 수준 *
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -271,10 +263,10 @@ export default function EditRecruitPage() {
                   onClick={() =>
                     setFormData({ ...formData, level: level.value })
                   }
-                  className={`py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`h-11 rounded-xl text-sm font-semibold border transition-colors cursor-pointer ${
                     formData.level === level.value
                       ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:border-green-500"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-green-600"
                   }`}
                 >
                   {level.label}
@@ -285,7 +277,7 @@ export default function EditRecruitPage() {
 
           {/* 모집 인원 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={fieldLabelClass}>
               모집 인원 *
             </label>
             <div className="flex items-center gap-4">
@@ -297,7 +289,7 @@ export default function EditRecruitPage() {
                     needCount: Math.max(1, formData.needCount - 1),
                   })
                 }
-                className="w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold hover:bg-gray-300"
+                className="w-10 h-10 rounded-full border border-gray-200 text-lg text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 -
               </button>
@@ -312,7 +304,7 @@ export default function EditRecruitPage() {
                     needCount: Math.min(10, formData.needCount + 1),
                   })
                 }
-                className="w-10 h-10 rounded-full bg-gray-200 text-gray-700 font-bold hover:bg-gray-300"
+                className="w-10 h-10 rounded-full border border-gray-200 text-lg text-gray-700 hover:bg-gray-50 cursor-pointer"
               >
                 +
               </button>
@@ -322,7 +314,7 @@ export default function EditRecruitPage() {
 
           {/* 상세 내용 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={fieldLabelClass}>
               상세 내용
             </label>
             <textarea
@@ -332,7 +324,7 @@ export default function EditRecruitPage() {
               }
               placeholder="추가로 알려주고 싶은 내용을 작성해주세요"
               rows={5}
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+              className={fieldTextareaClass}
             />
           </div>
         </form>

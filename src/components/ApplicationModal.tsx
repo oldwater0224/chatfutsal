@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fieldTextareaClass, primaryButtonClass, secondaryButtonClass } from "./ui/styles";
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -38,10 +39,10 @@ export default function ApplicationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
-      <div className="relative w-full max-w-sm mx-4 bg-white rounded-2xl p-6">
+      <div className="relative w-full sm:max-w-sm sm:mx-4 bg-white rounded-t-2xl sm:rounded-2xl p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-1">참가 신청</h3>
         <p className="text-sm text-gray-500 mb-4 line-clamp-1">{postTitle}</p>
 
@@ -51,21 +52,21 @@ export default function ApplicationModal({
           placeholder="작성자에게 전할 메시지 (선택)"
           rows={3}
           maxLength={100}
-          className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none text-sm"
+          className={fieldTextareaClass}
         />
         <p className="text-xs text-gray-400 text-right mt-1">{message.length}/100</p>
 
         <div className="flex gap-3 mt-4">
           <button
             onClick={handleClose}
-            className="flex-1 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50"
+            className={`${secondaryButtonClass} flex-1 h-12`}
           >
             취소
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
+            className={`${primaryButtonClass} flex-1 h-12`}
           >
             {isSubmitting ? "신청 중..." : "신청하기"}
           </button>

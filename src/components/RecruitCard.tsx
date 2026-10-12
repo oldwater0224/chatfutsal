@@ -1,86 +1,56 @@
 import Link from "next/link";
-import { RecruitPost, LEVEL_COLORS, LEVEL_LABELS } from "@/src/types";
-import { Calendar, MapPin, Users, ArrowRight } from "lucide-react";
+import { RecruitPost, LEVEL_LABELS, LEVEL_COLORS } from "@/src/types";
+import { ChevronRight } from "lucide-react";
 
 interface RecruitCardProps {
   post: RecruitPost;
 }
 
+function getStatus(post: RecruitPost) {
+  const remaining = post.needCount - (post.acceptedCount || 0);
+  if (post.status === "closed" || remaining <= 0) {
+    return { label: "마감", className: "bg-gray-100 text-gray-400" };
+  }
+  if (remaining === 1) {
+    return { label: "마감임박", className: "bg-red-50 text-red-500" };
+  }
+  return { label: `${remaining}자리 남음`, className: "bg-green-50 text-green-700" };
+}
+
 export default function RecruitCard({ post }: RecruitCardProps) {
-  const isClosed = post.status === "closed";
+  const status = getStatus(post);
+  const isClosed = status.label === "마감";
 
   return (
-    <div className={`mx-auto max-w-2xl ${isClosed ? "opacity-60" : ""}`}>
-      <Link
-        href={`/recruit/${post.id}`}
-        className="block bg-white rounded-2xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow"
-      >
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-2 flex-1 mr-3">
-            {isClosed && (
-              <span className="shrink-0 px-2 py-0.5 bg-gray-200 text-gray-500 text-xs font-medium rounded">
-                마감
-              </span>
-            )}
-            <h3 className="text-lg font-bold text-gray-900 leading-snug">
-              {post.title}
-            </h3>
-          </div>
-          <span
-            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${LEVEL_COLORS[post.level]}`}
-          >
+    <Link
+      href={`/recruit/${post.id}`}
+      className={`flex items-center gap-4 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/70 -mx-4 px-4 transition-colors ${
+        isClosed ? "opacity-50" : ""
+      }`}
+    >
+      <span className="w-12 shrink-0 text-[17px] font-bold text-gray-900 tabular-nums">
+        {post.time || "--:--"}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <h3 className="text-[15px] font-semibold text-gray-900 truncate">{post.title}</h3>
+        <p className="mt-0.5 text-[13px] text-gray-500 truncate">{post.location}</p>
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+          <span className={`px-1.5 py-0.5 rounded font-medium ${LEVEL_COLORS[post.level]}`}>
             {LEVEL_LABELS[post.level]}
           </span>
+          <span className="text-gray-400">
+            {post.acceptedCount || 0}/{post.needCount}명
+          </span>
         </div>
+      </div>
 
-        <div className="space-y-2.5 mb-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-blue-500" />
-            </div>
-            <span className="font-medium">{post.date} {post.time}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-red-500" />
-            </div>
-            <span className="font-medium">{post.location}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-              <Users className="w-4 h-4 text-green-600" />
-            </div>
-            <div className="flex items-center gap-2 flex-1">
-              <span className="font-medium">{post.acceptedCount || 0}/{post.needCount}명</span>
-              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(((post.acceptedCount || 0) / post.needCount) * 100, 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-green-700 text-xs font-bold">
-                {post.authorName?.charAt(0)}
-              </span>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-700">{post.authorName}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-green-600 text-sm font-medium">
-            <span>상세보기</span>
-            <ArrowRight className="w-4 h-4" />
-          </div>
-        </div>
-      </Link>
-    </div>
+      <div className="shrink-0 flex items-center gap-1">
+        <span className={`px-2 py-1 rounded-md text-xs font-semibold ${status.className}`}>
+          {status.label}
+        </span>
+        <ChevronRight className="w-4 h-4 text-gray-300" />
+      </div>
+    </Link>
   );
 }

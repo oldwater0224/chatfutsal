@@ -47,25 +47,23 @@ export default function ApplicationList({
 
   if (applications.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400 text-sm">
-        아직 신청이 없습니다
-      </div>
+      <p className="py-6 text-center text-sm text-gray-400">아직 들어온 신청이 없어요</p>
     );
   }
 
   return (
-    <ul className="divide-y">
+    <ul className="divide-y divide-gray-100">
       {applications.map((app) => {
         const status = STATUS_STYLE[app.status];
         const isProcessing = processingId === app.id;
 
         return (
-          <li key={app.id} className="py-3">
+          <li key={app.id} className="py-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <Link
                   href={`/users/${app.applicantId}`}
-                  className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center shrink-0"
+                  className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0"
                 >
                   <span className="text-green-600 font-medium text-sm">
                     {app.applicantName.charAt(0)}
@@ -75,16 +73,16 @@ export default function ApplicationList({
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/users/${app.applicantId}`}
-                      className="font-medium text-gray-900 text-sm hover:underline"
+                      className="text-[15px] font-semibold text-gray-900 hover:underline"
                     >
                       {app.applicantName}
                     </Link>
-                    <span className={`px-1.5 py-0.5 text-xs rounded font-medium ${status.className}`}>
+                    <span className={`px-1.5 py-0.5 text-[11px] rounded-md font-semibold ${status.className}`}>
                       {status.label}
                     </span>
                   </div>
                   {app.message && (
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">
+                    <p className="text-[13px] text-gray-500 mt-0.5 truncate">
                       {app.message}
                     </p>
                   )}
@@ -96,14 +94,16 @@ export default function ApplicationList({
                   <button
                     onClick={() => handleAccept(app)}
                     disabled={isProcessing}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 disabled:opacity-50"
+                    aria-label="수락"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 disabled:opacity-50 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleReject(app)}
                     disabled={isProcessing}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-50"
+                    aria-label="거절"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-50 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>

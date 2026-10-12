@@ -6,107 +6,97 @@ import Link from "next/link";
 import { useAuth } from "@/src/hooks/useAuth";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
-import { ClipboardList, FileTextIcon, LogOut, MessageCircleIcon } from "lucide-react";
+import {
+  ChevronRight,
+  ClipboardList,
+  FileText,
+  LogOut,
+  MessageCircle,
+  type LucideIcon,
+} from "lucide-react";
+
+const MENU_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/mypage/recruits", label: "내가 작성한 모집글", icon: FileText },
+  { href: "/mypage/applications", label: "참가 신청 내역", icon: ClipboardList },
+  { href: "/chat", label: "채팅 목록", icon: MessageCircle },
+];
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
   const router = useRouter();
+
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
+    if (!isLoading && !user) router.push("/login");
   }, [user, isLoading, router]);
 
   const handleLogout = async () => {
-    const confirmed = window.confirm("로그아웃 하시겠습니까?");
-    if (!confirmed) return;
-
+    if (!window.confirm("로그아웃 하시겠습니까?")) return;
     await logout();
     router.push("/");
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (!isLoading && !user) return null;
 
-  if (!user) {
-    return null;
-  }
+  const displayName = userData?.displayName || user?.displayName || "사용자";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="pt-14 pb-20 px-4 max-w-2xl mx-auto">
-        {/* 프로필 카드 */}
-        <div className="mt-6 bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <span className="text-green-600 text-2xl font-bold">
-                {userData?.displayName?.charAt(0) || "U"}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {userData?.displayName || "사용자"}
-              </h2>
-              <p className="text-gray-500 text-sm">{user.email}</p>
-            </div>
-          </div>
-        </div>
+      <main className="pt-14 pb-24">
+        <div className="max-w-2xl mx-auto px-4">
+          <h1 className="pt-3 pb-2 text-[22px] font-bold text-gray-900">MY</h1>
 
-        {/* 메뉴 */}
-        <div className="mt-6 space-y-2">
-          <Link
-            href="/chat"
-            className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <MessageCircleIcon className="w-5 h-5" />
-                <span>채팅 목록</span>
-              </div>
-              <span className="text-gray-400">→</span>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="w-7 h-7 border-[3px] border-green-100 border-t-green-600 rounded-full animate-spin" />
             </div>
-          </Link>
-          <Link
-            href="/mypage/recruits"
-            className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <FileTextIcon className="w-5 h-5" />
-                <span>내가 작성한 용병모집 게시글</span>
-              </div>
-              <span className="text-gray-400">→</span>
-            </div>
-          </Link>
-          <Link
-            href="/mypage/applications"
-            className="block w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
-          >
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <ClipboardList className="w-5 h-5" />
-                <span> 참가 신청 내역</span>
-              </div>
-              <span className="text-gray-400">→</span>
-            </div>
-          </Link>
+          ) : (
+            <>
+              <section className="flex items-center gap-4 py-5">
+                <div className="w-14 h-14 shrink-0 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-green-600 text-xl font-bold">{displayName.charAt(0)}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-gray-900 truncate">{displayName}</p>
+                  <p className="mt-0.5 text-[13px] text-gray-500 truncate">
+                    {user?.email || "카카오 계정으로 로그인"}
+                  </p>
+                </div>
+              </section>
 
-          <button
-            onClick={handleLogout}
-            className="w-full bg-white p-4 rounded-lg text-left shadow-sm hover:bg-gray-50"
-          >
-            <div className="flex items-center gap-3">
-              <LogOut className="w-5 h-5"/>
-              <span className="text-red-500">로그아웃</span>
-            </div>
-          </button>
+              <div className="-mx-4 h-2 bg-gray-50" />
+
+              <section className="pt-5">
+                <h2 className="text-[13px] font-semibold text-gray-400">내 활동</h2>
+                <ul className="mt-1">
+                  {MENU_ITEMS.map(({ href, label, icon: Icon }) => (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        className="-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                      >
+                        <Icon className="w-5 h-5 text-gray-500" />
+                        <span className="flex-1 text-[15px] text-gray-900">{label}</span>
+                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="pt-6">
+                <h2 className="text-[13px] font-semibold text-gray-400">계정</h2>
+                <button
+                  onClick={handleLogout}
+                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-5 h-5 text-red-500" />
+                  <span className="text-[15px] text-red-500">로그아웃</span>
+                </button>
+              </section>
+            </>
+          )}
         </div>
       </main>
 

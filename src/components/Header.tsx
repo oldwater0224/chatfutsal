@@ -6,57 +6,56 @@ import { useChatRooms } from '@/src/hooks/useChatRoom';
 import { useNotifications } from '@/src/hooks/useNotifications';
 
 import { MessageCircleIcon, Bell } from 'lucide-react';
+import Logo from './Logo';
+
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
 
 export default function Header() {
   const { user, isLoading } = useAuth();
   const { totalUnread } = useChatRooms(user?.uid);
   const { unreadCount: notifUnread } = useNotifications(user?.uid);
- 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white ">
-      <div className="max-w-2xl mx-auto px-4 h-14 flex justify-between items-center">
-        {/* 로고 */}
-        <Link href="/" className="text-xl font-bold text-green-600 ">
-          ChatFutsal
-        </Link>
-        
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
+      <div className="max-w-7xl mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <Logo />
 
-        <div className="flex items-center gap-4">
+        <nav className="flex items-center gap-0.5 sm:gap-1 text-gray-700">
           {isLoading ? (
-            <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+            <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
           ) : user ? (
             <>
-              {/* 알림 아이콘 */}
-              <Link href="/notifications" className="relative">
-                <Bell className="w-5 h-5" />
-                {notifUnread > 0 && (
-                  <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-red-500 rounded-full flex items-center justify-center px-1">
-                    <span className="text-white text-xs font-bold">
-                      {notifUnread > 99 ? '99+' : notifUnread}
-                    </span>
-                  </span>
-                )}
+              <Link
+                href="/notifications"
+                aria-label="알림"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <Bell className="w-[22px] h-[22px]" />
+                <UnreadBadge count={notifUnread} />
               </Link>
 
-              {/* 채팅 아이콘 */}
-              <Link href="/chat" className="relative">
-                <MessageCircleIcon className="w-5 h-5"></MessageCircleIcon>
-                {totalUnread > 0 && (
-                  <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-red-500 rounded-full flex items-center justify-center px-1">
-                    <span className="text-white text-xs font-bold">
-                      {totalUnread > 99 ? '99+' : totalUnread}
-                    </span>
-                  </span>
-                )}
+              <Link
+                href="/chat"
+                aria-label="채팅"
+                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <MessageCircleIcon className="w-[22px] h-[22px]" />
+                <UnreadBadge count={totalUnread} />
               </Link>
 
-              {/* 프로필 */}
               <Link
                 href="/mypage"
-                className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200"
+                aria-label="마이페이지"
+                className="ml-1 sm:ml-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200"
               >
-                <span className="text-green-600 text-sm font-medium">
+                <span className="text-green-600 text-sm font-semibold">
                   {user.displayName?.charAt(0) || 'U'}
                 </span>
               </Link>
@@ -64,12 +63,12 @@ export default function Header() {
           ) : (
             <Link
               href="/login"
-              className="px-4 py-1.5 bg-green-600 text-white text-sm rounded-full hover:bg-green-700"
+              className="h-9 px-4 inline-flex items-center rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
             >
               로그인
             </Link>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );

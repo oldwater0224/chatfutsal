@@ -10,7 +10,7 @@ import {
   cancelApplication,
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
-import { LEVEL_LABELS, RecruitPost } from "@/src/types";
+import { LEVEL_COLORS, LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -21,15 +21,19 @@ import {
   CopyMinus,
   CopyPlus,
   MapPin,
-  PencilOff,
+  MessageCircle,
+  MoreVertical,
+  PencilLine,
   Trash2,
   Users,
 } from "lucide-react";
+import SubHeader from "@/src/components/SubHeader";
+import { primaryButtonClass, secondaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
 import KakaoMap from "@/src/components/KakaoMap";
 import ApplicationModal from "@/src/components/ApplicationModal";
 import ApplicationList from "@/src/components/ApplicationList";
 import { usePostApplications } from "@/src/hooks/useApplications";
-import { isPostExpired } from "@/src/lib/utils/dateUtils";
+import { formatMatchDate, isPostExpired } from "@/src/lib/utils/dateUtils";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -80,7 +84,7 @@ export default function RecruitDetailPage() {
 
     try {
       await deleteRecruitPost(postId);
-      router.push("/recruit");
+      router.push("/");
     } catch {
       alert("삭제에 실패했습니다.");
     }
@@ -123,207 +127,189 @@ export default function RecruitDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <div className={spinnerClass} />
       </div>
     );
   }
   if (!post) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-gray-500">게시글을 찾을 수 없습니다</p>
-        <Link href="/recruit" className="text-green-600">
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <p className="text-[15px] font-semibold text-gray-900">게시글을 찾을 수 없어요</p>
+        <p className="mt-1 text-sm text-gray-500">삭제되었거나 주소가 잘못되었어요</p>
+        <Link href="/" className={`${primaryButtonClass} mt-5 h-10 px-5 text-sm`}>
           목록으로 돌아가기
         </Link>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/recruit" className="text-gray-600 text-xl">
-              ←
-            </Link>
-            <h1 className="font-bold">용병 모집</h1>
-          </div>
+  const isClosed = post.status === "closed";
+  const accepted = post.acceptedCount || 0;
+  const remaining = Math.max(post.needCount - accepted, 0);
+  const showActionBar = user && !isAuthor && !isClosed;
 
-          {isAuthor && (
+  return (
+    <div className="min-h-screen bg-white">
+      <SubHeader
+        title="모집 상세"
+        backHref="/"
+        right={
+          isAuthor && (
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="w-8 h-8 flex items-center justify-center text-gray-500"
+                aria-label="게시글 메뉴"
+                className="-mr-2 w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 cursor-pointer"
               >
-                ⋮
+                <MoreVertical className="w-5 h-5" />
               </button>
 
               {showMenu && (
                 <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowMenu(false)}
-                  />
-                  <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-30">
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-11 z-20 min-w-36 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
                     <Link
                       href={`/recruit/${postId}/edit`}
-                      className="block px-4 py-2 text-sm hover:bg-gray-50"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <PencilOff className="w-4 h-4 inline mr-2" />
+                      <PencilLine className="w-4 h-4" />
                       수정
                     </Link>
                     <button
                       onClick={handleToggleStatus}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50
-                      hover:cursor-pointer"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                     >
                       {post.status === "open" ? (
                         <>
-                          <CopyMinus className="w-4 h-4 inline mr-2" />
+                          <CopyMinus className="w-4 h-4" />
                           마감하기
                         </>
                       ) : (
                         <>
-                          <CopyPlus className="w-4 h-4 inline mr-2" /> 재오픈
+                          <CopyPlus className="w-4 h-4" />
+                          다시 모집하기
                         </>
                       )}
                     </button>
-
                     <button
                       onClick={handleDelete}
-                      className="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-gray-50 hover:cursor-pointer"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-gray-50 cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4  inline mr-2" />
+                      <Trash2 className="w-4 h-4" />
                       삭제
                     </button>
                   </div>
                 </>
               )}
             </div>
-          )}
-        </div>
-      </header>
+          )
+        }
+      />
 
-      {/* 본문 */}
-      <main className="pt-14 pb-24 px-4 overflow-hidden mx-auto w-full max-w-2xl">
-        {/* 상태 배지 */}
-        {post.status === "closed" && (
-          <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center">
-            <span className="text-gray-500 font-medium">모집 마감</span>
+      <main className={`pt-14 ${showActionBar ? "pb-28" : "pb-12"} max-w-2xl mx-auto px-4`}>
+        <section className="pt-5 pb-6">
+          <div className="flex items-center gap-1.5">
+            <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${LEVEL_COLORS[post.level]}`}>
+              {LEVEL_LABELS[post.level]}
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-md text-xs font-semibold ${
+                isClosed
+                  ? "bg-gray-100 text-gray-500"
+                  : remaining <= 1
+                    ? "bg-red-50 text-red-500"
+                    : "bg-green-50 text-green-700"
+              }`}
+            >
+              {isClosed ? "모집 마감" : remaining <= 1 ? "마감임박" : `${remaining}자리 남음`}
+            </span>
           </div>
-        )}
+          <h2 className="mt-3 text-xl font-bold text-gray-900 leading-snug">{post.title}</h2>
+          <Link
+            href={`/users/${post.authorId}`}
+            className="mt-3 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          >
+            <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-[11px] font-semibold text-green-600">
+              {post.authorName?.charAt(0)}
+            </span>
+            {post.authorName}
+          </Link>
+        </section>
 
-        {/* 제목 */}
-        <h2 className="mt-4 text-xl font-bold text-gray-900">{post.title}</h2>
+        <div className="-mx-4 h-2 bg-gray-50" />
 
-        {/* 작성자 정보 */}
-        <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-          <span>{post.authorName}</span>
-        </div>
+        <section className="py-5 space-y-4">
+          <InfoRow icon={<Calendar className="w-5 h-5 text-blue-500" />} label="경기 일시">
+            {formatMatchDate(post.date)} {post.time}
+          </InfoRow>
+          <InfoRow icon={<MapPin className="w-5 h-5 text-red-500" />} label="장소">
+            {post.location}
+            {post.locationCoord?.address && (
+              <span className="block text-[13px] font-normal text-gray-400">
+                {post.locationCoord.address}
+              </span>
+            )}
+          </InfoRow>
+          <InfoRow icon={<AudioLines className="w-5 h-5 text-purple-500" />} label="실력 수준">
+            {LEVEL_LABELS[post.level]}
+          </InfoRow>
+          <InfoRow icon={<Users className="w-5 h-5 text-green-600" />} label="모집 인원">
+            {accepted}/{post.needCount}명
+            <span className="mt-2 block h-1.5 w-full max-w-60 bg-gray-100 rounded-full overflow-hidden">
+              <span
+                className="block h-full bg-green-600 rounded-full transition-all"
+                style={{ width: `${Math.min((accepted / post.needCount) * 100, 100)}%` }}
+              />
+            </span>
+          </InfoRow>
 
-        {/* 정보 카드 */}
-        <div className="mt-6 bg-white rounded-2xl border-gray-100 p-4 space-y-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-blue-500" />
-            <div>
-              <p className="text-sm text-gray-500">경기 일시</p>
-              <p className="font-medium">
-                {post.date} {post.time}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-red-500" />
-            <div>
-              <p className="text-sm text-gray-500">장소</p>
-              <p className="font-medium">{post.location}</p>
-              {post.locationCoord?.address && (
-                <p className="text-xs text-gray-400">
-                  {post.locationCoord.address}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <AudioLines className="w-5 h-5 text-purple-500" />
-            <div>
-              <p className="text-sm text-gray-500">실력 수준</p>
-              <p className="font-medium">{LEVEL_LABELS[post.level]}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Users className="w-5 h-5 text-green-600" />
-            <div className="flex-1">
-              <p className="text-sm text-gray-500">모집 인원</p>
-              <p className="font-medium">
-                {post.acceptedCount || 0}/{post.needCount}명
-              </p>
-              <div className="mt-1.5 w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(((post.acceptedCount || 0) / post.needCount) * 100, 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* 👇 지도 영역 추가 */}
-        {post.locationCoord?.lat && post.locationCoord?.lng && (
-          <div className="mt-4 bg-white rounded-2xl border-gray-100 p-4 shadow-sm">
-            <h3 className="font-bold mb-3">구장 위치</h3>
-            <KakaoMap
-              lat={post.locationCoord.lat}
-              lng={post.locationCoord.lng}
-              address={post.location}
-            />
-          </div>
-        )}
-
-        {/* 상세 내용 */}
-        {post.content && (
-          <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
-              상세 내용
-            </h3>
-            <div className="bg-white rounded-2xl border-gray-100 p-4 shadow-sm">
-              <p className="text-gray-700 whitespace-pre-wrap">
-                {post.content}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* 신청 현황 (작성자에게만 표시) */}
-        {isAuthor && (
-          <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
-              신청 현황 ({applications.length}건)
-            </h3>
-            <div className="bg-white rounded-2xl border-gray-100 px-4 shadow-sm">
-              <ApplicationList
-                applications={applications}
-                needCount={post.needCount}
-                postId={postId}
+          {post.locationCoord?.lat && post.locationCoord?.lng && (
+            <div className="pt-1">
+              <KakaoMap
+                lat={post.locationCoord.lat}
+                lng={post.locationCoord.lng}
+                address={post.location}
               />
             </div>
-          </div>
+          )}
+        </section>
+
+        {post.content && (
+          <>
+            <div className="-mx-4 h-2 bg-gray-50" />
+            <section className="py-5">
+              <h3 className="text-[15px] font-bold text-gray-900">상세 내용</h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-gray-700 whitespace-pre-wrap">
+                {post.content}
+              </p>
+            </section>
+          </>
+        )}
+
+        {isAuthor && (
+          <>
+            <div className="-mx-4 h-2 bg-gray-50" />
+            <section className="py-5">
+              <h3 className="text-[15px] font-bold text-gray-900">
+                신청 현황 <span className="text-green-600">{applications.length}</span>
+              </h3>
+              <div className="mt-2">
+                <ApplicationList applications={applications} needCount={post.needCount} postId={postId} />
+              </div>
+            </section>
+          </>
         )}
       </main>
 
-      {/* 하단 버튼 (비작성자) */}
-      {user && !isAuthor && post.status === "open" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-          <div className="max-w-2xl mx-auto flex gap-3">
+      {showActionBar && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex gap-2">
             <button
               onClick={handleStartChat}
-              className="flex-1 py-3 border border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50"
+              className={`${secondaryButtonClass} h-12 px-5 text-[15px]`}
             >
-              💬 채팅하기
+              <MessageCircle className="w-5 h-5" />
+              채팅
             </button>
             {post.applicantIds?.includes(user.uid) ? (
               <button
@@ -339,23 +325,22 @@ export default function RecruitDetailPage() {
                     alert("이미 처리된 신청입니다.");
                   }
                 }}
-                className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-lg hover:bg-gray-200"
+                className="flex-1 h-12 rounded-xl bg-gray-100 text-[15px] font-semibold text-gray-600 hover:bg-gray-200 cursor-pointer"
               >
                 신청 취소
               </button>
             ) : (
               <button
                 onClick={() => setShowApplyModal(true)}
-                className="flex-1 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700"
+                className={`${primaryButtonClass} flex-1 h-12 text-[15px]`}
               >
-                참가 신청
+                참가 신청하기
               </button>
             )}
           </div>
         </div>
       )}
 
-      {/* 신청 모달 */}
       <ApplicationModal
         isOpen={showApplyModal}
         onClose={() => setShowApplyModal(false)}
@@ -372,6 +357,26 @@ export default function RecruitDetailPage() {
           );
         }}
       />
+    </div>
+  );
+}
+
+function InfoRow({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="mt-0.5 shrink-0">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] text-gray-500">{label}</p>
+        <div className="mt-0.5 text-[15px] font-semibold text-gray-900">{children}</div>
+      </div>
     </div>
   );
 }

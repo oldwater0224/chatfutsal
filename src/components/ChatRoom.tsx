@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '@/src/types';
+import { spinnerClass } from './ui/styles';
 
 interface ChatRoomProps {
   messages: Message[];
@@ -42,7 +43,7 @@ export default function ChatRoom({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <div className={spinnerClass} />
       </div>
     );
   }
@@ -53,7 +54,7 @@ export default function ChatRoom({
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-400">
-            <p>대화를 시작해보세요!</p>
+            <p className="text-sm">대화를 시작해보세요</p>
           </div>
         ) : (
           messages.map((message) => {
@@ -68,9 +69,9 @@ export default function ChatRoom({
                 <div
                   className={`max-w-[70%] ${
                     isMe
-                      ? 'bg-green-500 text-white rounded-l-2xl rounded-tr-2xl'
-                      : 'bg-white text-gray-900 rounded-r-2xl rounded-tl-2xl border'
-                  } px-4 py-2 shadow-sm`}
+                      ? 'bg-green-600 text-white rounded-l-2xl rounded-tr-2xl'
+                      : 'bg-gray-100 text-gray-900 rounded-r-2xl rounded-tl-2xl'
+                  } px-4 py-2 text-[15px]`}
                 >
                   <p className="wrap-break-words">{message.text}</p>
                   <div
@@ -103,19 +104,19 @@ export default function ChatRoom({
       {/* 입력창 */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 bg-white border-t flex gap-2"
+        className="p-3 bg-white border-t border-gray-100 flex gap-2"
       >
         <input
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="메시지를 입력하세요"
-          className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="flex-1 h-11 px-4 bg-gray-100 rounded-full text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600/30"
         />
         <button
           type="submit"
           disabled={!inputText.trim()}
-          className="px-4 py-2 bg-green-500 text-white rounded-full font-medium hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="h-11 px-5 bg-green-600 text-white rounded-full text-sm font-semibold hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
         >
           전송
         </button>

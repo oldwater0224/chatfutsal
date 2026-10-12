@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { AuthFormProps } from "../types";
+import Logo from "./Logo";
+import { fieldInputClass, fieldLabelClass, primaryButtonClass } from "./ui/styles";
 
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code`;
 
@@ -30,23 +32,23 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-center text-gray-900">
-              ChatFutsaL
-            </h1>
-            <h2 className="mt-2 text-center text-gray-600">
-              {mode === "login" ? "로그인" : "회원가입"}
-            </h2>
+      <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
+        <div className="max-w-sm w-full space-y-7">
+          <div className="flex flex-col items-center text-center">
+            <Logo size="lg" />
+            <p className="mt-3 text-sm text-gray-500">
+              {mode === "login"
+                ? "풋살 용병 모집부터 채팅까지 한 곳에서"
+                : "가입하고 함께 뛸 용병을 찾아보세요"}
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
               <div>
                 <label
                   htmlFor="displayName"
-                  className="block text-sm font-medium text-gray-700"
+                  className={fieldLabelClass}
                 >
                   닉네임
                 </label>
@@ -56,7 +58,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  className={fieldInputClass}
                   placeholder="풋살러1"
                 />
               </div>
@@ -65,7 +67,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className={fieldLabelClass}
               >
                 이메일
               </label>
@@ -75,7 +77,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className={fieldInputClass}
                 placeholder="example@email.com"
               />
             </div>
@@ -83,7 +85,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className={fieldLabelClass}
               >
                 비밀번호
               </label>
@@ -94,19 +96,19 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                className={fieldInputClass}
                 placeholder="6자 이상 입력"
               />
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
+              <p className="text-red-500 text-[13px] text-center">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${primaryButtonClass} w-full h-12 text-[15px] mt-2`}
             >
               {isLoading
                 ? "처리 중..."
@@ -118,16 +120,16 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">또는</span>
+              <span className="px-3 bg-white text-gray-400">또는</span>
             </div>
           </div>
 
           <a
             href={KAKAO_AUTH_URL}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md shadow-sm font-medium transition-colors"
+            className="w-full h-12 flex items-center justify-center gap-2 px-4 rounded-xl text-[15px] font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: "#FEE500", color: "rgba(0,0,0,0.85)" }}
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">

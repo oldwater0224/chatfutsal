@@ -19,6 +19,7 @@ import {
   CheckCheck,
 } from "lucide-react";
 import { Notification } from "@/src/types";
+import { spinnerClass } from "@/src/components/ui/styles";
 
 const ICON_MAP: Record<string, typeof Bell> = {
   new_message: MessageCircle,
@@ -30,7 +31,7 @@ const ICON_MAP: Record<string, typeof Bell> = {
 const ICON_COLOR_MAP: Record<string, string> = {
   new_message: "bg-blue-100 text-blue-600",
   application_received: "bg-green-100 text-green-600",
-  application_accepted: "bg-emerald-100 text-emerald-600",
+  application_accepted: "bg-green-100 text-green-600",
   application_rejected: "bg-red-100 text-red-600",
 };
 
@@ -60,18 +61,18 @@ function NotificationItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-start gap-3 px-4 py-4 text-left hover:bg-gray-50 transition-colors ${
-        !notification.isRead ? "bg-green-50/50" : ""
+      className={`-mx-4 w-[calc(100%+2rem)] flex items-start gap-3 px-4 py-4 text-left border-b border-gray-100 transition-colors cursor-pointer ${
+        !notification.isRead ? "bg-green-50/40 hover:bg-green-50/70" : "hover:bg-gray-50/70"
       }`}
     >
       <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${colorClass}`}>
         <Icon className="w-5 h-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm leading-snug ${!notification.isRead ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+        <p className={`text-[15px] leading-snug ${!notification.isRead ? "font-semibold text-gray-900" : "text-gray-700"}`}>
           {notification.title}
         </p>
-        <p className="text-sm text-gray-500 mt-0.5 truncate">
+        <p className="text-[13px] text-gray-500 mt-0.5 truncate">
           {notification.body}
         </p>
         <p className="text-xs text-gray-400 mt-1">
@@ -79,7 +80,7 @@ function NotificationItem({
         </p>
       </div>
       {!notification.isRead && (
-        <div className="shrink-0 w-2.5 h-2.5 bg-green-500 rounded-full mt-1.5" />
+        <div className="shrink-0 w-2 h-2 bg-green-600 rounded-full mt-2" />
       )}
     </button>
   );
@@ -108,64 +109,51 @@ export default function NotificationsPage() {
     }
   };
 
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <main className="pt-14 pb-20 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
-        </main>
-        <BottomNav />
-      </div>
-    );
-  }
-
-  
-
-  if (!user) {
-    return null;
-  }
+  if (!authLoading && !user) return null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Header />
-      <main className="pt-14 pb-20">
-        <div className="bg-white border-b">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-bold">알림</h1>
+      <main className="pt-14 pb-24">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="pt-3 pb-2 flex items-center justify-between">
+            <h1 className="text-[22px] font-bold text-gray-900">알림</h1>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700"
+                className="flex items-center gap-1 text-[13px] font-semibold text-green-600 hover:text-green-700 cursor-pointer"
               >
                 <CheckCheck className="w-4 h-4" />
-                <span>모두 읽음</span>
+                모두 읽음
               </button>
             )}
           </div>
-        </div>
 
-        {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Bell className="w-8 h-8 text-gray-400" />
+          {authLoading || isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className={spinnerClass} />
             </div>
-            <p className="text-gray-700 font-medium mb-1">알림이 없어요</p>
-            <p className="text-gray-500 text-sm">
-              새로운 소식이 생기면 알려드릴게요
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white max-w-2xl mx-auto divide-y divide-gray-100">
-            {notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onClick={() => handleNotificationClick(notification)}
-              />
-            ))}
-          </div>
-        )}
+          ) : notifications.length === 0 ? (
+            <div className="flex flex-col items-center text-center py-20">
+              <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
+                <Bell className="w-7 h-7 text-green-600" />
+              </div>
+              <p className="text-[15px] font-semibold text-gray-900">알림이 없어요</p>
+              <p className="mt-1 text-sm text-gray-500">새로운 소식이 생기면 알려드릴게요</p>
+            </div>
+          ) : (
+            <ul>
+              {notifications.map((notification) => (
+                <li key={notification.id}>
+                  <NotificationItem
+                    notification={notification}
+                    onClick={() => handleNotificationClick(notification)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </main>
       <BottomNav />
     </div>

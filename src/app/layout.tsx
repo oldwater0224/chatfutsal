@@ -4,9 +4,21 @@ import { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import ErrorBoundary from "../components/ErrorBoundary";
 
+const DESCRIPTION = "풋살 용병 모집부터 참가 신청, 1:1 실시간 채팅까지 한 곳에서";
+
 export const metadata: Metadata = {
-  title: "ChatFutsal",
-  description: "풋살 매치 & 채팅 플랫폼",
+  title: {
+    default: "ChatFutsal | 풋살 용병 모집 & 채팅",
+    template: "%s | ChatFutsal",
+  },
+  description: DESCRIPTION,
+  openGraph: {
+    title: "ChatFutsal | 풋살 용병 모집 & 채팅",
+    description: DESCRIPTION,
+    siteName: "ChatFutsal",
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],

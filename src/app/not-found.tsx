@@ -1,19 +1,15 @@
-import Link from 'next/link';
+import Link from "next/link";
+import Logo from "@/src/components/Logo";
+import { primaryButtonClass } from "@/src/components/ui/styles";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <span className="text-6xl mb-4">🔍</span>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        페이지를 찾을 수 없습니다.
-      </h2>
-      <p className="text-gray-500 mb-6">
-        주소가 잘못되었거나 삭제된 페이지입니다.
-      </p>
-      <Link
-        href="/"
-        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-      >
+    <div className="min-h-screen flex flex-col items-center justify-center text-center bg-white p-4">
+      <Logo />
+      <p className="mt-8 text-5xl font-bold text-green-600">404</p>
+      <h2 className="mt-3 text-lg font-bold text-gray-900">페이지를 찾을 수 없어요</h2>
+      <p className="mt-1 text-sm text-gray-500">주소가 잘못되었거나 삭제된 페이지예요</p>
+      <Link href="/" className={`${primaryButtonClass} mt-6 h-10 px-5 text-sm`}>
         홈으로 돌아가기
       </Link>
     </div>

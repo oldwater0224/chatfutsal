@@ -2,7 +2,7 @@ import { collection, addDoc, doc, setDoc , deleteDoc , getDocs } from 'firebase/
 import { db } from '../firebase';
 
 // 테스트용 유저 데이터
-const testUsers = [
+export const testUsers = [
   { uid: 'test_user_1', email: 'player1@test.com', displayName: '테스트유저1' },
   { uid: 'test_user_2', email: 'player2@test.com', displayName: '테스트유저2' },
   { uid: 'test_user_3', email: 'player3@test.com', displayName: '테스트유저3' },

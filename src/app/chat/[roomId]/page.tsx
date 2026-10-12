@@ -14,7 +14,9 @@ import {
 } from "@/src/lib/services";
 import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
-import { LogOut } from "lucide-react";
+import { LogOut, MoreVertical } from "lucide-react";
+import SubHeader from "@/src/components/SubHeader";
+import { primaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -145,21 +147,15 @@ export default function ChatRoomPage() {
   if (authLoading || roomLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <div className={spinnerClass} />
       </div>
     );
   }
-  // console.log("=== 조건 체크 ===");
-  // console.log("user:", user);
-  // console.log("user?.uid:", user?.uid);
-  // console.log("chatRoom:", chatRoom);
-  // console.log("roomId:", roomId);
-
   if (!user || !chatRoom) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-red-500">채팅방을 찾을 수 없습니다</p>
-        <Link href="/chat" className="text-green-600">
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+        <p className="text-[15px] font-semibold text-gray-900">채팅방을 찾을 수 없어요</p>
+        <Link href="/chat" className={`${primaryButtonClass} mt-5 h-10 px-5 text-sm`}>
           채팅 목록으로
         </Link>
       </div>
@@ -172,56 +168,52 @@ export default function ChatRoomPage() {
     : "사용자";
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-white md:border-x">
-        {/* 헤더 */}
-        <header className="border-b px-4 h-14 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <Link href="/chat" className="text-gray-600 text-xl">
-              ←
-            </Link>
+    <div className="h-dvh flex flex-col bg-gray-50">
+      <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-white md:border-x md:border-gray-100">
+        <SubHeader
+          fixed={false}
+          backHref="/chat"
+          title={
             <Link
               href={otherUserId ? `/users/${otherUserId}` : "#"}
-              className="flex items-center gap-2"
+              className="inline-flex items-center gap-2 max-w-full"
             >
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 text-sm font-medium">
-                  {otherUserName.charAt(0)}
-                </span>
-              </div>
-              <span className="font-medium">{otherUserName}</span>
+              <span className="w-8 h-8 shrink-0 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm font-semibold">
+                {otherUserName.charAt(0)}
+              </span>
+              <span className="truncate text-[16px]">{otherUserName}</span>
             </Link>
-          </div>
+          }
+          right={
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                aria-label="채팅방 메뉴"
+                className="-mr-2 w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 cursor-pointer"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full"
-            >
-              ⋮
-            </button>
-
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-10 bg-white border rounded-lg shadow-lg z-20 py-1 min-w-25">
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      handleLeaveChatRoom();
-                    }}
-                    className=" w-full px-3 py-2  text-red-500 text-sm flex items-center gap-2"
-                  >
-                    <LogOut className="w-5 h-5 "/> 나가기
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </header>
+              {showMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                  <div className="absolute right-0 top-11 z-20 min-w-32 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        handleLeaveChatRoom();
+                      }}
+                      className="w-full px-4 py-2.5 flex items-center gap-2 text-left text-sm text-red-500 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      나가기
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          }
+        />
 
         {/* 채팅방 */}
         <div className="flex-1 overflow-hidden">

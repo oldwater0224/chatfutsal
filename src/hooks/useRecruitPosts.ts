@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { RecruitPost } from "../types";
-import { collection, doc, onSnapshot, orderBy, query, where, QuerySnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
 
@@ -13,41 +13,73 @@ interface RecruitFilters {
   keyword: string;
 }
 
-export function useRecruitPosts(filters?: RecruitFilters){
-  const [posts , setPosts] = useState<RecruitPost[]>([]);
-  const [isLoading , setIsLoading] = useState(true);
+interface RecruitPostsAuth {
+  // 인증 상태가 확정되기 전에 구독하면 보안 규칙에 거부되고 재시도되지 않는다
+  ready: boolean;
+  uid?: string;
+}
+
+export function useRecruitPosts(filters: RecruitFilters | undefined, auth: RecruitPostsAuth){
+  const [allPosts, setAllPosts] = useState<RecruitPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    let postList : RecruitPost[] = snapshot.docs.map((d) => ({
+    const postList: RecruitPost[] = snapshot.docs.map((d) => ({
       id: d.id,
       ...d.data(),
-      createdAt : d.data().createdAt?.toDate() || new Date(),
-      updatedAt : d.data().updatedAt?.toDate() || new Date(),
+      createdAt: d.data().createdAt?.toDate() || new Date(),
+      updatedAt: d.data().updatedAt?.toDate() || new Date(),
     })) as RecruitPost[];
 
-    const expiredPosts = postList.filter((post) => isPostExpired(post.date, post.time));
-    expiredPosts.forEach((post) => {
-      updateDoc(doc(db, "recruitPosts", post.id), {
-        status: "closed",
-        updatedAt: serverTimestamp(),
-      }).catch(() => {});
-    });
-    postList = postList.filter((post) => !isPostExpired(post.date, post.time));
+    setAllPosts(postList.filter((post) => !isPostExpired(post.date, post.time)));
+    setPermissionDenied(false);
+    setIsLoading(false);
+  }, []);
 
-    if (filters?.date) {
-      postList = postList.filter((post) => post.date === filters.date);
+  const handleError = useCallback((error: FirestoreError) => {
+    if (error.code === "permission-denied") {
+      setAllPosts([]);
+      setPermissionDenied(true);
+    } else {
+      console.error("모집글 조회 에러:", error);
     }
-    if (filters?.region) {
-      postList = postList.filter((post) =>
-        post.locationCoord?.address?.includes(filters.region)
-      );
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!auth.ready) return;
+
+    const postRef = collection(db, 'recruitPosts');
+    const q = query(postRef,
+      where('status', '==', 'open'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
+    return () => unsubscribe();
+  }, [auth.ready, auth.uid, handleSnapshot, handleError]);
+
+  const date = filters?.date;
+  const region = filters?.region;
+  const level = filters?.level;
+  const keyword = filters?.keyword;
+
+  const posts = useMemo(() => {
+    let result = allPosts;
+
+    if (date) {
+      result = result.filter((post) => post.date === date);
     }
-    if (filters?.level) {
-      postList = postList.filter((post) => post.level === filters.level);
+    if (region) {
+      result = result.filter((post) => post.locationCoord?.address?.includes(region));
     }
-    if (filters?.keyword) {
-      const kw = filters.keyword.toLowerCase();
-      postList = postList.filter(
+    if (level) {
+      result = result.filter((post) => post.level === level);
+    }
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      result = result.filter(
         (post) =>
           post.title.toLowerCase().includes(kw) ||
           post.content.toLowerCase().includes(kw) ||
@@ -55,41 +87,24 @@ export function useRecruitPosts(filters?: RecruitFilters){
       );
     }
 
-    setPosts(postList);
-    setIsLoading(false);
-  }, [filters?.date, filters?.region, filters?.level, filters?.keyword]);
+    return result;
+  }, [allPosts, date, region, level, keyword]);
 
-  const handleError = useCallback((error: Error) => {
-    console.error("모집글 조회 에러:", error);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const postRef = collection(db , 'recruitPosts');
-    const q = query(postRef ,
-      where('status' , '==' , 'open') ,
-      orderBy('createdAt' , 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
-    return () => unsubscribe();
-  } , [handleSnapshot, handleError])
-
-  return {posts , isLoading};
+  return { posts, isLoading, permissionDenied };
 }
 
 
 // 내가 작성한 게시글
-export function useMyRecruitPosts(userId : string | undefined){
-  const [posts , setPosts] = useState<RecruitPost[]>([]);
-  const [isLoading , setIsLoading] = useState(!!userId);
+export function useMyRecruitPosts(userId: string | undefined){
+  const [posts, setPosts] = useState<RecruitPost[]>([]);
+  const [isLoading, setIsLoading] = useState(!!userId);
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    const postList : RecruitPost[] = snapshot.docs.map((doc) => ({
+    const postList: RecruitPost[] = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      createdAt : doc.data().createdAt?.toDate() || new Date(),
-      updatedAt : doc.data().updatedAt?.toDate() || new Date(),
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      updatedAt: doc.data().updatedAt?.toDate() || new Date(),
     })) as RecruitPost[];
 
     setPosts(postList);
@@ -104,16 +119,16 @@ export function useMyRecruitPosts(userId : string | undefined){
   useEffect(() => {
     if(!userId) return;
 
-    const postsRef = collection(db , 'recruitPosts');
+    const postsRef = collection(db, 'recruitPosts');
     const q = query(
       postsRef,
-      where('authorId' , '==' , userId),
-      orderBy('createdAt' , 'desc')
+      where('authorId', '==', userId),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
     return () => unsubscribe();
-  } , [userId, handleSnapshot, handleError])
+  }, [userId, handleSnapshot, handleError]);
 
-  return {posts , isLoading};
+  return { posts, isLoading };
 }

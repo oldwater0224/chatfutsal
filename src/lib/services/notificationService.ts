@@ -49,9 +49,12 @@ export async function markAllNotificationsAsRead(
   const snapshot = await getDocs(q);
   if (snapshot.empty) return;
 
-  const batch = writeBatch(db);
-  snapshot.docs.forEach((d) => {
-    batch.update(doc(db, "notifications", d.id), { isRead: true });
-  });
-  await batch.commit();
+  const BATCH_LIMIT = 500;
+  for (let i = 0; i < snapshot.docs.length; i += BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    snapshot.docs
+      .slice(i, i + BATCH_LIMIT)
+      .forEach((d) => batch.update(doc(db, "notifications", d.id), { isRead: true }));
+    await batch.commit();
+  }
 }

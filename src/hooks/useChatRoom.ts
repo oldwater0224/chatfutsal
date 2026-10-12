@@ -84,11 +84,12 @@ export function useChatRooms(userId: string | undefined) {
             }).length;
 
             setChatRooms((prevRooms) => {
-              const newRooms = [...prevRooms];
-              const roomIndex = newRooms.findIndex((r) => r.id === room.id);
-              if (roomIndex !== -1) {
-                newRooms[roomIndex] = { ...newRooms[roomIndex], unreadCount };
+              const roomIndex = prevRooms.findIndex((r) => r.id === room.id);
+              if (roomIndex === -1 || prevRooms[roomIndex].unreadCount === unreadCount) {
+                return prevRooms;
               }
+              const newRooms = [...prevRooms];
+              newRooms[roomIndex] = { ...newRooms[roomIndex], unreadCount };
               return newRooms;
             });
           });

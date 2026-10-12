@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isPostExpired, getTodayString } from './dateUtils';
+import { isPostExpired, getTodayString, formatMatchDate } from './dateUtils';
 
 describe('isPostExpired', () => {
   afterEach(() => {
@@ -45,5 +45,22 @@ describe('getTodayString', () => {
   it('YYYY-MM-DD 포맷 반환', () => {
     vi.useFakeTimers({ now: new Date('2026-03-05T10:00:00') });
     expect(getTodayString()).toBe('2026-03-05');
+  });
+
+  it('로컬 자정 직후에도 UTC 전날이 아닌 로컬 날짜 반환', () => {
+    vi.useFakeTimers({ now: new Date(2026, 2, 5, 0, 30, 0) });
+    expect(getTodayString()).toBe('2026-03-05');
+  });
+});
+
+describe('formatMatchDate', () => {
+  it('M월 D일 (요일) 포맷 반환', () => {
+    expect(formatMatchDate('2026-10-11')).toBe('10월 11일 (일)');
+    expect(formatMatchDate('2026-10-17')).toBe('10월 17일 (토)');
+  });
+
+  it('잘못된 문자열은 그대로 반환', () => {
+    expect(formatMatchDate('')).toBe('');
+    expect(formatMatchDate('미정')).toBe('미정');
   });
 });

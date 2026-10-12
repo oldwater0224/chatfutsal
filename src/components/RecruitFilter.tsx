@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { getDayName, toLocalDateString } from "@/src/lib/utils/dateUtils";
 
 export interface FilterState {
   date: string;
@@ -34,13 +35,6 @@ const LEVELS = [
   { value: "pro", label: "프로" },
 ];
 
-const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-
-function toLocalDateString(date: Date) {
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${m}-${d}`;
-}
 
 function generateDates() {
   const today = new Date();
@@ -49,7 +43,7 @@ function generateDates() {
     date.setDate(today.getDate() + i);
     return {
       value: toLocalDateString(date),
-      day: i === 0 ? "오늘" : DAY_NAMES[date.getDay()],
+      day: i === 0 ? "오늘" : getDayName(date),
       num: date.getDate(),
       isWeekend: date.getDay() === 0 || date.getDay() === 6,
     };

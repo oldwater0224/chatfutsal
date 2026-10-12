@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { RecruitPost } from "../types";
-import { collection, onSnapshot, orderBy, query, where, QuerySnapshot } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
 
@@ -13,9 +13,16 @@ interface RecruitFilters {
   keyword: string;
 }
 
-export function useRecruitPosts(filters?: RecruitFilters){
+interface RecruitPostsAuth {
+  // 인증 상태가 확정되기 전에 구독하면 보안 규칙에 거부되고 재시도되지 않는다
+  ready: boolean;
+  uid?: string;
+}
+
+export function useRecruitPosts(filters: RecruitFilters | undefined, auth: RecruitPostsAuth){
   const [allPosts, setAllPosts] = useState<RecruitPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
     const postList: RecruitPost[] = snapshot.docs.map((d) => ({
@@ -26,15 +33,23 @@ export function useRecruitPosts(filters?: RecruitFilters){
     })) as RecruitPost[];
 
     setAllPosts(postList.filter((post) => !isPostExpired(post.date, post.time)));
+    setPermissionDenied(false);
     setIsLoading(false);
   }, []);
 
-  const handleError = useCallback((error: Error) => {
-    console.error("모집글 조회 에러:", error);
+  const handleError = useCallback((error: FirestoreError) => {
+    if (error.code === "permission-denied") {
+      setAllPosts([]);
+      setPermissionDenied(true);
+    } else {
+      console.error("모집글 조회 에러:", error);
+    }
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
+    if (!auth.ready) return;
+
     const postRef = collection(db, 'recruitPosts');
     const q = query(postRef,
       where('status', '==', 'open'),
@@ -43,24 +58,27 @@ export function useRecruitPosts(filters?: RecruitFilters){
 
     const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
     return () => unsubscribe();
-  }, [handleSnapshot, handleError]);
+  }, [auth.ready, auth.uid, handleSnapshot, handleError]);
+
+  const date = filters?.date;
+  const region = filters?.region;
+  const level = filters?.level;
+  const keyword = filters?.keyword;
 
   const posts = useMemo(() => {
     let result = allPosts;
 
-    if (filters?.date) {
-      result = result.filter((post) => post.date === filters.date);
+    if (date) {
+      result = result.filter((post) => post.date === date);
     }
-    if (filters?.region) {
-      result = result.filter((post) =>
-        post.locationCoord?.address?.includes(filters.region)
-      );
+    if (region) {
+      result = result.filter((post) => post.locationCoord?.address?.includes(region));
     }
-    if (filters?.level) {
-      result = result.filter((post) => post.level === filters.level);
+    if (level) {
+      result = result.filter((post) => post.level === level);
     }
-    if (filters?.keyword) {
-      const kw = filters.keyword.toLowerCase();
+    if (keyword) {
+      const kw = keyword.toLowerCase();
       result = result.filter(
         (post) =>
           post.title.toLowerCase().includes(kw) ||
@@ -70,9 +88,9 @@ export function useRecruitPosts(filters?: RecruitFilters){
     }
 
     return result;
-  }, [allPosts, filters?.date, filters?.region, filters?.level, filters?.keyword]);
+  }, [allPosts, date, region, level, keyword]);
 
-  return { posts, isLoading };
+  return { posts, isLoading, permissionDenied };
 }
 
 

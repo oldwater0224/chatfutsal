@@ -9,16 +9,10 @@ import RecruitFilter, { FilterState } from "@/src/components/RecruitFilter";
 import RecruitCard from "@/src/components/RecruitCard";
 import SearchBar from "@/src/components/SearchBar";
 import Link from "next/link";
-import { CalendarSearch, Plus } from "lucide-react";
+import { CalendarSearch, LogIn, Plus } from "lucide-react";
 import { RecruitPost } from "@/src/types";
-
-const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-
-function formatSectionDate(dateStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  return `${m}월 ${d}일 (${DAY_NAMES[date.getDay()]})`;
-}
+import { formatMatchDate } from "@/src/lib/utils/dateUtils";
+import { primaryButtonClass, secondaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
 
 function groupByDate(posts: RecruitPost[]) {
   const sorted = [...posts].sort((a, b) =>
@@ -36,9 +30,12 @@ function groupByDate(posts: RecruitPost[]) {
 const EMPTY_FILTERS: FilterState = { date: "", region: "", level: "", keyword: "" };
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { posts, isLoading } = useRecruitPosts(filters);
+  const { posts, isLoading, permissionDenied } = useRecruitPosts(filters, {
+    ready: !authLoading,
+    uid: user?.uid,
+  });
   const groups = useMemo(() => groupByDate(posts), [posts]);
   const hasAnyFilter = !!(filters.date || filters.region || filters.level || filters.keyword);
 
@@ -60,9 +57,25 @@ export default function HomePage() {
         <RecruitFilter filters={filters} onFilterChange={setFilters} />
 
         <div className="max-w-2xl mx-auto px-4">
-          {isLoading ? (
+          {authLoading || isLoading ? (
             <div className="flex items-center justify-center py-24">
-              <div className="w-7 h-7 border-[3px] border-green-100 border-t-green-600 rounded-full animate-spin" />
+              <div className={spinnerClass} />
+            </div>
+          ) : permissionDenied && !user ? (
+            <div className="flex flex-col items-center text-center py-20">
+              <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
+                <LogIn className="w-7 h-7 text-green-600" />
+              </div>
+              <p className="text-[15px] font-semibold text-gray-900">로그인하면 모집글을 볼 수 있어요</p>
+              <p className="mt-1 text-sm text-gray-500">카카오 계정으로 바로 시작할 수 있어요</p>
+              <div className="mt-5 flex gap-2">
+                <Link href="/login" className={`${primaryButtonClass} h-10 px-5 text-sm`}>
+                  로그인
+                </Link>
+                <Link href="/signup" className={`${secondaryButtonClass} h-10 px-5 text-sm`}>
+                  회원가입
+                </Link>
+              </div>
             </div>
           ) : posts.length === 0 ? (
             <div className="flex flex-col items-center text-center py-20">
@@ -101,7 +114,7 @@ export default function HomePage() {
             groups.map((group) => (
               <section key={group.date} className="pt-5">
                 <h2 className="text-[15px] font-bold text-gray-900">
-                  {formatSectionDate(group.date)}
+                  {formatMatchDate(group.date)}
                 </h2>
                 <div>
                   {group.posts.map((post) => (

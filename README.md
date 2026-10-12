@@ -5,7 +5,7 @@
 용병을 구하는 경기 주최자와 참여하려는 사용자가 **바로 대화할 수 있는** 풋살 용병 매칭 서비스입니다.
 기존 용병 모집 방식에서는 주최자와 소통할 창구가 부족하다는 문제에서 출발했습니다. 모집글, 참가 신청, 1:1 실시간 채팅을 하나의 흐름으로 연결했습니다.
 
-**버전** `0.1.0`
+**배포** https://chatfutsal.vercel.app · **버전** `0.1.0`
 
 <br>
 
@@ -13,18 +13,20 @@
 
 ### 🔐 인증
 - 이메일/비밀번호 회원가입 · 로그인 (Firebase Authentication)
-- **카카오 간편로그인**: 카카오 OAuth 인가 코드를 Next.js API Route에서 처리하고, Firebase Admin SDK로 Custom Token을 발급해 기존 유저 시스템과 통합
+- **카카오 간편로그인**: 카카오 OAuth 인가 코드를 Next.js API Route에서 처리하고, 서비스 계정 키로 서명한 Firebase Custom Token(`jsonwebtoken`)을 발급해 기존 유저 시스템과 통합
 
 ### 📋 용병 모집
 - 모집글 **작성 · 조회 · 수정 · 삭제** (CRUD)
 - 경기 날짜·시간, 장소, 실력 레벨(비기너 / 아마추어 / 세미프로 / 프로), 모집 인원 설정
 - **카카오맵 장소 검색**: Places API로 구장을 검색해 좌표·주소를 저장하고, 상세 페이지 지도에 위치 표시
-- **검색 · 필터**: 키워드(제목·내용·장소, 입력 디바운스 적용), 날짜, 지역, 레벨
+- **검색 · 필터**: 키워드(제목·내용·장소, 입력 디바운스 적용), 주 단위 날짜 선택, 지역, 레벨
+- 경기 날짜별로 묶은 시간순 리스트, 잔여 인원에 따른 `N자리 남음 / 마감임박 / 마감` 배지
 - 작성자의 수동 마감 / 재오픈
 
 ### ⏱ 모집 자동 마감
 - **정원 도달 시** 자동 마감: 수락 인원이 모집 인원에 도달하면 `closed` 처리
-- **경기 시간 경과 시** 자동 마감: 목록·상세 조회 시 경기 시작 시각이 지난 글을 마감 처리
+- **경기 시간 경과 시**: 목록에서는 경기 시작 시각이 지난 글을 클라이언트에서 제외하고, 상세 조회 시 `closed`로 갱신
+  - 목록 구독 콜백에서 모든 클라이언트가 같은 문서를 갱신하던 방식은 쓰기 폭주 위험이 있어 제거했고, 서버 측 일괄 마감은 후속 과제입니다
 - 작성·수정 화면에서 과거 날짜 선택 방지
 
 ### 🙋 참가 신청 · 수락
@@ -57,8 +59,10 @@
 | Language | TypeScript |
 | Styling | Tailwind CSS 4, shadcn/ui (Radix UI), lucide-react |
 | Backend (BaaS) | Firebase Authentication, Cloud Firestore |
-| Server | Next.js API Route, Firebase Admin SDK |
+| Server | Next.js API Route, jsonwebtoken (Firebase Custom Token 서명) |
 | 외부 API | Kakao Login (OAuth), Kakao Maps JavaScript API / Places |
+| Test | Vitest |
+| Deploy | Vercel |
 
 <br>
 
@@ -66,8 +70,7 @@
 
 | 경로 | 설명 |
 |------|------|
-| `/` | 홈 |
-| `/recruit` | 모집글 목록 (검색 · 필터) |
+| `/` | 모집글 목록 (검색 · 날짜 · 지역 · 레벨 필터) |
 | `/recruit/[postId]` | 모집글 상세 · 지도 · 참가 신청 |
 | `/recruit/[postId]/edit` | 모집글 수정 |
 | `/create` | 모집글 작성 |
@@ -89,13 +92,14 @@
 src/
 ├── app/                  # 페이지 (App Router)
 │   └── api/auth/kakao/   # 카카오 로그인 → Firebase Custom Token 발급
-├── components/           # UI 컴포넌트 (RecruitCard, ChatRoom, KakaoMapSearch 등)
+├── components/           # UI 컴포넌트 (Header, SubHeader, RecruitCard, ChatRoom, KakaoMapSearch 등)
+│   └── ui/styles.ts      # 공통 버튼 · 입력 필드 스타일
 ├── hooks/                # 실시간 구독 훅 (useRecruitPosts, useMessage, useNotifications 등)
 ├── lib/
 │   ├── firebase/         # Firebase 클라이언트 초기화 · 에러 메시지 처리
-│   ├── firebase-admin.ts # Firebase Admin SDK (서버 전용)
+│   ├── firebase-admin.ts # Firebase Custom Token 생성 (서버 전용)
 │   ├── services/         # Firestore 쓰기 로직 (recruit, application, chat, notification)
-│   └── utils/            # 날짜 · 만료 판별 유틸
+│   └── utils/            # 날짜 포맷 · 만료 판별 유틸 (단위 테스트 포함)
 └── types/                # 공통 타입 정의
 ```
 
@@ -141,6 +145,22 @@ firestore/
 
 <br>
 
+## 트러블슈팅
+
+### 카카오 로그인이 개발 환경에서만 `KOE320`(인가 코드 없음)으로 실패
+- **원인**: React Strict Mode가 개발 모드에서 컴포넌트를 두 번 마운트해, 일회용 인가 코드로 토큰 교환을 두 번 요청했다. 두 번째 요청이 이미 사용된 코드로 실패했고, `useRef`로 막으려 했지만 재마운트 시 ref가 초기화되어 효과가 없었다.
+- **해결**: 처리한 인가 코드를 모듈 스코프 `Set`에 기록해 같은 코드는 한 번만 교환하도록 했다.
+
+### Vercel 배포 환경에서만 카카오 로그인 API가 `FUNCTION_INVOCATION_FAILED`
+- **원인**: `firebase-admin`이 의존하는 `jose` v5가 ESM 전용 패키지라, 서버리스 함수 런타임에서 `require()`로 불러오다 `ERR_REQUIRE_ESM`이 발생했다. `serverExternalPackages` 설정으로도 해결되지 않았다.
+- **해결**: Custom Token은 서비스 계정 키로 서명한 JWT일 뿐이라는 점에 착안해, `firebase-admin`을 제거하고 `jsonwebtoken`으로 직접 서명했다. 의존성 크기도 함께 줄었다.
+
+### 새로고침하면 로그인 상태인데도 모집글 목록이 비어 보임
+- **원인**: 페이지 진입과 동시에 Firestore 구독을 시작해, Firebase Auth가 로그인 상태를 복원하기 전에 쿼리가 나갔다. 보안 규칙에 거부된 `onSnapshot` 리스너는 종료되고 재시도하지 않는다.
+- **해결**: 인증 상태가 확정된 뒤 구독하고, 로그인 유저가 바뀌면 다시 구독하도록 했다. 권한 거부(`permission-denied`)는 "데이터 없음"과 구분해 로그인 안내 화면을 보여준다.
+
+<br>
+
 ## 로컬 실행
 
 ```bash
@@ -161,8 +181,7 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 
-# Firebase Admin (Server, 카카오 로그인 Custom Token 발급용)
-FIREBASE_ADMIN_PROJECT_ID=
+# Firebase 서비스 계정 (Server, 카카오 로그인 Custom Token 서명용)
 FIREBASE_ADMIN_CLIENT_EMAIL=
 FIREBASE_ADMIN_PRIVATE_KEY=
 
@@ -171,6 +190,12 @@ NEXT_PUBLIC_KAKAO_MAP_JS_KEY=
 NEXT_PUBLIC_KAKAO_REST_API_KEY=
 NEXT_PUBLIC_KAKAO_REDIRECT_URI=
 KAKAO_CLIENT_SECRET=
+```
+
+테스트 실행
+
+```bash
+npm test
 ```
 
 > 카카오맵과 카카오 로그인을 사용하려면 Kakao Developers에 사이트 도메인(`http://localhost:3000` 등)과 Redirect URI를 등록해야 합니다.

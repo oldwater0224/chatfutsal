@@ -5,7 +5,7 @@ import SubHeader from "@/src/components/SubHeader";
 import { primaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMyApplications } from "@/src/hooks/useApplications";
-import { cancelApplication } from "@/src/lib/services";
+import { ApplicationError, cancelApplication } from "@/src/lib/services";
 import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -32,8 +32,8 @@ export default function MyApplicationsPage() {
     if (!user || !window.confirm("신청을 취소하시겠습니까?")) return;
     try {
       await cancelApplication(applicationId, postId, user.uid);
-    } catch {
-      alert("취소에 실패했습니다.");
+    } catch (e) {
+      alert(e instanceof ApplicationError ? e.message : "취소에 실패했습니다.");
     }
   };
 

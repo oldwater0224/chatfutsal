@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { Application } from "../types";
-import { acceptApplication, rejectApplication } from "../lib/services";
+import { acceptApplication, ApplicationError, rejectApplication } from "../lib/services";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 
 interface ApplicationListProps {
   applications: Application[];
-  needCount: number;
   postId: string;
 }
 
@@ -20,7 +19,6 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
 
 export default function ApplicationList({
   applications,
-  needCount,
   postId,
 }: ApplicationListProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -28,9 +26,9 @@ export default function ApplicationList({
   const handleAccept = async (app: Application) => {
     setProcessingId(app.id);
     try {
-      await acceptApplication(app.id, postId, needCount);
-    } catch {
-      alert("수락에 실패했습니다.");
+      await acceptApplication(app.id, postId);
+    } catch (e) {
+      alert(e instanceof ApplicationError ? e.message : "수락에 실패했습니다.");
     }
     setProcessingId(null);
   };
@@ -39,8 +37,8 @@ export default function ApplicationList({
     setProcessingId(app.id);
     try {
       await rejectApplication(app.id, postId, app.applicantId);
-    } catch {
-      alert("거절에 실패했습니다.");
+    } catch (e) {
+      alert(e instanceof ApplicationError ? e.message : "거절에 실패했습니다.");
     }
     setProcessingId(null);
   };

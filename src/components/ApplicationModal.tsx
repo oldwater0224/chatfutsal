@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ApplicationError } from "../lib/services";
 import { fieldTextareaClass, primaryButtonClass, secondaryButtonClass } from "./ui/styles";
 
 interface ApplicationModalProps {
@@ -27,8 +28,8 @@ export default function ApplicationModal({
       await onSubmit(message);
       setMessage("");
       onClose();
-    } catch {
-      alert("신청에 실패했습니다. 다시 시도해주세요.");
+    } catch (e) {
+      alert(e instanceof ApplicationError ? e.message : "신청에 실패했습니다. 다시 시도해주세요.");
     }
     setIsSubmitting(false);
   };

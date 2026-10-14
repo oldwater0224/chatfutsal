@@ -12,14 +12,15 @@ import {
 import { db } from "../firebase";
 import { NotificationType } from "../../types";
 
-export async function createNotification(
+// 트랜잭션 등에서 직접 set할 때도 같은 필드 구성을 쓰도록 분리
+export function buildNotification(
   recipientId: string,
   type: NotificationType,
   title: string,
   body: string,
   link: string,
-): Promise<string> {
-  const docRef = await addDoc(collection(db, "notifications"), {
+) {
+  return {
     recipientId,
     type,
     title,
@@ -27,7 +28,20 @@ export async function createNotification(
     link,
     isRead: false,
     createdAt: serverTimestamp(),
-  });
+  };
+}
+
+export async function createNotification(
+  recipientId: string,
+  type: NotificationType,
+  title: string,
+  body: string,
+  link: string,
+): Promise<string> {
+  const docRef = await addDoc(
+    collection(db, "notifications"),
+    buildNotification(recipientId, type, title, body, link),
+  );
   return docRef.id;
 }
 

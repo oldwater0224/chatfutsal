@@ -52,3 +52,6 @@ next-env.d.ts
 # claude
 CLAUDE.md
 .claude
+
+# firebase emulator
+*-debug.log

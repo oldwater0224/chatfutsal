@@ -8,12 +8,12 @@ const DESCRIPTION = "풋살 용병 모집부터 참가 신청, 1:1 실시간 채
 
 export const metadata: Metadata = {
   title: {
-    default: "ChatFutsal | 풋살 용병 모집 & 채팅",
+    default: "ChatFutsal",
     template: "%s | ChatFutsal",
   },
   description: DESCRIPTION,
   openGraph: {
-    title: "ChatFutsal | 풋살 용병 모집 & 채팅",
+    title: "ChatFutsal",
     description: DESCRIPTION,
     siteName: "ChatFutsal",
     locale: "ko_KR",

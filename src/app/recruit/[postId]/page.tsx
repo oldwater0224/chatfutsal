@@ -8,6 +8,7 @@ import {
   reopenRecruitPost,
   applyToPost,
   cancelApplication,
+  ApplicationError,
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_COLORS, LEVEL_LABELS, RecruitPost } from "@/src/types";
@@ -294,7 +295,7 @@ export default function RecruitDetailPage() {
                 신청 현황 <span className="text-green-600">{applications.length}</span>
               </h3>
               <div className="mt-2">
-                <ApplicationList applications={applications} needCount={post.needCount} postId={postId} />
+                <ApplicationList applications={applications} postId={postId} />
               </div>
             </section>
           </>
@@ -320,7 +321,11 @@ export default function RecruitDetailPage() {
                   if (myApp) {
                     const confirmed = window.confirm("신청을 취소하시겠습니까?");
                     if (!confirmed) return;
-                    await cancelApplication(myApp.id, postId, user.uid);
+                    try {
+                      await cancelApplication(myApp.id, postId, user.uid);
+                    } catch (e) {
+                      alert(e instanceof ApplicationError ? e.message : "취소에 실패했습니다.");
+                    }
                   } else {
                     alert("이미 처리된 신청입니다.");
                   }

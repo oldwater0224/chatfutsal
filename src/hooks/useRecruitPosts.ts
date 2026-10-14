@@ -1,10 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RecruitPost } from "../types";
 import { collection, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
+import { selectPostsToClose } from "../lib/utils/recruitExpiry";
+import { closeRecruitPost } from "../lib/services/recruitService";
 
 interface RecruitFilters {
   date: string;
@@ -20,9 +22,12 @@ interface RecruitPostsAuth {
 }
 
 export function useRecruitPosts(filters: RecruitFilters | undefined, auth: RecruitPostsAuth){
+  const { ready, uid } = auth;
   const [allPosts, setAllPosts] = useState<RecruitPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  // 같은 세션에서 같은 글에 마감 쓰기를 반복하지 않도록 시도한 id를 기록한다
+  const closeAttemptedRef = useRef<Set<string>>(new Set());
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
     const postList: RecruitPost[] = snapshot.docs.map((d) => ({
@@ -32,10 +37,20 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
       updatedAt: d.data().updatedAt?.toDate() || new Date(),
     })) as RecruitPost[];
 
+    // 경기 시간이 지난 글은 Firestore에서도 마감한다.
+    // 보안 규칙이 로그인 사용자의 status/updatedAt 변경만 허용하므로 비로그인은 건너뛴다.
+    // 쿼리가 status=='open'이라 마감된 글은 스냅샷에서 빠지며, 실패는 목록 렌더에 영향 주지 않도록 무시한다.
+    if (uid) {
+      for (const postId of selectPostsToClose(postList, closeAttemptedRef.current)) {
+        closeAttemptedRef.current.add(postId);
+        closeRecruitPost(postId).catch(() => {});
+      }
+    }
+
     setAllPosts(postList.filter((post) => !isPostExpired(post.date, post.time)));
     setPermissionDenied(false);
     setIsLoading(false);
-  }, []);
+  }, [uid]);
 
   const handleError = useCallback((error: FirestoreError) => {
     if (error.code === "permission-denied") {
@@ -48,7 +63,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   }, []);
 
   useEffect(() => {
-    if (!auth.ready) return;
+    if (!ready) return;
 
     const postRef = collection(db, 'recruitPosts');
     const q = query(postRef,
@@ -58,7 +73,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
 
     const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
     return () => unsubscribe();
-  }, [auth.ready, auth.uid, handleSnapshot, handleError]);
+  }, [ready, uid, handleSnapshot, handleError]);
 
   const date = filters?.date;
   const region = filters?.region;

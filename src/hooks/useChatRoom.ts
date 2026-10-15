@@ -6,10 +6,15 @@ import {
   query,
   where,
   orderBy,
+  limit,
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
-import { isHiddenForUser, parseLeftAt } from "@/src/lib/services/chatService";
+import {
+  isHiddenForUser,
+  parseLeftAt,
+  UNREAD_SCAN_LIMIT,
+} from "@/src/lib/services/chatService";
 import { ChatRoom } from "@/src/types";
 
 interface ChatRoomWithUnread extends ChatRoom {
@@ -68,7 +73,12 @@ export function useChatRooms(userId: string | undefined) {
 
         rooms.forEach((room) => {
           const messagesRef = collection(db, "chatRooms", room.id, "messages");
-          const messagesQuery = query(messagesRef);
+          // 방마다 전체 메시지를 구독하지 않도록 최근 메시지 범위에서만 안 읽은 수를 센다
+          const messagesQuery = query(
+            messagesRef,
+            orderBy("createdAt", "desc"),
+            limit(UNREAD_SCAN_LIMIT),
+          );
           const myLeftAt = room.leftAt?.[userId];
 
           const msgUnsubscribe = onSnapshot(messagesQuery, (msgSnapshot) => {

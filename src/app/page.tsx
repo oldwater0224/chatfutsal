@@ -7,6 +7,7 @@ import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
 import RecruitFilter, { FilterState } from "@/src/components/RecruitFilter";
 import RecruitCard from "@/src/components/RecruitCard";
+import LoadMoreButton from "@/src/components/LoadMoreButton";
 import SearchBar from "@/src/components/SearchBar";
 import Link from "next/link";
 import { CalendarSearch, LogIn, Plus } from "lucide-react";
@@ -32,7 +33,7 @@ const EMPTY_FILTERS: FilterState = { date: "", region: "", level: "", keyword: "
 export default function HomePage() {
   const { user, isLoading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { posts, isLoading, permissionDenied } = useRecruitPosts(filters, {
+  const { posts, isLoading, permissionDenied, hasMore, loadMore } = useRecruitPosts(filters, {
     ready: !authLoading,
     uid: user?.uid,
   });
@@ -123,6 +124,9 @@ export default function HomePage() {
                 </div>
               </section>
             ))
+          )}
+          {!(authLoading || isLoading) && !permissionDenied && hasMore && (
+            <LoadMoreButton onClick={loadMore} label="모집글 더 보기" />
           )}
         </div>
       </main>

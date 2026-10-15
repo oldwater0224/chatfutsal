@@ -24,8 +24,12 @@ export default function ChatRoomPage() {
   const roomId = params.roomId as string;
 
   const { user, isLoading: authLoading } = useAuth();
-  const { messages: allMessages, isLoading: messagesLoading } =
-    useMessages(roomId);
+  const {
+    messages: allMessages,
+    isLoading: messagesLoading,
+    hasMore: hasMoreMessages,
+    loadMore: loadMoreMessages,
+  } = useMessages(roomId);
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [roomLoading, setRoomLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
@@ -79,6 +83,10 @@ export default function ChatRoomPage() {
       (msg) => msg.createdAt.getTime() > myLeftAt.getTime(),
     );
   }, [allMessages, myLeftAt]);
+  // 나가기 전 메시지는 보이지 않으므로, 이미 그 시점까지 불러왔다면 더 불러올 것이 없다
+  const canLoadOlder =
+    hasMoreMessages &&
+    !(myLeftAt && allMessages[0] && allMessages[0].createdAt.getTime() <= myLeftAt.getTime());
 
   // 채팅방 입장 시 읽음 처리
   useEffect(() => {
@@ -222,6 +230,8 @@ export default function ChatRoomPage() {
             currentUserId={user.uid}
             onSendMessage={handleSendMessage}
             loading={messagesLoading}
+            hasMore={canLoadOlder}
+            onLoadMore={loadMoreMessages}
           />
         </div>
       </div>

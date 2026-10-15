@@ -7,6 +7,7 @@ import {
   collection,
   doc,
   getDoc,
+  limitToLast,
   onSnapshot,
   orderBy,
   query,
@@ -16,9 +17,14 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { createNotification } from "../lib/services/notificationService";
+import { hasMorePages, usePageLimit } from "./usePageLimit";
+
+const PAGE_SIZE = 50;
 
 export function useMessages(roomId: string) {
+  const { limit, loadMore } = usePageLimit(PAGE_SIZE, roomId);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [fetched, setFetched] = useState(0);
   const [isLoading, setIsLoading] = useState(!!roomId);
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
@@ -34,6 +40,7 @@ export function useMessages(roomId: string) {
       };
     });
     setMessages(msgs);
+    setFetched(snapshot.size);
     setIsLoading(false);
   }, []);
 
@@ -46,13 +53,14 @@ export function useMessages(roomId: string) {
     if (!roomId) return;
 
     const messagesRef = collection(db, "chatRooms", roomId, "messages");
-    const q = query(messagesRef, orderBy("createdAt", "asc"));
+    // 최근 메시지부터 limit개 (오래된 메시지는 "이전 메시지 보기"로 확장)
+    const q = query(messagesRef, orderBy("createdAt", "asc"), limitToLast(limit));
 
     const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
     return () => unsubscribe();
-  }, [roomId, handleSnapshot, handleError]);
+  }, [roomId, limit, handleSnapshot, handleError]);
 
-  return { messages, isLoading };
+  return { messages, isLoading, hasMore: hasMorePages(fetched, limit), loadMore };
 }
 
 export async function sendMessage(

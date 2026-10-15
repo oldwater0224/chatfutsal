@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useNotifications } from "@/src/hooks/useNotifications";
+import { useNotifications, useUnreadNotificationCount } from "@/src/hooks/useNotifications";
+import LoadMoreButton from "@/src/components/LoadMoreButton";
 import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
@@ -94,7 +95,8 @@ function NotificationItem({
 
 export default function NotificationsPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { notifications, unreadCount, isLoading } = useNotifications(user?.uid);
+  const { notifications, hasMore, loadMore, isLoading } = useNotifications(user?.uid);
+  const unreadCount = useUnreadNotificationCount(user?.uid);
   const router = useRouter();
 
   const handleNotificationClick = async (notification: Notification) => {
@@ -159,6 +161,7 @@ export default function NotificationsPage() {
               ))}
             </ul>
           )}
+          {!(authLoading || isLoading) && hasMore && <LoadMoreButton onClick={loadMore} label="이전 알림 더 보기" />}
         </div>
       </main>
       <BottomNav />

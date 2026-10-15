@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RecruitPost } from "../types";
-import { collection, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
+import { collection, limit as limitTo, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
 import { selectPostsToClose } from "../lib/utils/recruitExpiry";
 import { closeRecruitPost } from "../lib/services/recruitService";
+import { hasMorePages, usePageLimit } from "./usePageLimit";
+
+const PAGE_SIZE = 20;
 
 interface RecruitFilters {
   date: string;
@@ -23,7 +26,9 @@ interface RecruitPostsAuth {
 
 export function useRecruitPosts(filters: RecruitFilters | undefined, auth: RecruitPostsAuth){
   const { ready, uid } = auth;
+  const { limit, loadMore } = usePageLimit(PAGE_SIZE, uid);
   const [allPosts, setAllPosts] = useState<RecruitPost[]>([]);
+  const [fetchedCount, setFetchedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   // 같은 세션에서 같은 글에 마감 쓰기를 반복하지 않도록 시도한 id를 기록한다
@@ -48,6 +53,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     }
 
     setAllPosts(postList.filter((post) => !isPostExpired(post.date, post.time)));
+    setFetchedCount(snapshot.size);
     setPermissionDenied(false);
     setIsLoading(false);
   }, [uid]);
@@ -68,12 +74,13 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     const postRef = collection(db, 'recruitPosts');
     const q = query(postRef,
       where('status', '==', 'open'),
-      orderBy('createdAt', 'desc')
+      orderBy('createdAt', 'desc'),
+      limitTo(limit)
     );
 
     const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
     return () => unsubscribe();
-  }, [ready, uid, handleSnapshot, handleError]);
+  }, [ready, uid, limit, handleSnapshot, handleError]);
 
   const date = filters?.date;
   const region = filters?.region;
@@ -105,7 +112,8 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     return result;
   }, [allPosts, date, region, level, keyword]);
 
-  return { posts, isLoading, permissionDenied };
+  // 필터는 받아온 범위 안에서만 적용되므로, 결과가 적어도 서버에 글이 더 있으면 더 보기를 노출한다
+  return { posts, isLoading, permissionDenied, hasMore: hasMorePages(fetchedCount, limit), loadMore };
 }
 
 

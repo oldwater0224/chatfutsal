@@ -8,10 +8,15 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  limit,
+  orderBy,
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+
+// 안 읽은 메시지를 셀 때 확인하는 최근 메시지 수 (채팅 목록 배지는 99+로 표시)
+export const UNREAD_SCAN_LIMIT = 100;
 
 // Firestore의 leftAt 맵({ uid: Timestamp })을 { uid: Date }로 변환
 export function parseLeftAt(
@@ -160,8 +165,9 @@ export async function markMessagesAsRead(
   userId: string,
 ): Promise<void> {
   try {
+    // 안 읽은 메시지는 최근 메시지에 몰려 있으므로 최근 범위만 확인한다
     const messagesRef = collection(db, "chatRooms", roomId, "messages");
-    const q = query(messagesRef);
+    const q = query(messagesRef, orderBy("createdAt", "desc"), limit(UNREAD_SCAN_LIMIT));
     const snapshot = await getDocs(q);
 
     if (snapshot.docs.length === 0) return;

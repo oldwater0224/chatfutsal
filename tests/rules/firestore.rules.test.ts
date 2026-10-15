@@ -15,6 +15,9 @@ import {
   Firestore,
   getDoc,
   getDocs,
+  limit,
+  limitToLast,
+  orderBy,
   query,
   runTransaction,
   serverTimestamp,
@@ -120,6 +123,14 @@ describe('users', () => {
 });
 
 describe('recruitPosts', () => {
+  it('모집 중인 글을 페이지 단위로 조회할 수 있다', async () => {
+    await assertSucceeds(
+      getDocs(
+        query(collection(db(OTHER), 'recruitPosts'), where('status', '==', 'open'), orderBy('createdAt', 'desc'), limit(20)),
+      ),
+    );
+  });
+
   it('본인 명의로만 글을 작성할 수 있다', async () => {
     await assertSucceeds(setDoc(doc(db(AUTHOR), 'recruitPosts/p2'), futurePost));
     await assertFails(setDoc(doc(db(OTHER), 'recruitPosts/p3'), futurePost));
@@ -266,6 +277,26 @@ describe('notifications', () => {
     await assertFails(updateDoc(doc(db(OTHER), 'notifications/n1'), { isRead: true }));
   });
 
+  it('페이지 단위 목록·안 읽은 수 쿼리가 허용된다', async () => {
+    const f = db(APPLICANT);
+    await assertSucceeds(
+      getDocs(query(collection(f, 'notifications'), where('recipientId', '==', APPLICANT), limit(20))),
+    );
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(f, 'notifications'),
+          where('recipientId', '==', APPLICANT),
+          where('isRead', '==', false),
+          limit(100),
+        ),
+      ),
+    );
+    await assertFails(
+      getDocs(query(collection(db(OTHER), 'notifications'), where('isRead', '==', false), limit(100))),
+    );
+  });
+
   it('다른 사람에게 보내는 알림만 만들 수 있다', async () => {
     await assertSucceeds(setDoc(doc(db(OTHER), 'notifications/n2'), notification(APPLICANT)));
     await assertFails(setDoc(doc(db(OTHER), 'notifications/n3'), notification(OTHER)));
@@ -285,6 +316,16 @@ describe('chatRooms', () => {
     await assertSucceeds(getDocs(collection(db(APPLICANT), 'chatRooms/r1/messages')));
     await assertFails(getDoc(doc(db(OTHER), 'chatRooms/r1')));
     await assertFails(getDocs(collection(db(OTHER), 'chatRooms/r1/messages')));
+  });
+
+  it('최근 메시지만 불러오는 쿼리가 허용된다', async () => {
+    const f = db(APPLICANT);
+    await assertSucceeds(
+      getDocs(query(collection(f, 'chatRooms/r1/messages'), orderBy('createdAt', 'asc'), limitToLast(50))),
+    );
+    await assertSucceeds(
+      getDocs(query(collection(f, 'chatRooms/r1/messages'), orderBy('createdAt', 'desc'), limit(100))),
+    );
   });
 
   it('채팅방 목록·기존 방 검색 쿼리가 허용된다', async () => {

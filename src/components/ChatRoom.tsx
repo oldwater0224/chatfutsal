@@ -9,6 +9,8 @@ interface ChatRoomProps {
   currentUserId: string;
   onSendMessage: (text: string) => void;
   loading?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 export default function ChatRoom({
@@ -16,14 +18,17 @@ export default function ChatRoom({
   currentUserId,
   onSendMessage,
   loading,
+  hasMore,
+  onLoadMore,
 }: ChatRoomProps) {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageId = messages[messages.length - 1]?.id;
 
-  // 새 메시지 시 스크롤
+  // 새 메시지가 아래에 추가될 때만 스크롤 (이전 메시지를 불러올 때는 위치 유지)
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [lastMessageId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +57,16 @@ export default function ChatRoom({
     <div className="h-full flex flex-col">
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {hasMore && onLoadMore && (
+          <div className="flex justify-center">
+            <button
+              onClick={onLoadMore}
+              className="h-8 px-4 rounded-full bg-gray-100 text-xs font-semibold text-gray-600 hover:bg-gray-200 cursor-pointer"
+            >
+              이전 메시지 보기
+            </button>
+          </div>
+        )}
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-400">
             <p className="text-sm">대화를 시작해보세요</p>

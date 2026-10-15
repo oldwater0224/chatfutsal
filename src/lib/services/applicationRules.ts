@@ -21,6 +21,16 @@ export function assertPending(app: Pick<Application, "status"> | undefined): voi
   if (app.status !== "pending") throw new ApplicationError("이미 처리된 신청입니다.");
 }
 
+// 모집글 삭제 시 취소 알림을 받을 신청자 (대기·수락 상태, 중복 제거)
+export function applicantsToNotifyOnDelete(
+  apps: Pick<Application, "applicantId" | "status">[],
+): string[] {
+  const ids = apps
+    .filter((app) => app.status === "pending" || app.status === "accepted")
+    .map((app) => app.applicantId);
+  return [...new Set(ids)];
+}
+
 // 수락 후 수락 인원을 반환하고, 정원이 차면 마감 대상으로 표시한다
 export function nextAcceptState(post: PostState | undefined): {
   acceptedCount: number;

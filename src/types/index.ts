@@ -77,7 +77,8 @@ export type NotificationType =
   | "new_message"
   | "application_received"
   | "application_accepted"
-  | "application_rejected";
+  | "application_rejected"
+  | "recruit_deleted";
 
 export interface Notification {
   id: string;

@@ -103,8 +103,11 @@ service cloud.firestore {
         && changedOnly(['status', 'updatedAt']);
 
       // 신청자: 대기 중인 신청만 취소
-      allow delete: if isUser(resource.data.applicantId)
-        && resource.data.status == 'pending';
+      // 작성자: 모집글을 삭제하면서(또는 삭제된 뒤) 자기 글의 신청 정리
+      allow delete: if (isUser(resource.data.applicantId)
+          && resource.data.status == 'pending')
+        || (isUser(resource.data.authorId)
+          && !existsAfter(/databases/$(database)/documents/recruitPosts/$(resource.data.postId)));
     }
 
     // ===== notifications =====

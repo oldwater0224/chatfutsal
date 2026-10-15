@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { ApplicationError, assertCanApply, assertPending, nextAcceptState } from './applicationRules';
+import {
+  ApplicationError,
+  applicantsToNotifyOnDelete,
+  assertCanApply,
+  assertPending,
+  nextAcceptState,
+} from './applicationRules';
 
 const openPost = { status: 'open' as const, needCount: 3, acceptedCount: 0, applicantIds: [] as string[] };
 
@@ -49,5 +55,30 @@ describe('nextAcceptState', () => {
 
   it('acceptedCount 필드가 없는 기존 글은 0명으로 간주', () => {
     expect(nextAcceptState({ status: 'open', needCount: 1 })).toEqual({ acceptedCount: 1, shouldClose: true });
+  });
+});
+
+describe('applicantsToNotifyOnDelete', () => {
+  it('대기·수락 상태 신청자만 알림 대상', () => {
+    expect(
+      applicantsToNotifyOnDelete([
+        { applicantId: 'u1', status: 'pending' },
+        { applicantId: 'u2', status: 'accepted' },
+        { applicantId: 'u3', status: 'rejected' },
+      ]),
+    ).toEqual(['u1', 'u2']);
+  });
+
+  it('같은 신청자가 여러 번 있어도 한 번만 알림', () => {
+    expect(
+      applicantsToNotifyOnDelete([
+        { applicantId: 'u1', status: 'pending' },
+        { applicantId: 'u1', status: 'accepted' },
+      ]),
+    ).toEqual(['u1']);
+  });
+
+  it('신청이 없으면 빈 배열', () => {
+    expect(applicantsToNotifyOnDelete([])).toEqual([]);
   });
 });

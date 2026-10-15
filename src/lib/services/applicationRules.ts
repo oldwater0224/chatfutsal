@@ -2,6 +2,7 @@
 // 트랜잭션 안에서 읽은 최신 문서로 판단해야 동시 요청에도 정원·중복이 지켜진다
 
 import { Application, RecruitPost } from "../../types";
+import { isPostExpired } from "../utils/dateUtils";
 
 type PostState = Pick<RecruitPost, "status" | "needCount"> &
   Partial<Pick<RecruitPost, "acceptedCount" | "applicantIds">>;
@@ -29,6 +30,24 @@ export function applicantsToNotifyOnDelete(
     .filter((app) => app.status === "pending" || app.status === "accepted")
     .map((app) => app.applicantId);
   return [...new Set(ids)];
+}
+
+// 마감 시 "모집 마감" 처리할 대기 중 신청
+export function pendingApplications<T extends Pick<Application, "status">>(apps: T[]): T[] {
+  return apps.filter((app) => app.status === "pending");
+}
+
+export function assertCanReopen(
+  post: (PostState & Pick<RecruitPost, "date" | "time">) | undefined,
+): void {
+  if (!post) throw new ApplicationError("존재하지 않는 모집글입니다.");
+  if (post.status === "open") throw new ApplicationError("이미 모집 중입니다.");
+  if (isPostExpired(post.date, post.time)) {
+    throw new ApplicationError("경기 시간이 지난 모집은 다시 열 수 없습니다.");
+  }
+  if ((post.acceptedCount ?? 0) >= post.needCount) {
+    throw new ApplicationError("모집 인원이 모두 찼습니다. 모집 인원을 늘린 뒤 다시 열어주세요.");
+  }
 }
 
 // 수락 후 수락 인원을 반환하고, 정원이 차면 마감 대상으로 표시한다

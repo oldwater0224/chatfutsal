@@ -18,6 +18,7 @@ import {
   UserPlus,
   CheckCheck,
   CalendarX,
+  Lock,
 } from "lucide-react";
 import { Notification } from "@/src/types";
 import { spinnerClass } from "@/src/components/ui/styles";
@@ -28,6 +29,7 @@ const ICON_MAP: Record<string, typeof Bell> = {
   application_accepted: UserCheck,
   application_rejected: UserX,
   recruit_deleted: CalendarX,
+  recruit_closed: Lock,
 };
 
 const ICON_COLOR_MAP: Record<string, string> = {
@@ -36,6 +38,7 @@ const ICON_COLOR_MAP: Record<string, string> = {
   application_accepted: "bg-green-100 text-green-600",
   application_rejected: "bg-red-100 text-red-600",
   recruit_deleted: "bg-gray-100 text-gray-600",
+  recruit_closed: "bg-gray-100 text-gray-600",
 };
 
 function formatTime(date: Date): string {

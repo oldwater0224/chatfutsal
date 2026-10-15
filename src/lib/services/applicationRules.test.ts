@@ -3,8 +3,10 @@ import {
   ApplicationError,
   applicantsToNotifyOnDelete,
   assertCanApply,
+  assertCanReopen,
   assertPending,
   nextAcceptState,
+  pendingApplications,
 } from './applicationRules';
 
 const openPost = { status: 'open' as const, needCount: 3, acceptedCount: 0, applicantIds: [] as string[] };
@@ -80,5 +82,38 @@ describe('applicantsToNotifyOnDelete', () => {
 
   it('신청이 없으면 빈 배열', () => {
     expect(applicantsToNotifyOnDelete([])).toEqual([]);
+  });
+});
+
+describe('pendingApplications', () => {
+  it('대기 중인 신청만 골라낸다', () => {
+    const apps = [
+      { id: 'a', status: 'pending' as const },
+      { id: 'b', status: 'accepted' as const },
+      { id: 'c', status: 'pending' as const },
+      { id: 'd', status: 'closed' as const },
+    ];
+    expect(pendingApplications(apps).map((a) => a.id)).toEqual(['a', 'c']);
+  });
+});
+
+describe('assertCanReopen', () => {
+  const closedPost = { status: 'closed' as const, needCount: 3, acceptedCount: 1, date: '2099-01-01', time: '18:00' };
+
+  it('정원이 남고 경기 전이면 재오픈 가능', () => {
+    expect(() => assertCanReopen(closedPost)).not.toThrow();
+  });
+
+  it('정원이 찬 글은 재오픈 불가', () => {
+    expect(() => assertCanReopen({ ...closedPost, acceptedCount: 3 })).toThrow('모두 찼습니다');
+  });
+
+  it('경기 시간이 지난 글은 재오픈 불가', () => {
+    expect(() => assertCanReopen({ ...closedPost, date: '2020-01-01' })).toThrow('경기 시간이 지난');
+  });
+
+  it('이미 모집 중이거나 없는 글은 불가', () => {
+    expect(() => assertCanReopen({ ...closedPost, status: 'open' })).toThrow('이미 모집 중');
+    expect(() => assertCanReopen(undefined)).toThrow(ApplicationError);
   });
 });

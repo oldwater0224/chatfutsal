@@ -15,6 +15,7 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
   pending: { label: "대기중", className: "bg-yellow-100 text-yellow-700" },
   accepted: { label: "수락", className: "bg-green-100 text-green-700" },
   rejected: { label: "거절", className: "bg-red-100 text-red-700" },
+  closed: { label: "마감", className: "bg-gray-100 text-gray-600" },
 };
 
 export default function ApplicationList({

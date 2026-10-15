@@ -3,7 +3,7 @@
 import { useAuth } from "@/src/hooks/useAuth";
 import {
   startChat,
-  closeRecruitPost,
+  closeRecruitPostWithApplications,
   deleteRecruitPost,
   reopenRecruitPost,
   applyToPost,
@@ -103,12 +103,21 @@ export default function RecruitDetailPage() {
 
     try {
       if (post.status === "open") {
-        await closeRecruitPost(postId);
+        const pendingCount = applications.filter((a) => a.status === "pending").length;
+        if (
+          pendingCount > 0 &&
+          !window.confirm(
+            `대기 중인 신청 ${pendingCount}건은 모집 마감 처리되고 신청자에게 알림이 전송됩니다.\n마감하시겠습니까?`,
+          )
+        ) {
+          return;
+        }
+        await closeRecruitPostWithApplications(postId, post.title);
       } else {
         await reopenRecruitPost(postId);
       }
-    } catch {
-      alert("상태 변경에 실패했습니다.");
+    } catch (e) {
+      alert(e instanceof ApplicationError ? e.message : "상태 변경에 실패했습니다.");
     }
   };
 

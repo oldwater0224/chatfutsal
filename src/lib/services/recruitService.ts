@@ -4,15 +4,15 @@ import {
   doc,
   getDocs,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
   where,
-  writeBatch,
-  WriteBatch,
 } from "firebase/firestore";
 import { Application, RecruitPost } from "../../types";
 import { db } from "../firebase";
-import { applicantsToNotifyOnDelete } from "./applicationRules";
+import { applicantsToNotifyOnDelete, assertCanReopen } from "./applicationRules";
+import { BatchOp, commitInChunks } from "./batchUtils";
 import { buildNotification } from "./notificationService";
 
 // 게시글 생성
@@ -66,10 +66,10 @@ export async function deleteRecruitPost(postId: string, postTitle: string): Prom
   );
   const apps = appsSnap.docs.map((d) => d.data() as Application);
 
-  const ops: ((batch: WriteBatch) => void)[] = [
+  const ops: BatchOp[] = [
     (batch) => batch.delete(doc(db, "recruitPosts", postId)),
-    ...appsSnap.docs.map((d) => (batch: WriteBatch) => batch.delete(d.ref)),
-    ...applicantsToNotifyOnDelete(apps).map((applicantId) => (batch: WriteBatch) =>
+    ...appsSnap.docs.map((d): BatchOp => (batch) => batch.delete(d.ref)),
+    ...applicantsToNotifyOnDelete(apps).map((applicantId): BatchOp => (batch) =>
       batch.set(
         doc(collection(db, "notifications")),
         buildNotification(applicantId, "recruit_deleted", "모집이 취소되었어요", postTitle, "/"),
@@ -77,13 +77,7 @@ export async function deleteRecruitPost(postId: string, postTitle: string): Prom
     ),
   ];
 
-  // writeBatch는 한 번에 최대 500개 작업까지 가능하므로 나눠서 커밋
-  const BATCH_LIMIT = 500;
-  for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
-    const batch = writeBatch(db);
-    ops.slice(i, i + BATCH_LIMIT).forEach((op) => op(batch));
-    await batch.commit();
-  }
+  await commitInChunks(ops);
 }
 
 // 모집 마감
@@ -94,11 +88,12 @@ export async function closeRecruitPost(postId : string) : Promise<void>{
     updatedAt : serverTimestamp(),
   });
 }
-// 모집 재오픈
-export async function reopenRecruitPost(postId : string) : Promise<void>{
-  const postRef = doc(db, 'recruitPosts' , postId);
-  await updateDoc(postRef , {
-    status : 'open',
-    updatedAt : serverTimestamp(),
+// 모집 재오픈 (정원이 찼거나 경기 시간이 지난 글은 불가)
+export async function reopenRecruitPost(postId: string): Promise<void> {
+  const postRef = doc(db, "recruitPosts", postId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(postRef);
+    assertCanReopen(snap.data() as RecruitPost | undefined);
+    tx.update(postRef, { status: "open", updatedAt: serverTimestamp() });
   });
 }

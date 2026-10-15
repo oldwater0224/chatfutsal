@@ -223,6 +223,23 @@ describe('applications', () => {
       await assertFails(deleteDoc(doc(db(OTHER), 'applications/a1')));
     });
 
+    it('작성자는 마감하면서 대기 신청을 모집 마감 처리할 수 있다', async () => {
+      const f = db(AUTHOR);
+      const batch = writeBatch(f);
+      batch.update(doc(f, 'recruitPosts/p1'), {
+        status: 'closed',
+        applicantIds: arrayRemove(APPLICANT),
+        updatedAt: serverTimestamp(),
+      });
+      batch.update(doc(f, 'applications/a1'), { status: 'closed', updatedAt: serverTimestamp() });
+      batch.set(doc(collection(f, 'notifications')), { ...notification(APPLICANT), type: 'recruit_closed' });
+      await assertSucceeds(batch.commit());
+    });
+
+    it('신청자는 자기 신청을 모집 마감 상태로 바꿀 수 없다', async () => {
+      await assertFails(updateDoc(doc(db(APPLICANT), 'applications/a1'), { status: 'closed' }));
+    });
+
     it('처리된 신청은 취소·재처리할 수 없다', async () => {
       await seed('applications/a1', {
         postId: 'p1', postTitle: '', applicantId: APPLICANT, applicantName: '',

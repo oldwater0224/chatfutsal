@@ -69,7 +69,7 @@ export interface Application {
   applicantName: string;
   authorId: string;
   message: string;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "closed"; // closed: 모집 마감으로 종료
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,7 +78,8 @@ export type NotificationType =
   | "application_received"
   | "application_accepted"
   | "application_rejected"
-  | "recruit_deleted";
+  | "recruit_deleted"
+  | "recruit_closed";
 
 export interface Notification {
   id: string;

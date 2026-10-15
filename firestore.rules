@@ -96,10 +96,10 @@ service cloud.firestore {
           /databases/$(database)/documents/recruitPosts/$(request.resource.data.postId)
         ).data.get('applicantIds', []);
 
-      // 모집글 작성자: 대기 중인 신청을 수락/거절
+      // 모집글 작성자: 대기 중인 신청을 수락/거절/모집 마감 처리
       allow update: if isUser(resource.data.authorId)
         && resource.data.status == 'pending'
-        && request.resource.data.status in ['accepted', 'rejected']
+        && request.resource.data.status in ['accepted', 'rejected', 'closed']
         && changedOnly(['status', 'updatedAt']);
 
       // 신청자: 대기 중인 신청만 취소

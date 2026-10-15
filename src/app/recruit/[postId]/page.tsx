@@ -80,11 +80,18 @@ export default function RecruitDetailPage() {
   const isAuthor = user?.uid === post?.authorId;
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("정말 삭제하시겠습니까?");
+    const hasApplicants = applications.some(
+      (a) => a.status === "pending" || a.status === "accepted",
+    );
+    const confirmed = window.confirm(
+      hasApplicants
+        ? "정말 삭제하시겠습니까?\n신청자에게 모집 취소 알림이 전송됩니다."
+        : "정말 삭제하시겠습니까?",
+    );
     if (!confirmed) return;
 
     try {
-      await deleteRecruitPost(postId);
+      await deleteRecruitPost(postId, post?.title ?? "");
       router.push("/");
     } catch {
       alert("삭제에 실패했습니다.");

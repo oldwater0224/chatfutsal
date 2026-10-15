@@ -203,6 +203,26 @@ describe('applications', () => {
       await assertSucceeds(batch.commit());
     });
 
+    it('작성자는 모집글과 함께 신청을 삭제하고 취소 알림을 보낼 수 있다', async () => {
+      const f = db(AUTHOR);
+      const batch = writeBatch(f);
+      batch.delete(doc(f, 'recruitPosts/p1'));
+      batch.delete(doc(f, 'applications/a1'));
+      batch.set(doc(collection(f, 'notifications')), { ...notification(APPLICANT), type: 'recruit_deleted' });
+      await assertSucceeds(batch.commit());
+    });
+
+    it('모집글을 남겨둔 채 작성자가 신청만 삭제할 수는 없다', async () => {
+      await assertFails(deleteDoc(doc(db(AUTHOR), 'applications/a1')));
+    });
+
+    it('다른 사람은 모집글이 없어도 신청을 삭제할 수 없다', async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await deleteDoc(doc(ctx.firestore() as unknown as Firestore, 'recruitPosts/p1'));
+      });
+      await assertFails(deleteDoc(doc(db(OTHER), 'applications/a1')));
+    });
+
     it('처리된 신청은 취소·재처리할 수 없다', async () => {
       await seed('applications/a1', {
         postId: 'p1', postTitle: '', applicantId: APPLICANT, applicantName: '',

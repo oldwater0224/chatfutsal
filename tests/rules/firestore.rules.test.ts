@@ -251,6 +251,43 @@ describe('applications', () => {
       await assertFails(updateDoc(doc(db(APPLICANT), 'applications/a1'), { status: 'closed' }));
     });
 
+    // 경기 시간 경과로 이미 마감된 글의 뒤늦은 정리(closePendingApplications의 closePost=false 경로).
+    // 모집글에는 status 없이 applicantIds와 updatedAt만 쓴다.
+    it('작성자는 이미 마감된 글의 대기 신청을 뒤늦게 정리할 수 있다', async () => {
+      await seed('recruitPosts/p1', {
+        ...futurePost,
+        date: '2020-01-01',
+        status: 'closed',
+        applicantIds: [APPLICANT],
+      });
+
+      const f = db(AUTHOR);
+      const batch = writeBatch(f);
+      batch.update(doc(f, 'recruitPosts/p1'), {
+        applicantIds: arrayRemove(APPLICANT),
+        updatedAt: serverTimestamp(),
+      });
+      batch.update(doc(f, 'applications/a1'), { status: 'closed', updatedAt: serverTimestamp() });
+      batch.set(doc(collection(f, 'notifications')), { ...notification(APPLICANT), type: 'recruit_closed' });
+      await assertSucceeds(batch.commit());
+    });
+
+    it('작성자가 아니면 마감된 글의 대기 신청을 정리할 수 없다', async () => {
+      await seed('recruitPosts/p1', {
+        ...futurePost,
+        date: '2020-01-01',
+        status: 'closed',
+        applicantIds: [APPLICANT],
+      });
+
+      await assertFails(
+        updateDoc(doc(db(OTHER), 'applications/a1'), {
+          status: 'closed',
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    });
+
     it('처리된 신청은 취소·재처리할 수 없다', async () => {
       await seed('applications/a1', {
         postId: 'p1', postTitle: '', applicantId: APPLICANT, applicantName: '',

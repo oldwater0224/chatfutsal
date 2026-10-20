@@ -7,6 +7,10 @@ import { isPostExpired } from "../utils/dateUtils";
 type PostState = Pick<RecruitPost, "status" | "needCount"> &
   Partial<Pick<RecruitPost, "acceptedCount" | "applicantIds">>;
 
+// 대기 신청 정리 판단에는 정원(needCount)이 필요하지 않다
+type ClosableState = Pick<RecruitPost, "status"> &
+  Partial<Pick<RecruitPost, "acceptedCount" | "applicantIds">>;
+
 export class ApplicationError extends Error {}
 
 export function assertCanApply(post: PostState | undefined, applicantId: string): void {
@@ -35,6 +39,35 @@ export function applicantsToNotifyOnDelete(
 // 마감 시 "모집 마감" 처리할 대기 중 신청
 export function pendingApplications<T extends Pick<Application, "status">>(apps: T[]): T[] {
   return apps.filter((app) => app.status === "pending");
+}
+
+// 마감된 글에 정리되지 않은 대기 신청이 남아 있는지.
+// applicantIds는 대기 + 수락 신청자이고 acceptedCount는 수락 인원이므로, 둘의 차이가 대기 인원이다.
+// (거절·취소·마감 처리된 신청자는 applicantIds에서 빠진다)
+export function hasUnclearedPendingApplications(post: ClosableState | undefined): boolean {
+  if (!post || post.status !== "closed") return false;
+  return (post.applicantIds?.length ?? 0) > (post.acceptedCount ?? 0);
+}
+
+// 작성자 화면에서 뒤늦게 정리해야 할 모집글.
+// 경기 시간 경과로 인한 자동 마감은 아무 로그인 사용자가 수행하는데, 그 사용자는 남의 신청 문서를
+// 바꿀 권한이 없어 대기 신청이 남는다. 권한이 있는 작성자가 자기 글을 볼 때 정리한다.
+export function selectPostsToCleanup<
+  T extends ClosableState & Pick<RecruitPost, "id" | "title">,
+>(posts: T[], attemptedIds: ReadonlySet<string>): T[] {
+  return posts.filter(
+    (post) => !attemptedIds.has(post.id) && hasUnclearedPendingApplications(post),
+  );
+}
+
+// 신청 목록에 표시할 상태. 모집글이 마감됐는데 신청이 아직 pending이면
+// 정리 쓰기가 반영되기 전이므로 화면에서는 "모집 마감"으로 보여준다.
+export function displayApplicationStatus(
+  applicationStatus: Application["status"],
+  postStatus: RecruitPost["status"] | undefined,
+): Application["status"] {
+  if (applicationStatus === "pending" && postStatus === "closed") return "closed";
+  return applicationStatus;
 }
 
 export function assertCanReopen(

@@ -138,7 +138,8 @@ export async function closeRecruitPostWithApplications(
 
 // 대기 중 신청을 "모집 마감"으로 바꾸고 신청자에게 알린다.
 // applicantIds에서도 빼서 다시 모집할 때 재신청할 수 있게 한다.
-async function closePendingApplications(
+// 작성자만 신청 문서를 바꿀 수 있으므로(보안 규칙), 호출자는 반드시 모집글 작성자여야 한다.
+export async function closePendingApplications(
   postId: string,
   postTitle: string,
   { closePost = false } = {},

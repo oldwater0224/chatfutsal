@@ -5,8 +5,11 @@ import {
   assertCanApply,
   assertCanReopen,
   assertPending,
+  displayApplicationStatus,
+  hasUnclearedPendingApplications,
   nextAcceptState,
   pendingApplications,
+  selectPostsToCleanup,
 } from './applicationRules';
 
 const openPost = { status: 'open' as const, needCount: 3, acceptedCount: 0, applicantIds: [] as string[] };
@@ -115,5 +118,101 @@ describe('assertCanReopen', () => {
   it('이미 모집 중이거나 없는 글은 불가', () => {
     expect(() => assertCanReopen({ ...closedPost, status: 'open' })).toThrow('이미 모집 중');
     expect(() => assertCanReopen(undefined)).toThrow(ApplicationError);
+  });
+});
+
+describe('hasUnclearedPendingApplications', () => {
+  it('마감 글에 신청자가 수락 인원보다 많으면 대기 신청이 남은 것', () => {
+    expect(
+      hasUnclearedPendingApplications({
+        status: 'closed',
+        applicantIds: ['u1', 'u2'],
+        acceptedCount: 1,
+      }),
+    ).toBe(true);
+  });
+
+  it('신청자가 모두 수락 인원이면 정리할 것이 없다', () => {
+    expect(
+      hasUnclearedPendingApplications({
+        status: 'closed',
+        applicantIds: ['u1', 'u2'],
+        acceptedCount: 2,
+      }),
+    ).toBe(false);
+  });
+
+  it('모집 중인 글은 대상이 아니다', () => {
+    expect(
+      hasUnclearedPendingApplications({
+        status: 'open',
+        applicantIds: ['u1'],
+        acceptedCount: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it('신청자가 없으면 대상이 아니다', () => {
+    expect(hasUnclearedPendingApplications({ status: 'closed', applicantIds: [] })).toBe(false);
+  });
+
+  it('필드가 없는 기존 글은 0으로 간주', () => {
+    expect(hasUnclearedPendingApplications({ status: 'closed' })).toBe(false);
+  });
+
+  it('acceptedCount가 없고 신청자만 있으면 대기 신청이 남은 것', () => {
+    expect(hasUnclearedPendingApplications({ status: 'closed', applicantIds: ['u1'] })).toBe(true);
+  });
+
+  it('없는 글은 대상이 아니다', () => {
+    expect(hasUnclearedPendingApplications(undefined)).toBe(false);
+  });
+});
+
+describe('selectPostsToCleanup', () => {
+  const needsCleanup = {
+    id: 'p1',
+    title: '마감된 글',
+    status: 'closed' as const,
+    applicantIds: ['u1'],
+    acceptedCount: 0,
+  };
+  const clean = {
+    id: 'p2',
+    title: '정리된 글',
+    status: 'closed' as const,
+    applicantIds: ['u1'],
+    acceptedCount: 1,
+  };
+
+  it('정리가 필요한 글만 고른다', () => {
+    expect(selectPostsToCleanup([needsCleanup, clean], new Set()).map((p) => p.id)).toEqual(['p1']);
+  });
+
+  it('이미 시도한 글은 제외한다', () => {
+    expect(selectPostsToCleanup([needsCleanup], new Set(['p1']))).toEqual([]);
+  });
+
+  it('대상이 없으면 빈 배열', () => {
+    expect(selectPostsToCleanup([clean], new Set())).toEqual([]);
+  });
+});
+
+describe('displayApplicationStatus', () => {
+  it('마감된 글의 대기 신청은 마감으로 표시', () => {
+    expect(displayApplicationStatus('pending', 'closed')).toBe('closed');
+  });
+
+  it('모집 중인 글의 대기 신청은 그대로', () => {
+    expect(displayApplicationStatus('pending', 'open')).toBe('pending');
+  });
+
+  it('이미 처리된 신청은 글 상태와 무관하게 그대로', () => {
+    expect(displayApplicationStatus('accepted', 'closed')).toBe('accepted');
+    expect(displayApplicationStatus('rejected', 'closed')).toBe('rejected');
+  });
+
+  it('글 상태를 모르면 그대로', () => {
+    expect(displayApplicationStatus('pending', undefined)).toBe('pending');
   });
 });

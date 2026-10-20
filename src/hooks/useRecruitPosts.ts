@@ -7,6 +7,8 @@ import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
 import { selectPostsToClose } from "../lib/utils/recruitExpiry";
 import { closeRecruitPost } from "../lib/services/recruitService";
+import { selectPostsToCleanup } from "../lib/services/applicationRules";
+import { closePendingApplications } from "../lib/services/applicationService";
 import { hasMorePages, usePageLimit } from "./usePageLimit";
 
 const PAGE_SIZE = 20;
@@ -121,6 +123,8 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
 export function useMyRecruitPosts(userId: string | undefined){
   const [posts, setPosts] = useState<RecruitPost[]>([]);
   const [isLoading, setIsLoading] = useState(!!userId);
+  // 같은 세션에서 같은 글에 정리 쓰기를 반복하지 않도록 시도한 id를 기록한다
+  const cleanupAttemptedRef = useRef<Set<string>>(new Set());
 
   const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
     const postList: RecruitPost[] = snapshot.docs.map((doc) => ({
@@ -129,6 +133,13 @@ export function useMyRecruitPosts(userId: string | undefined){
       createdAt: doc.data().createdAt?.toDate() || new Date(),
       updatedAt: doc.data().updatedAt?.toDate() || new Date(),
     })) as RecruitPost[];
+
+    // 경기 시간 경과로 자동 마감된 글은, 마감을 수행한 사용자에게 남의 신청을 바꿀 권한이 없어
+    // 대기 신청이 그대로 남는다. 권한이 있는 작성자가 자기 글 목록을 열 때 뒤늦게 정리한다.
+    for (const post of selectPostsToCleanup(postList, cleanupAttemptedRef.current)) {
+      cleanupAttemptedRef.current.add(post.id);
+      closePendingApplications(post.id, post.title).catch(() => {});
+    }
 
     setPosts(postList);
     setIsLoading(false);

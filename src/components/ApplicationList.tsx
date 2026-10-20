@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Application } from "../types";
-import { acceptApplication, ApplicationError, rejectApplication } from "../lib/services";
+import { Application, RecruitPost } from "../types";
+import {
+  acceptApplication,
+  ApplicationError,
+  displayApplicationStatus,
+  rejectApplication,
+} from "../lib/services";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 
 interface ApplicationListProps {
   applications: Application[];
   postId: string;
+  postStatus?: RecruitPost["status"];
 }
 
 const STATUS_STYLE: Record<string, { label: string; className: string }> = {
@@ -21,6 +27,7 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
 export default function ApplicationList({
   applications,
   postId,
+  postStatus,
 }: ApplicationListProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -53,7 +60,10 @@ export default function ApplicationList({
   return (
     <ul className="divide-y divide-gray-100">
       {applications.map((app) => {
-        const status = STATUS_STYLE[app.status];
+        // 마감된 글의 대기 신청은 정리 쓰기가 반영되기 전이라도 "마감"으로 보여주고,
+        // 수락·거절 버튼도 숨긴다 (마감된 글은 수락이 거부된다)
+        const displayStatus = displayApplicationStatus(app.status, postStatus);
+        const status = STATUS_STYLE[displayStatus];
         const isProcessing = processingId === app.id;
 
         return (
@@ -88,7 +98,7 @@ export default function ApplicationList({
                 </div>
               </div>
 
-              {app.status === "pending" && (
+              {displayStatus === "pending" && (
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
                   <button
                     onClick={() => handleAccept(app)}

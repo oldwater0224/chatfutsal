@@ -9,13 +9,15 @@ import {
   applyToPost,
   cancelApplication,
   ApplicationError,
+  closePendingApplications,
+  hasUnclearedPendingApplications,
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_COLORS, LEVEL_LABELS, RecruitPost } from "@/src/types";
 import { doc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AudioLines,
   Calendar,
@@ -47,6 +49,8 @@ export default function RecruitDetailPage() {
   const [showMenu, setShowMenu] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const { applications } = usePostApplications(postId);
+  // 대기 신청 정리를 세션당 한 번만 시도하기 위한 기록
+  const cleanupAttemptedRef = useRef(false);
 
   // 실시간 게시글 불러오기
   useEffect(() => {
@@ -78,6 +82,17 @@ export default function RecruitDetailPage() {
   }, [postId]);
 
   const isAuthor = user?.uid === post?.authorId;
+
+  // 경기 시간 경과로 자동 마감된 글은, 마감을 수행한 사용자에게 남의 신청을 바꿀 권한이 없어
+  // 대기 신청이 그대로 남는다. 권한이 있는 작성자가 글을 열 때 뒤늦게 정리한다.
+  // 쓰기만 하는 effect이므로 setState는 하지 않고, 세션당 글마다 한 번만 시도한다.
+  useEffect(() => {
+    if (!isAuthor || !post || cleanupAttemptedRef.current) return;
+    if (!hasUnclearedPendingApplications(post)) return;
+
+    cleanupAttemptedRef.current = true;
+    closePendingApplications(post.id, post.title).catch(() => {});
+  }, [isAuthor, post]);
 
   const handleDelete = async () => {
     const hasApplicants = applications.some(
@@ -311,7 +326,11 @@ export default function RecruitDetailPage() {
                 신청 현황 <span className="text-green-600">{applications.length}</span>
               </h3>
               <div className="mt-2">
-                <ApplicationList applications={applications} postId={postId} />
+                <ApplicationList
+                  applications={applications}
+                  postId={postId}
+                  postStatus={post.status}
+                />
               </div>
             </section>
           </>

@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
-import { useChatRooms } from '@/src/hooks/useChatRoom';
-import { useUnreadNotificationCount } from '@/src/hooks/useNotifications';
+import { useAppData } from '@/src/contexts/AppDataContext';
 
 import { MessageCircleIcon, Bell } from 'lucide-react';
 import Logo from './Logo';
@@ -19,8 +18,7 @@ function UnreadBadge({ count }: { count: number }) {
 
 export default function Header() {
   const { user, isLoading } = useAuth();
-  const { totalUnread } = useChatRooms(user?.uid);
-  const notifUnread = useUnreadNotificationCount(user?.uid);
+  const { totalUnread, notificationUnread } = useAppData();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
@@ -38,7 +36,7 @@ export default function Header() {
                 className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
                 <Bell className="w-[22px] h-[22px]" />
-                <UnreadBadge count={notifUnread} />
+                <UnreadBadge count={notificationUnread} />
               </Link>
 
               <Link

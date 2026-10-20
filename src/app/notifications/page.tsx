@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useNotifications, useUnreadNotificationCount } from "@/src/hooks/useNotifications";
+import { useNotifications } from "@/src/hooks/useNotifications";
+import { useAppData } from "@/src/contexts/AppDataContext";
 import LoadMoreButton from "@/src/components/LoadMoreButton";
 import {
   markNotificationAsRead,
@@ -96,7 +97,7 @@ function NotificationItem({
 export default function NotificationsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { notifications, hasMore, loadMore, isLoading } = useNotifications(user?.uid);
-  const unreadCount = useUnreadNotificationCount(user?.uid);
+  const { notificationUnread: unreadCount } = useAppData();
   const router = useRouter();
 
   const handleNotificationClick = async (notification: Notification) => {

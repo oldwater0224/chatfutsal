@@ -15,19 +15,30 @@ import {
   parseLeftAt,
   UNREAD_SCAN_LIMIT,
 } from "@/src/lib/services/chatService";
+import { countUnread, sumUnread } from "@/src/lib/utils/chatUnread";
 import { ChatRoom } from "@/src/types";
 
 interface ChatRoomWithUnread extends ChatRoom {
   unreadCount: number;
 }
 
-export function useChatRooms(userId: string | undefined) {
-  const [chatRooms, setChatRooms] = useState<ChatRoomWithUnread[]>([]);
-  const [isLoading, setIsLoading] = useState(!!userId);
+// 스냅샷 결과를 소유 userId와 함께 보관해, 유저가 바뀌는 순간 이전 데이터가 노출되지 않게 한다
+interface ChatRoomsState {
+  ownerId: string | undefined;
+  rooms: ChatRoomWithUnread[];
+  isLoading: boolean;
+}
 
-  const handleError = useCallback((error: Error) => {
+export function useChatRooms(userId: string | undefined) {
+  const [state, setState] = useState<ChatRoomsState>({
+    ownerId: userId,
+    rooms: [],
+    isLoading: !!userId,
+  });
+
+  const handleError = useCallback((ownerId: string, error: Error) => {
     console.error("채팅방 불러오기 에러:", error);
-    setIsLoading(false);
+    setState({ ownerId, rooms: [], isLoading: false });
   }, []);
 
   useEffect(() => {
@@ -68,8 +79,7 @@ export function useChatRooms(userId: string | undefined) {
             (room) => !isHiddenForUser(room.leftAt, room.lastMessageAt, userId),
           );
 
-        setChatRooms(rooms);
-        setIsLoading(false);
+        setState({ ownerId: userId, rooms, isLoading: false });
 
         rooms.forEach((room) => {
           const messagesRef = collection(db, "chatRooms", room.id, "messages");
@@ -82,32 +92,26 @@ export function useChatRooms(userId: string | undefined) {
           const myLeftAt = room.leftAt?.[userId];
 
           const msgUnsubscribe = onSnapshot(messagesQuery, (msgSnapshot) => {
-            const unreadCount = msgSnapshot.docs.filter((msgDoc) => {
-              const msgData = msgDoc.data();
-              const readBy = msgData.readBy || [];
-              // 나가기 전 메시지는 안 읽음 수에서 제외
-              if (myLeftAt) {
-                const createdAt: Date = msgData.createdAt?.toDate() || new Date();
-                if (createdAt.getTime() <= myLeftAt.getTime()) return false;
-              }
-              return msgData.senderId !== userId && !readBy.includes(userId);
-            }).length;
+            const unreadCount = countUnread(msgSnapshot.docs, userId, myLeftAt);
 
-            setChatRooms((prevRooms) => {
-              const roomIndex = prevRooms.findIndex((r) => r.id === room.id);
-              if (roomIndex === -1 || prevRooms[roomIndex].unreadCount === unreadCount) {
-                return prevRooms;
+            setState((prev) => {
+              // 유저가 바뀐 뒤 늦게 도착한 스냅샷은 무시
+              if (prev.ownerId !== userId) return prev;
+
+              const roomIndex = prev.rooms.findIndex((r) => r.id === room.id);
+              if (roomIndex === -1 || prev.rooms[roomIndex].unreadCount === unreadCount) {
+                return prev;
               }
-              const newRooms = [...prevRooms];
-              newRooms[roomIndex] = { ...newRooms[roomIndex], unreadCount };
-              return newRooms;
+              const rooms = [...prev.rooms];
+              rooms[roomIndex] = { ...rooms[roomIndex], unreadCount };
+              return { ...prev, rooms };
             });
           });
 
           messageUnsubscribes.push(msgUnsubscribe);
         });
       },
-      handleError,
+      (error) => handleError(userId, error),
     );
 
     return () => {
@@ -116,9 +120,13 @@ export function useChatRooms(userId: string | undefined) {
     };
   }, [userId, handleError]);
 
-  const totalUnread = chatRooms.reduce(
-    (sum, room) => sum + room.unreadCount,
-    0,
-  );
-  return { chatRooms, isLoading, totalUnread };
+  // 보관된 결과가 현재 userId의 것일 때만 사용 (유저 전환/로그아웃 시 즉시 초기화)
+  const isCurrent = state.ownerId === userId;
+  const chatRooms = isCurrent ? state.rooms : [];
+
+  return {
+    chatRooms,
+    isLoading: userId ? (isCurrent ? state.isLoading : true) : false,
+    totalUnread: sumUnread(chatRooms),
+  };
 }

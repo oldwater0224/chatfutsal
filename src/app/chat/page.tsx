@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useChatRooms } from "@/src/hooks/useChatRoom";
+import { useAppData } from "@/src/contexts/AppDataContext";
 import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
 
@@ -24,7 +24,7 @@ function formatChatTime(date?: Date) {
 export default function ChatListPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const { chatRooms, isLoading: roomsLoading } = useChatRooms(user?.uid);
+  const { chatRooms, chatRoomsLoading: roomsLoading } = useAppData();
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");

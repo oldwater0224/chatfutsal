@@ -3,6 +3,7 @@ import "./globals.css";
 import { Metadata } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import ErrorBoundary from "../components/ErrorBoundary";
+import { AppDataProvider } from "../contexts/AppDataContext";
 
 const DESCRIPTION = "풋살 용병 모집부터 참가 신청, 1:1 실시간 채팅까지 한 곳에서";
 
@@ -40,7 +41,7 @@ export default function RootLayout({
             strategy="beforeInteractive"
           />
 
-          {children}
+          <AppDataProvider>{children}</AppDataProvider>
         </ErrorBoundary>
       </body>
     </html>

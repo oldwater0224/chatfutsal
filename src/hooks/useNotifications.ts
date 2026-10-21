@@ -1,85 +1,54 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   collection,
   limit as limitTo,
   onSnapshot,
   orderBy,
   query,
-  QuerySnapshot,
   where,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Notification } from "../types";
-import { hasMorePages, usePageLimit } from "./usePageLimit";
+import { useLivePagedQuery } from "./useLivePagedQuery";
 
 const PAGE_SIZE = 20;
 // 안 읽은 알림 수는 이 개수까지만 센다 (배지는 99+로 표시)
 const UNREAD_COUNT_LIMIT = 100;
 
-// 스냅샷 결과를 소유 userId와 함께 보관해, 유저가 바뀌는 순간 이전 데이터가 노출되지 않게 한다
-interface NotificationState {
-  ownerId: string | undefined;
-  list: Notification[];
-  fetched: number;
-  isLoading: boolean;
-}
-
-// 알림 목록 (최근 PAGE_SIZE개부터, 더 보기로 확장)
+// 알림 목록 (최근 PAGE_SIZE개는 실시간, 이전 알림은 더 보기로 한 번씩 읽음)
+// 유저가 바뀌면 buildQuery가 바뀌어 이전 유저의 결과는 즉시 보이지 않는다
 export function useNotifications(userId: string | undefined) {
-  const { limit, loadMore } = usePageLimit(PAGE_SIZE, userId);
-  const [state, setState] = useState<NotificationState>({
-    ownerId: userId,
-    list: [],
-    fetched: 0,
-    isLoading: !!userId,
-  });
-
-  const handleSnapshot = useCallback((ownerId: string, snapshot: QuerySnapshot) => {
-    const list = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate() || new Date(),
-    })) as Notification[];
-
-    setState({ ownerId, list, fetched: snapshot.size, isLoading: false });
-  }, []);
-
-  const handleError = useCallback((ownerId: string, error: Error) => {
-    console.error("알림 조회 에러:", error);
-    setState({ ownerId, list: [], fetched: 0, isLoading: false });
-  }, []);
+  const buildQuery = useMemo(
+    () =>
+      userId
+        ? () =>
+            query(
+              collection(db, "notifications"),
+              where("recipientId", "==", userId),
+              orderBy("createdAt", "desc"),
+            )
+        : null,
+    [userId],
+  );
+  const { docs, hasMore, loadMore, isLoading, loadingMore, error } = useLivePagedQuery(buildQuery, PAGE_SIZE);
 
   useEffect(() => {
-    if (!userId) return;
+    if (error) console.error("알림 조회 에러:", error);
+  }, [error]);
 
-    const q = query(
-      collection(db, "notifications"),
-      where("recipientId", "==", userId),
-      orderBy("createdAt", "desc"),
-      limitTo(limit),
-    );
+  const notifications = useMemo(
+    () =>
+      docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+      })) as Notification[],
+    [docs],
+  );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => handleSnapshot(userId, snapshot),
-      (error) => handleError(userId, error),
-    );
-
-    return () => unsubscribe();
-  }, [userId, limit, handleSnapshot, handleError]);
-
-  // 보관된 결과가 현재 userId의 것일 때만 사용 (유저 전환/로그아웃 시 즉시 초기화)
-  const isCurrent = state.ownerId === userId;
-  const notifications = isCurrent ? state.list : [];
-
-  return {
-    notifications,
-    hasMore: isCurrent && hasMorePages(state.fetched, limit),
-    loadMore,
-    isLoading: userId ? (isCurrent ? state.isLoading : true) : false,
-  };
+  return { notifications, hasMore: hasMore && !loadingMore, loadMore, isLoading };
 }
 
 // 안 읽은 알림 수 (헤더 배지 등). 목록 페이지 범위와 무관하게 센다.

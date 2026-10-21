@@ -2,16 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { RecruitPost } from "../types";
-import { collection, limit as limitTo, onSnapshot, orderBy, query, where, FirestoreError, QuerySnapshot } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, QuerySnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { isPostExpired } from "../lib/utils/dateUtils";
 import { selectPostsToClose } from "../lib/utils/recruitExpiry";
 import { closeRecruitPost } from "../lib/services/recruitService";
 import { selectPostsToCleanup } from "../lib/services/applicationRules";
 import { closePendingApplications } from "../lib/services/applicationService";
-import { hasMorePages, usePageLimit } from "./usePageLimit";
+import { useLivePagedQuery } from "./useLivePagedQuery";
 
 const PAGE_SIZE = 20;
+// 필터 결과를 채우려고 한 번에 자동으로 이어 받는 최대 페이지 수
+const AUTO_FILL_PAGES = 5;
 
 interface RecruitFilters {
   date: string;
@@ -28,61 +30,45 @@ interface RecruitPostsAuth {
 
 export function useRecruitPosts(filters: RecruitFilters | undefined, auth: RecruitPostsAuth){
   const { ready, uid } = auth;
-  const { limit, loadMore } = usePageLimit(PAGE_SIZE, uid);
-  const [allPosts, setAllPosts] = useState<RecruitPost[]>([]);
-  const [fetchedCount, setFetchedCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
+  // uid가 바뀌면 보안 규칙 판단이 달라지므로 다시 구독한다 (인증 확정 전에는 구독하지 않음)
+  const subscriptionKey = ready ? (uid ?? "anonymous") : null;
+  const buildQuery = useMemo(
+    () =>
+      subscriptionKey === null
+        ? null
+        : () => query(collection(db, 'recruitPosts'), where('status', '==', 'open'), orderBy('createdAt', 'desc')),
+    [subscriptionKey],
+  );
+  const { docs, hasMore, loadMore, isLoading, loadingMore, error } = useLivePagedQuery(buildQuery, PAGE_SIZE);
   // 같은 세션에서 같은 글에 마감 쓰기를 반복하지 않도록 시도한 id를 기록한다
   const closeAttemptedRef = useRef<Set<string>>(new Set());
 
-  const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    const postList: RecruitPost[] = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-      createdAt: d.data().createdAt?.toDate() || new Date(),
-      updatedAt: d.data().updatedAt?.toDate() || new Date(),
-    })) as RecruitPost[];
+  const fetchedPosts = useMemo(
+    () =>
+      docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+        createdAt: d.data().createdAt?.toDate() || new Date(),
+        updatedAt: d.data().updatedAt?.toDate() || new Date(),
+      })) as RecruitPost[],
+    [docs],
+  );
 
-    // 경기 시간이 지난 글은 Firestore에서도 마감한다.
-    // 보안 규칙이 로그인 사용자의 status/updatedAt 변경만 허용하므로 비로그인은 건너뛴다.
-    // 쿼리가 status=='open'이라 마감된 글은 스냅샷에서 빠지며, 실패는 목록 렌더에 영향 주지 않도록 무시한다.
-    if (uid) {
-      for (const postId of selectPostsToClose(postList, closeAttemptedRef.current)) {
-        closeAttemptedRef.current.add(postId);
-        closeRecruitPost(postId).catch(() => {});
-      }
-    }
-
-    setAllPosts(postList.filter((post) => !isPostExpired(post.date, post.time)));
-    setFetchedCount(snapshot.size);
-    setPermissionDenied(false);
-    setIsLoading(false);
-  }, [uid]);
-
-  const handleError = useCallback((error: FirestoreError) => {
-    if (error.code === "permission-denied") {
-      setAllPosts([]);
-      setPermissionDenied(true);
-    } else {
-      console.error("모집글 조회 에러:", error);
-    }
-    setIsLoading(false);
-  }, []);
-
+  // 경기 시간이 지난 글은 Firestore에서도 마감한다.
+  // 보안 규칙이 로그인 사용자의 status/updatedAt 변경만 허용하므로 비로그인은 건너뛴다.
+  // 쿼리가 status=='open'이라 마감된 글은 다음 스냅샷에서 빠지며, 실패는 목록 렌더에 영향 주지 않도록 무시한다.
   useEffect(() => {
-    if (!ready) return;
+    if (!uid) return;
+    for (const postId of selectPostsToClose(fetchedPosts, closeAttemptedRef.current)) {
+      closeAttemptedRef.current.add(postId);
+      closeRecruitPost(postId).catch(() => {});
+    }
+  }, [fetchedPosts, uid]);
 
-    const postRef = collection(db, 'recruitPosts');
-    const q = query(postRef,
-      where('status', '==', 'open'),
-      orderBy('createdAt', 'desc'),
-      limitTo(limit)
-    );
-
-    const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
-    return () => unsubscribe();
-  }, [ready, uid, limit, handleSnapshot, handleError]);
+  const permissionDenied = error?.code === "permission-denied";
+  useEffect(() => {
+    if (error && !permissionDenied) console.error("모집글 조회 에러:", error);
+  }, [error, permissionDenied]);
 
   const date = filters?.date;
   const region = filters?.region;
@@ -90,7 +76,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   const keyword = filters?.keyword;
 
   const posts = useMemo(() => {
-    let result = allPosts;
+    let result = fetchedPosts.filter((post) => !isPostExpired(post.date, post.time));
 
     if (date) {
       result = result.filter((post) => post.date === date);
@@ -112,10 +98,40 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     }
 
     return result;
-  }, [allPosts, date, region, level, keyword]);
+  }, [fetchedPosts, date, region, level, keyword]);
 
-  // 필터는 받아온 범위 안에서만 적용되므로, 결과가 적어도 서버에 글이 더 있으면 더 보기를 노출한다
-  return { posts, isLoading, permissionDenied, hasMore: hasMorePages(fetchedCount, limit), loadMore };
+  // 필터·지역·검색어는 Firestore 쿼리로 표현할 수 없어(부분 일치 등) 받아온 글에 적용한다.
+  // 대신 조건에 맞는 글이 목표 개수만큼 모일 때까지 다음 페이지를 자동으로 이어 받는다.
+  // 목표는 더 보기를 누를 때마다 한 페이지씩 늘고, 한 번에 이어 받는 페이지 수는 제한한다.
+  const filterKey = `${date}|${region}|${level}|${keyword}`;
+  const [target, setTarget] = useState({ filterKey, value: PAGE_SIZE });
+  const currentTarget = target.filterKey === filterKey ? target.value : PAGE_SIZE;
+  const fillBudgetRef = useRef({ filterKey, target: currentTarget, left: AUTO_FILL_PAGES });
+  const needsMore = !isLoading && !loadingMore && hasMore && posts.length < currentTarget;
+
+  useEffect(() => {
+    const budget = fillBudgetRef.current;
+    if (budget.filterKey !== filterKey || budget.target !== currentTarget) {
+      fillBudgetRef.current = { filterKey, target: currentTarget, left: AUTO_FILL_PAGES };
+    }
+    if (!needsMore || fillBudgetRef.current.left <= 0) return;
+    fillBudgetRef.current.left--;
+    loadMore();
+  }, [needsMore, filterKey, currentTarget, loadMore]);
+
+  const requestMore = useCallback(() => {
+    setTarget({ filterKey, value: posts.length + PAGE_SIZE });
+  }, [filterKey, posts.length]);
+
+  return {
+    posts,
+    isLoading,
+    permissionDenied,
+    // 이어 받는 중에는 버튼 대신 진행 표시
+    hasMore: hasMore && !loadingMore,
+    loadingMore,
+    loadMore: requestMore,
+  };
 }
 
 

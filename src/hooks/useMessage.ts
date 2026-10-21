@@ -1,66 +1,58 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Message } from "../types";
 import {
   addDoc,
   collection,
   doc,
   getDoc,
-  limitToLast,
-  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
-  QuerySnapshot,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { createNotification } from "../lib/services/notificationService";
-import { hasMorePages, usePageLimit } from "./usePageLimit";
+import { useLivePagedQuery } from "./useLivePagedQuery";
 
 const PAGE_SIZE = 50;
 
+// 최근 PAGE_SIZE개는 실시간, 이전 메시지는 "이전 메시지 보기"로 한 번씩 읽는다.
+// 최신순으로 받아 화면에는 오래된 순으로 뒤집어 보여준다.
 export function useMessages(roomId: string) {
-  const { limit, loadMore } = usePageLimit(PAGE_SIZE, roomId);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [fetched, setFetched] = useState(0);
-  const [isLoading, setIsLoading] = useState(!!roomId);
-
-  const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    const msgs: Message[] = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        senderId: data.senderId,
-        senderName: data.senderName,
-        text: data.text,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        readBy: data.readBy || [],
-      };
-    });
-    setMessages(msgs);
-    setFetched(snapshot.size);
-    setIsLoading(false);
-  }, []);
-
-  const handleError = useCallback((error: Error) => {
-    console.error("메시지 조회 에러:", error);
-    setIsLoading(false);
-  }, []);
+  const buildQuery = useMemo(
+    () =>
+      roomId
+        ? () => query(collection(db, "chatRooms", roomId, "messages"), orderBy("createdAt", "desc"))
+        : null,
+    [roomId],
+  );
+  const { docs, hasMore, loadMore, isLoading, loadingMore, error } = useLivePagedQuery(buildQuery, PAGE_SIZE);
 
   useEffect(() => {
-    if (!roomId) return;
+    if (error) console.error("메시지 조회 에러:", error);
+  }, [error]);
 
-    const messagesRef = collection(db, "chatRooms", roomId, "messages");
-    // 최근 메시지부터 limit개 (오래된 메시지는 "이전 메시지 보기"로 확장)
-    const q = query(messagesRef, orderBy("createdAt", "asc"), limitToLast(limit));
+  const messages = useMemo(
+    () =>
+      docs
+        .map((doc): Message => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            senderId: data.senderId,
+            senderName: data.senderName,
+            text: data.text,
+            createdAt: data.createdAt?.toDate() || new Date(),
+            readBy: data.readBy || [],
+          };
+        })
+        .reverse(),
+    [docs],
+  );
 
-    const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
-    return () => unsubscribe();
-  }, [roomId, limit, handleSnapshot, handleError]);
-
-  return { messages, isLoading, hasMore: hasMorePages(fetched, limit), loadMore };
+  return { messages, isLoading, hasMore: hasMore && !loadingMore, loadMore };
 }
 
 export async function sendMessage(

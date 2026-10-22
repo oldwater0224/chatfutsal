@@ -33,7 +33,7 @@ const EMPTY_FILTERS: FilterState = { date: "", region: "", level: "", keyword: "
 export default function HomePage() {
   const { user, isLoading: authLoading } = useAuth();
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
-  const { posts, isLoading, permissionDenied, hasMore, loadMore } = useRecruitPosts(filters, {
+  const { posts, isLoading, permissionDenied, hasMore, loadingMore, loadMore } = useRecruitPosts(filters, {
     ready: !authLoading,
     uid: user?.uid,
   });
@@ -58,7 +58,7 @@ export default function HomePage() {
         <RecruitFilter filters={filters} onFilterChange={setFilters} />
 
         <div className="max-w-2xl mx-auto px-4">
-          {authLoading || isLoading ? (
+          {authLoading || isLoading || (posts.length === 0 && loadingMore) ? (
             <div className="flex items-center justify-center py-24">
               <div className={spinnerClass} />
             </div>
@@ -125,8 +125,13 @@ export default function HomePage() {
               </section>
             ))
           )}
+          {!(authLoading || isLoading) && posts.length > 0 && loadingMore && (
+            <div className="flex justify-center py-4">
+              <div className={spinnerClass} />
+            </div>
+          )}
           {!(authLoading || isLoading) && !permissionDenied && hasMore && (
-            <LoadMoreButton onClick={loadMore} label="모집글 더 보기" />
+            <LoadMoreButton onClick={loadMore} label={hasAnyFilter ? "조건에 맞는 글 더 찾기" : "모집글 더 보기"} />
           )}
         </div>
       </main>

@@ -104,23 +104,29 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   // 대신 조건에 맞는 글이 목표 개수만큼 모일 때까지 다음 페이지를 자동으로 이어 받는다.
   // 목표는 더 보기를 누를 때마다 한 페이지씩 늘고, 한 번에 이어 받는 페이지 수는 제한한다.
   const filterKey = `${date}|${region}|${level}|${keyword}`;
-  const [target, setTarget] = useState({ filterKey, value: PAGE_SIZE });
-  const currentTarget = target.filterKey === filterKey ? target.value : PAGE_SIZE;
-  const fillBudgetRef = useRef({ filterKey, target: currentTarget, left: AUTO_FILL_PAGES });
-  const needsMore = !isLoading && !loadingMore && hasMore && posts.length < currentTarget;
+  // "더 찾기"를 누를 때마다 request를 올린다. 목표 개수가 이전과 같아도(새로 맞는 글이 0개)
+  // 요청이 바뀌므로 이어 받기 한도가 항상 다시 채워진다.
+  const [fill, setFill] = useState({ filterKey, request: 0, target: PAGE_SIZE });
+  const currentFill = fill.filterKey === filterKey ? fill : { filterKey, request: 0, target: PAGE_SIZE };
+  const fillBudgetRef = useRef({ filterKey, request: 0, left: AUTO_FILL_PAGES });
+  const needsMore = !isLoading && !loadingMore && hasMore && posts.length < currentFill.target;
 
   useEffect(() => {
     const budget = fillBudgetRef.current;
-    if (budget.filterKey !== filterKey || budget.target !== currentTarget) {
-      fillBudgetRef.current = { filterKey, target: currentTarget, left: AUTO_FILL_PAGES };
+    if (budget.filterKey !== filterKey || budget.request !== currentFill.request) {
+      fillBudgetRef.current = { filterKey, request: currentFill.request, left: AUTO_FILL_PAGES };
     }
     if (!needsMore || fillBudgetRef.current.left <= 0) return;
-    fillBudgetRef.current.left--;
-    loadMore();
-  }, [needsMore, filterKey, currentTarget, loadMore]);
+    // 실제로 요청을 시작했을 때만 한도를 쓴다 (effect가 여러 번 돌아도 한도가 헛되이 줄지 않게)
+    if (loadMore()) fillBudgetRef.current.left--;
+  }, [needsMore, filterKey, currentFill.request, loadMore]);
 
   const requestMore = useCallback(() => {
-    setTarget({ filterKey, value: posts.length + PAGE_SIZE });
+    setFill((prev) => ({
+      filterKey,
+      request: (prev.filterKey === filterKey ? prev.request : 0) + 1,
+      target: posts.length + PAGE_SIZE,
+    }));
   }, [filterKey, posts.length]);
 
   return {

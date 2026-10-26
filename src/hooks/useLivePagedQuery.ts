@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   endAt,
   FirestoreError,
@@ -64,36 +64,61 @@ export function useLivePagedQuery(buildQuery: (() => Query) | null, pageSize: nu
     tailExhausted: current.tailExhausted,
   });
 
-  const loadMore = useCallback(async () => {
-    if (!buildQuery || current.loadingMore || !hasMore) return;
-    const cursor = current.tail.at(-1) ?? current.head.at(-1);
-    if (!cursor) return;
+  // 진행 중인 이어 받기와 다음 커서는 ref로 관리한다.
+  // 렌더 시점 값으로 판단하면, 화면이 갱신되기 전에 두 번 불릴 때 같은 페이지를 두 번 받는다.
+  const pagingRef = useRef<{ source: (() => Query) | null; inFlight: boolean; cursor: QueryDocumentSnapshot | null }>({
+    source: null,
+    inFlight: false,
+    cursor: null,
+  });
+
+  // 이어 받기를 시작했으면 true (자동 이어 받기 한도 계산에 사용)
+  const loadMore = useCallback((): boolean => {
+    if (!buildQuery || !hasMore) return false;
+    if (pagingRef.current.source !== buildQuery) {
+      pagingRef.current = { source: buildQuery, inFlight: false, cursor: null };
+    }
+    const paging = pagingRef.current;
+    if (paging.inFlight) return false;
+
+    // 첫 이어 받기의 커서는 지금 보이는 실시간 구간의 마지막 문서이고, 같은 문서를 앵커로 쓴다.
+    // 둘이 같아야 endAt(앵커)와 startAfter(커서) 사이에 빠지는 문서가 없다.
+    const cursor = paging.cursor ?? current.head.at(-1);
+    if (!cursor) return false;
+    const isFirst = paging.cursor === null;
+    paging.inFlight = true;
+    paging.cursor = cursor;
 
     setState((prev) => {
       const p = prev.source === buildQuery ? prev : initial(buildQuery);
-      return { ...p, loadingMore: true, anchor: p.anchor ?? p.head.at(-1) ?? null };
+      return { ...p, loadingMore: true, anchor: isFirst ? cursor : p.anchor };
     });
 
-    try {
-      const snap = await getDocs(query(buildQuery(), startAfter(cursor), limit(pageSize)));
-      setState((prev) =>
-        prev.source !== buildQuery
-          ? prev
-          : {
-              ...prev,
-              tail: [...prev.tail, ...snap.docs],
-              tailExhausted: snap.size < pageSize,
-              loadingMore: false,
-            },
-      );
-    } catch (error) {
-      setState((prev) =>
-        prev.source !== buildQuery
-          ? prev
-          : { ...prev, loadingMore: false, error: error as FirestoreError },
-      );
-    }
-  }, [buildQuery, current.loadingMore, current.tail, current.head, hasMore, pageSize, initial]);
+    getDocs(query(buildQuery(), startAfter(cursor), limit(pageSize)))
+      .then((snap) => {
+        if (pagingRef.current.source !== buildQuery) return;
+        paging.cursor = snap.docs.at(-1) ?? cursor;
+        setState((prev) =>
+          prev.source !== buildQuery
+            ? prev
+            : {
+                ...prev,
+                tail: [...prev.tail, ...snap.docs],
+                tailExhausted: snap.size < pageSize,
+                loadingMore: false,
+              },
+        );
+      })
+      .catch((error: FirestoreError) => {
+        if (pagingRef.current.source !== buildQuery) return;
+        setState((prev) => (prev.source !== buildQuery ? prev : { ...prev, loadingMore: false, error }));
+      })
+      .finally(() => {
+        if (pagingRef.current.source === buildQuery) paging.inFlight = false;
+      });
+
+    return true;
+  }, [buildQuery, hasMore, current.head, pageSize, initial]);
 
   const docs = useMemo(() => mergePages(current.head, current.tail), [current.head, current.tail]);
 

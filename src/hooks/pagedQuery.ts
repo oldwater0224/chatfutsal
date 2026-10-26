@@ -14,8 +14,15 @@ export function computeHasMore(s: PagingState): boolean {
   return s.headCount >= s.pageSize;
 }
 
-// 실시간 구간 뒤에 이어 받은 문서를 붙인다. 같은 문서는 실시간 쪽(최신 상태)을 쓴다.
+// 실시간 구간 뒤에 이어 받은 문서를 붙인다. 같은 문서는 실시간 쪽(최신 상태)을 쓰고,
+// 이어 받은 구간 안에서 겹치는 문서는 처음 받은 것만 남긴다.
 export function mergePages<T extends { id: string }>(head: T[], tail: T[]): T[] {
-  const headIds = new Set(head.map((d) => d.id));
-  return [...head, ...tail.filter((d) => !headIds.has(d.id))];
+  const seen = new Set(head.map((d) => d.id));
+  const rest: T[] = [];
+  for (const d of tail) {
+    if (seen.has(d.id)) continue;
+    seen.add(d.id);
+    rest.push(d);
+  }
+  return [...head, ...rest];
 }

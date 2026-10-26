@@ -24,6 +24,11 @@ describe('mergePages', () => {
     expect(mergePages([{ id: 'a' }, { id: 'b' }], [{ id: 'c' }]).map((d) => d.id)).toEqual(['a', 'b', 'c']);
   });
 
+  it('이어 받은 구간 안에서 같은 페이지가 두 번 붙어도 한 번만 남긴다', () => {
+    const page = [{ id: 'c' }, { id: 'd' }];
+    expect(mergePages([{ id: 'a' }], [...page, ...page]).map((d) => d.id)).toEqual(['a', 'c', 'd']);
+  });
+
   it('겹치는 문서는 실시간 구간의 것을 남긴다', () => {
     const merged = mergePages([{ id: 'a', v: 2 }], [{ id: 'a', v: 1 }, { id: 'b', v: 1 }]);
     expect(merged).toEqual([{ id: 'a', v: 2 }, { id: 'b', v: 1 }]);

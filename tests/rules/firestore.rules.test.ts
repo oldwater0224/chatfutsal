@@ -131,6 +131,21 @@ describe('recruitPosts', () => {
     );
   });
 
+  it('날짜·실력 필터를 쿼리로 건 목록 조회가 허용된다', async () => {
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(db(OTHER), 'recruitPosts'),
+          where('status', '==', 'open'),
+          where('date', '==', '2099-01-01'),
+          where('level', '==', 'amateur'),
+          orderBy('createdAt', 'desc'),
+          limit(20),
+        ),
+      ),
+    );
+  });
+
   it('본인 명의로만 글을 작성할 수 있다', async () => {
     await assertSucceeds(setDoc(doc(db(AUTHOR), 'recruitPosts/p2'), futurePost));
     await assertFails(setDoc(doc(db(OTHER), 'recruitPosts/p3'), futurePost));

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
+    "deploy:indexes": "npx -y firebase-tools@14 deploy --only firestore:indexes",
     "test:rules": "npx -y firebase-tools@14 emulators:exec --only firestore --project demo-chatfutsal \"vitest run --config vitest.rules.config.ts\""
   },
   "dependencies": {

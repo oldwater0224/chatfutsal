@@ -6,10 +6,6 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useNotifications } from "@/src/hooks/useNotifications";
 import { useAppData } from "@/src/contexts/AppDataContext";
 import LoadMoreButton from "@/src/components/LoadMoreButton";
-import {
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-} from "@/src/lib/services/notificationService";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
 import {
@@ -96,13 +92,13 @@ function NotificationItem({
 
 export default function NotificationsPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { notifications, hasMore, loadMore, isLoading } = useNotifications(user?.uid);
+  const { notifications, hasMore, loadMore, isLoading, markRead, markAllRead } = useNotifications(user?.uid);
   const { notificationUnread: unreadCount } = useAppData();
   const router = useRouter();
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.isRead) {
-      await markNotificationAsRead(notification.id);
+      await markRead(notification.id);
     }
     router.push(notification.link);
   };
@@ -113,8 +109,8 @@ export default function NotificationsPage() {
   }, [authLoading, user, router]);
 
   const handleMarkAllRead = async () => {
-    if (user?.uid && unreadCount > 0) {
-      await markAllNotificationsAsRead(user.uid);
+    if (unreadCount > 0) {
+      await markAllRead();
     }
   };
 

@@ -26,3 +26,30 @@ export function mergePages<T extends { id: string }>(head: T[], tail: T[]): T[] 
   }
   return [...head, ...rest];
 }
+
+// 실시간 구간을 고정하며 다시 연 구독의 결과를 그대로 반영할지.
+// 새 구독의 첫 결과가 캐시에서 온 일부(기존보다 적음)면, 서버 결과가 올 때까지 기존 목록을 유지해
+// 목록이 잠깐 줄었다 돌아오는 깜빡임을 막는다.
+export function shouldKeepPreviousHead(s: {
+  anchored: boolean;
+  fromCache: boolean;
+  serverSeen: boolean;
+  nextCount: number;
+  prevCount: number;
+}): boolean {
+  return s.anchored && s.fromCache && !s.serverSeen && s.nextCount < s.prevCount;
+}
+
+// 실시간 구독 오류 시 받아 둔 목록을 비울지. 권한이 없어진 경우에는 더 이상 보여 주면 안 된다.
+export function clearsListOnError(code: string): boolean {
+  return code === "permission-denied";
+}
+
+// 화면에서 읽음 처리한 항목을 읽음으로 표시한다 (한 번 읽은 이전 페이지 값을 덮어씀)
+export function applyLocalRead<T extends { id: string; isRead: boolean }>(
+  items: T[],
+  readIds: ReadonlySet<string>,
+): T[] {
+  if (readIds.size === 0) return items;
+  return items.map((item) => (item.isRead || !readIds.has(item.id) ? item : { ...item, isRead: true }));
+}

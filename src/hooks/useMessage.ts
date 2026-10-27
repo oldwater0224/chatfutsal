@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Message } from "../types";
 import {
   addDoc,
@@ -28,11 +28,7 @@ export function useMessages(roomId: string) {
         : null,
     [roomId],
   );
-  const { docs, hasMore, loadMore, isLoading, loadingMore, error } = useLivePagedQuery(buildQuery, PAGE_SIZE);
-
-  useEffect(() => {
-    if (error) console.error("메시지 조회 에러:", error);
-  }, [error]);
+  const { docs, canLoadMore, loadMore, isLoading } = useLivePagedQuery(buildQuery, PAGE_SIZE, "메시지");
 
   const messages = useMemo(
     () =>
@@ -52,7 +48,7 @@ export function useMessages(roomId: string) {
     [docs],
   );
 
-  return { messages, isLoading, hasMore: hasMore && !loadingMore, loadMore };
+  return { messages, isLoading, hasMore: canLoadMore, loadMore };
 }
 
 export async function sendMessage(

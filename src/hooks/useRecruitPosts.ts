@@ -39,7 +39,8 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
         : () => query(collection(db, 'recruitPosts'), where('status', '==', 'open'), orderBy('createdAt', 'desc')),
     [subscriptionKey],
   );
-  const { docs, hasMore, loadMore, isLoading, loadingMore, error } = useLivePagedQuery(buildQuery, PAGE_SIZE);
+  const { docs, hasMore, canLoadMore, loadMore, isLoading, loadingMore, error, loadError } =
+    useLivePagedQuery(buildQuery, PAGE_SIZE, "모집글");
   // 같은 세션에서 같은 글에 마감 쓰기를 반복하지 않도록 시도한 id를 기록한다
   const closeAttemptedRef = useRef<Set<string>>(new Set());
 
@@ -65,10 +66,8 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     }
   }, [fetchedPosts, uid]);
 
+  // 실시간 구독 오류로만 판단한다. 이전 페이지 이어 받기 실패로 보이던 목록을 가리지 않는다.
   const permissionDenied = error?.code === "permission-denied";
-  useEffect(() => {
-    if (error && !permissionDenied) console.error("모집글 조회 에러:", error);
-  }, [error, permissionDenied]);
 
   const date = filters?.date;
   const region = filters?.region;
@@ -108,18 +107,32 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   // 요청이 바뀌므로 이어 받기 한도가 항상 다시 채워진다.
   const [fill, setFill] = useState({ filterKey, request: 0, target: PAGE_SIZE });
   const currentFill = fill.filterKey === filterKey ? fill : { filterKey, request: 0, target: PAGE_SIZE };
-  const fillBudgetRef = useRef({ filterKey, request: 0, left: AUTO_FILL_PAGES });
+  const fillBudgetRef = useRef<{
+    filterKey: string;
+    request: number;
+    left: number;
+    handledError: unknown;
+  }>({ filterKey, request: 0, left: AUTO_FILL_PAGES, handledError: null });
   const needsMore = !isLoading && !loadingMore && hasMore && posts.length < currentFill.target;
 
   useEffect(() => {
     const budget = fillBudgetRef.current;
     if (budget.filterKey !== filterKey || budget.request !== currentFill.request) {
-      fillBudgetRef.current = { filterKey, request: currentFill.request, left: AUTO_FILL_PAGES };
+      // 새 요청에서는 이전 실패를 이미 처리한 것으로 보고 한도를 다시 채운다
+      fillBudgetRef.current = {
+        filterKey,
+        request: currentFill.request,
+        left: AUTO_FILL_PAGES,
+        handledError: loadError,
+      };
+    } else if (loadError && loadError !== budget.handledError) {
+      // 이어 받기가 실패하면 연달아 재시도하지 않고, 사용자가 다시 누를 때까지 멈춘다
+      fillBudgetRef.current = { ...budget, left: 0, handledError: loadError };
     }
     if (!needsMore || fillBudgetRef.current.left <= 0) return;
     // 실제로 요청을 시작했을 때만 한도를 쓴다 (effect가 여러 번 돌아도 한도가 헛되이 줄지 않게)
     if (loadMore()) fillBudgetRef.current.left--;
-  }, [needsMore, filterKey, currentFill.request, loadMore]);
+  }, [needsMore, filterKey, currentFill.request, loadMore, loadError]);
 
   const requestMore = useCallback(() => {
     setFill((prev) => ({
@@ -134,7 +147,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     isLoading,
     permissionDenied,
     // 이어 받는 중에는 버튼 대신 진행 표시
-    hasMore: hasMore && !loadingMore,
+    hasMore: canLoadMore,
     loadingMore,
     loadMore: requestMore,
   };

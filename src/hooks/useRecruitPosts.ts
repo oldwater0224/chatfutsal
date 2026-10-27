@@ -10,6 +10,7 @@ import { closeRecruitPost } from "../lib/services/recruitService";
 import { selectPostsToCleanup } from "../lib/services/applicationRules";
 import { closePendingApplications } from "../lib/services/applicationService";
 import { useLivePagedQuery } from "./useLivePagedQuery";
+import { serverFilterConstraints } from "./recruitFilters";
 
 const PAGE_SIZE = 20;
 // 필터 결과를 채우려고 한 번에 자동으로 이어 받는 최대 페이지 수
@@ -32,13 +33,20 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   const { ready, uid } = auth;
   // uid가 바뀌면 보안 규칙 판단이 달라지므로 다시 구독한다 (인증 확정 전에는 구독하지 않음)
   const subscriptionKey = ready ? (uid ?? "anonymous") : null;
-  const buildQuery = useMemo(
-    () =>
-      subscriptionKey === null
-        ? null
-        : () => query(collection(db, 'recruitPosts'), where('status', '==', 'open'), orderBy('createdAt', 'desc')),
-    [subscriptionKey],
-  );
+  // 날짜·실력은 정확히 일치하는 조건이라 쿼리에 넣어 맞는 글만 읽는다 (firestore.indexes.json의 복합 색인 필요)
+  const serverDate = filters?.date || undefined;
+  const serverLevel = filters?.level || undefined;
+  const buildQuery = useMemo(() => {
+    if (subscriptionKey === null) return null;
+    const equalities = serverFilterConstraints({ date: serverDate, level: serverLevel });
+    return () =>
+      query(
+        collection(db, 'recruitPosts'),
+        where('status', '==', 'open'),
+        ...equalities.map(([field, value]) => where(field, '==', value)),
+        orderBy('createdAt', 'desc'),
+      );
+  }, [subscriptionKey, serverDate, serverLevel]);
   const { docs, hasMore, canLoadMore, loadMore, isLoading, loadingMore, error, loadError } =
     useLivePagedQuery(buildQuery, PAGE_SIZE, "모집글");
   // 같은 세션에서 같은 글에 마감 쓰기를 반복하지 않도록 시도한 id를 기록한다
@@ -77,14 +85,9 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
   const posts = useMemo(() => {
     let result = fetchedPosts.filter((post) => !isPostExpired(post.date, post.time));
 
-    if (date) {
-      result = result.filter((post) => post.date === date);
-    }
+    // 날짜·실력은 쿼리에서 이미 걸렀다. 지역·검색어는 부분 일치라 받아온 글에 적용한다
     if (region) {
       result = result.filter((post) => post.locationCoord?.address?.includes(region));
-    }
-    if (level) {
-      result = result.filter((post) => post.level === level);
     }
     if (keyword) {
       const kw = keyword.toLowerCase();
@@ -97,7 +100,7 @@ export function useRecruitPosts(filters: RecruitFilters | undefined, auth: Recru
     }
 
     return result;
-  }, [fetchedPosts, date, region, level, keyword]);
+  }, [fetchedPosts, region, keyword]);
 
   // 필터·지역·검색어는 Firestore 쿼리로 표현할 수 없어(부분 일치 등) 받아온 글에 적용한다.
   // 대신 조건에 맞는 글이 목표 개수만큼 모일 때까지 다음 페이지를 자동으로 이어 받는다.

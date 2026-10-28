@@ -137,7 +137,7 @@ export default function HomePage() {
       </main>
 
       {user && (
-        <div className="fixed inset-x-0 bottom-20 z-[45] pointer-events-none">
+        <div className="md:hidden fixed inset-x-0 bottom-20 z-[45] pointer-events-none">
           <div className="max-w-2xl mx-auto px-4 flex justify-end">
             <Link
               href="/create"

@@ -12,6 +12,7 @@ import {
   FileText,
   LogOut,
   MessageCircle,
+  UserPen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -87,9 +88,17 @@ export default function MyPage() {
 
               <section className="pt-6">
                 <h2 className="text-[13px] font-semibold text-gray-400">계정</h2>
+                <Link
+                  href="/mypage/profile"
+                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                >
+                  <UserPen className="w-5 h-5 text-gray-500" />
+                  <span className="flex-1 text-[15px] text-gray-900">프로필 수정</span>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
+                  className="-mx-4 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-5 h-5 text-red-500" />
                   <span className="text-[15px] text-red-500">로그아웃</span>

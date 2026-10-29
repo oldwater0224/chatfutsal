@@ -31,6 +31,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn();
       allow create, update: if isUser(userId);
+
+      // 웹 푸시 토큰 (문서 ID = 토큰). 본인만 읽고 쓴다
+      match /fcmTokens/{tokenId} {
+        allow read, delete: if isUser(userId);
+        allow create, update: if isUser(userId)
+          && request.resource.data.keys().hasOnly(['token', 'updatedAt'])
+          && request.resource.data.token == tokenId;
+      }
     }
 
     // ===== recruitPosts =====

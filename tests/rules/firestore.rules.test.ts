@@ -120,6 +120,37 @@ describe('users', () => {
     await assertSucceeds(setDoc(doc(db(APPLICANT), 'users', APPLICANT), { displayName: 'Bob' }));
     await assertFails(setDoc(doc(db(OTHER), 'users', APPLICANT), { displayName: 'hack' }));
   });
+
+  describe('fcmTokens', () => {
+    const TOKEN = 'fcm-token:abc_123';
+    const tokenPath = (uid: string) => `users/${uid}/fcmTokens/${TOKEN}`;
+
+    it('본인은 토큰을 저장·조회·삭제할 수 있다', async () => {
+      const ref = doc(db(APPLICANT), tokenPath(APPLICANT));
+      await assertSucceeds(setDoc(ref, { token: TOKEN, updatedAt: serverTimestamp() }));
+      await assertSucceeds(getDoc(ref));
+      await assertSucceeds(deleteDoc(ref));
+    });
+
+    it('다른 사람의 토큰은 읽거나 쓸 수 없다', async () => {
+      await seed(tokenPath(APPLICANT), { token: TOKEN, updatedAt: new Date() });
+      await assertFails(getDoc(doc(db(OTHER), tokenPath(APPLICANT))));
+      await assertFails(getDocs(collection(db(OTHER), `users/${APPLICANT}/fcmTokens`)));
+      await assertFails(deleteDoc(doc(db(OTHER), tokenPath(APPLICANT))));
+      await assertFails(
+        setDoc(doc(db(OTHER), `users/${APPLICANT}/fcmTokens/other`), { token: 'other', updatedAt: new Date() }),
+      );
+    });
+
+    it('문서 ID와 token이 다르거나 다른 필드가 있으면 거부', async () => {
+      await assertFails(
+        setDoc(doc(db(APPLICANT), tokenPath(APPLICANT)), { token: 'different', updatedAt: new Date() }),
+      );
+      await assertFails(
+        setDoc(doc(db(APPLICANT), tokenPath(APPLICANT)), { token: TOKEN, updatedAt: new Date(), extra: 1 }),
+      );
+    });
+  });
 });
 
 describe('recruitPosts', () => {

@@ -411,6 +411,46 @@ describe('chatRooms', () => {
     await assertFails(updateDoc(doc(db(APPLICANT), 'chatRooms/r1/messages/m1'), { text: '변조' }));
   });
 
+  describe('닉네임 변경 반영 (participantNames)', () => {
+    beforeEach(async () => {
+      await seed('chatRooms/r1', { ...room, participantNames: { [APPLICANT]: '옛이름', [AUTHOR]: 'Alice' } });
+      await seed(`users/${APPLICANT}`, { displayName: '새이름' });
+      await seed(`users/${AUTHOR}`, { displayName: 'Alice' });
+    });
+
+    it('참여자는 내 항목을 users 문서의 현재 닉네임으로 바꿀 수 있다', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${APPLICANT}`]: '새이름' }),
+      );
+    });
+
+    it('users 문서와 다른 이름으로는 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${APPLICANT}`]: '아무이름' }),
+      );
+    });
+
+    it('상대 항목은 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${AUTHOR}`]: '새이름' }),
+      );
+    });
+
+    it('다른 필드와 함께 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), {
+          [`participantNames.${APPLICANT}`]: '새이름',
+          lastMessage: '변조',
+        }),
+      );
+    });
+
+    it('참여자가 아니면 바꿀 수 없다', async () => {
+      await seed(`users/${OTHER}`, { displayName: 'Carol' });
+      await assertFails(updateDoc(doc(db(OTHER), 'chatRooms/r1'), { [`participantNames.${OTHER}`]: 'Carol' }));
+    });
+  });
+
   it('방 나가기와 마지막 메시지 갱신이 허용된다', async () => {
     await assertSucceeds(
       updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`leftAt.${APPLICANT}`]: serverTimestamp() }),

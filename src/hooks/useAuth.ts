@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
 import { auth, db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { unregisterPushToken } from "../lib/services/pushService";
 
 interface UserData {
   uid: string;
@@ -43,6 +44,8 @@ export function useAuth() {
   }, [handleAuthChange]);
 
   const logout = async () => {
+    // 로그아웃 후에는 토큰 문서를 지울 권한이 없으므로 먼저 지운다
+    if (auth.currentUser) await unregisterPushToken(auth.currentUser.uid);
     await signOut(auth);
     setUser(null);
     setUserData(null);

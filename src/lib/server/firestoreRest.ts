@@ -1,9 +1,8 @@
 // 서버(API Route·Cron)에서 쓰는 최소한의 Firestore REST 클라이언트.
-// firebase-admin은 서버리스 런타임에서 ESM 문제(jose)가 있어, 커스텀 토큰과 같은 방식으로
-// 서비스 계정 JWT를 직접 서명해 OAuth 액세스 토큰을 받는다.
+// firebase-admin은 서버리스 런타임에서 ESM 문제(jose)가 있어, 서비스 계정 OAuth 토큰(googleAuth.ts)으로 직접 호출한다.
 // 서비스 계정 요청은 보안 규칙을 거치지 않으므로 서버 코드에서만 사용한다.
 import { randomInt } from "crypto";
-import jwt from "jsonwebtoken";
+import { accessToken, projectId, SCOPES } from "./googleAuth";
 
 export type FirestoreValue =
   | string
@@ -18,21 +17,14 @@ export interface RestDocument {
   name: string;
   id: string;
   data: Record<string, FirestoreValue>;
+  // 쓰기 사전 조건(currentDocument.updateTime)에 쓴다
+  updateTime?: string;
 }
 
 // REST Write (https://firebase.google.com/docs/firestore/reference/rest/v1/Write)
 export type RestWrite = Record<string, unknown>;
 
-const SCOPE = "https://www.googleapis.com/auth/datastore";
 const COMMIT_LIMIT = 500;
-
-let cachedToken: { value: string; expiresAt: number } | null = null;
-
-function projectId(): string {
-  const id = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  if (!id) throw new Error("Firebase 프로젝트 ID 환경 변수가 없습니다");
-  return id;
-}
 
 function baseUrl(): string {
   const emulator = process.env.FIRESTORE_EMULATOR_HOST;
@@ -47,45 +39,20 @@ export function documentPath(collection: string, id: string): string {
   return `${databasePath()}/documents/${collection}/${id}`;
 }
 
-async function accessToken(): Promise<string> {
-  // 에뮬레이터는 "owner" 토큰을 관리자 권한으로 취급한다
+// 에뮬레이터는 "owner" 토큰을 관리자 권한으로 취급한다
+async function firestoreToken(): Promise<string> {
   if (process.env.FIRESTORE_EMULATOR_HOST) return "owner";
-  if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value;
-
-  const email = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  if (!email || !privateKey) throw new Error("Firebase 서비스 계정 환경 변수가 없습니다");
-
-  const now = Math.floor(Date.now() / 1000);
-  const assertion = jwt.sign(
-    { iss: email, scope: SCOPE, aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 },
-    privateKey,
-    { algorithm: "RS256" },
-  );
-
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion,
-    }),
-  });
-  if (!res.ok) throw new Error(`액세스 토큰 발급 실패: ${res.status}`);
-
-  const body = (await res.json()) as { access_token: string; expires_in: number };
-  cachedToken = { value: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
-  return body.access_token;
+  return accessToken(SCOPES.datastore);
 }
 
-async function request<T>(path: string, body: unknown): Promise<T> {
+async function request<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${baseUrl()}/${path}`, {
-    method: "POST",
+    method: body === undefined ? "GET" : "POST",
     headers: {
-      Authorization: `Bearer ${await accessToken()}`,
+      Authorization: `Bearer ${await firestoreToken()}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Firestore 요청 실패 (${path}): ${res.status} ${await res.text()}`);
   return (await res.json()) as T;
@@ -162,6 +129,41 @@ export async function queryCollection(
       id: document!.name.split("/").pop()!,
       data: decodeFields(document!.fields ?? {}),
     }));
+}
+
+type RawDocument = { name: string; fields?: Record<string, RawValue>; updateTime?: string };
+
+function toRestDocument(raw: RawDocument): RestDocument {
+  return {
+    name: raw.name,
+    id: raw.name.split("/").pop()!,
+    data: decodeFields(raw.fields ?? {}),
+    updateTime: raw.updateTime,
+  };
+}
+
+// 문서 경로 목록을 한 번에 읽는다. 없는 문서는 결과에서 빠진다.
+export async function getDocuments(names: string[]): Promise<RestDocument[]> {
+  if (names.length === 0) return [];
+  const rows = await request<{ found?: RawDocument }[]>(`${databasePath()}/documents:batchGet`, {
+    documents: names,
+  });
+  return rows.filter((row) => row.found).map((row) => toRestDocument(row.found!));
+}
+
+// 하위 컬렉션 문서를 모두 읽는다 (예: users/{uid}/fcmTokens)
+export async function listDocuments(parentName: string, collectionId: string): Promise<RestDocument[]> {
+  const docs: RestDocument[] = [];
+  let pageToken = "";
+  do {
+    const params = new URLSearchParams({ pageSize: "300", ...(pageToken && { pageToken }) });
+    const page = await request<{ documents?: RawDocument[]; nextPageToken?: string }>(
+      `${parentName}/${collectionId}?${params}`,
+    );
+    docs.push(...(page.documents ?? []).map(toRestDocument));
+    pageToken = page.nextPageToken ?? "";
+  } while (pageToken);
+  return docs;
 }
 
 // 500개 단위로 나눠 커밋한다. 앞쪽 쓰기가 먼저 반영된다.

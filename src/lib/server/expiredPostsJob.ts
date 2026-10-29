@@ -12,6 +12,7 @@ import {
   planCleanup,
   PostCleanupPlan,
 } from "./expiredPosts";
+import { sendPushForNotifications } from "./pushJob";
 
 // 하루 한 번 실행이 누락돼도 따라잡도록 최근 며칠치 경기를 다시 확인한다
 const LOOKBACK_DAYS = 3;
@@ -73,6 +74,14 @@ export function buildCleanupWrites(plan: PostCleanupPlan): RestWrite[] {
   return [postWrite, ...appWrites];
 }
 
+// 커밋한 쓰기 중 새로 만든 알림 문서의 ID
+function notificationIdsIn(writes: RestWrite[]): string[] {
+  return writes
+    .map((w) => (w.update as { name?: string } | undefined)?.name ?? "")
+    .filter((name) => name.includes("/documents/notifications/"))
+    .map((name) => name.split("/").pop()!);
+}
+
 export interface CleanupResult {
   checked: number;
   closedPosts: number;
@@ -104,7 +113,12 @@ export async function closeExpiredPosts(now = new Date()): Promise<CleanupResult
     const plan = planCleanup(post, pending);
     // 이미 마감된 글인데 실제 대기 신청이 없으면(카운트만 어긋난 경우) 쓸 것이 없다
     if (!plan.closePost && pending.length === 0) continue;
-    await commitWrites(buildCleanupWrites(plan));
+    const writes = buildCleanupWrites(plan);
+    await commitWrites(writes);
+    // 푸시 실패가 정리 결과에 영향을 주지 않게 한다
+    await sendPushForNotifications(notificationIdsIn(writes), null).catch((error) =>
+      console.error("마감 알림 푸시 실패:", error),
+    );
     if (plan.closePost) result.closedPosts++;
     result.closedApplications += pending.length;
   }

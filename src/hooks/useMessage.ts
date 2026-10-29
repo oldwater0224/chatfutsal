@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { createNotification } from "../lib/services/notificationService";
+import { requestPush } from "../lib/services/pushService";
 import { useLivePagedQuery } from "./useLivePagedQuery";
 
 const PAGE_SIZE = 50;
@@ -77,13 +78,14 @@ export async function sendMessage(
     const participants: string[] = roomSnap.data().participants || [];
     const recipientId = participants.find((id) => id !== senderId);
     if (recipientId) {
-      await createNotification(
+      const notificationId = await createNotification(
         recipientId,
         "new_message",
         `${senderName}님의 새 메시지`,
         text.length > 50 ? text.slice(0, 50) + "..." : text,
         `/chat/${roomId}`,
       );
+      requestPush([notificationId]);
     }
   }
 }

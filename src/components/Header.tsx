@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useAppData } from '@/src/contexts/AppDataContext';
 
-import { MessageCircleIcon, Bell } from 'lucide-react';
+import { MessageCircleIcon, Bell, Plus } from 'lucide-react';
 import Logo from './Logo';
 
 function UnreadBadge({ count }: { count: number }) {
@@ -30,6 +30,14 @@ export default function Header() {
             <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
           ) : user ? (
             <>
+              {/* 모바일은 홈 화면의 플로팅 버튼을 쓴다 */}
+              <Link
+                href="/create"
+                className="hidden md:inline-flex mr-2 h-9 pl-3 pr-4 items-center gap-1 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
+              >
+                <Plus className="w-4 h-4" strokeWidth={2.5} />
+                모집하기
+              </Link>
               <Link
                 href="/notifications"
                 aria-label="알림"

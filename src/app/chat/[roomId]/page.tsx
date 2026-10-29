@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, DocumentSnapshot, onSnapshot } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMessages, sendMessage } from "@/src/hooks/useMessage";
@@ -42,38 +42,37 @@ export default function ChatRoomPage() {
     }
   }, [user, roomId]);
 
-  // 채팅방 정보 가져오기
-  useEffect(() => {
-    if (!roomId) {
-     
-      return;
+  // 채팅방 정보 구독: 대화 중에 상대가 닉네임을 바꿔도 바로 반영된다
+  const handleRoomSnapshot = useCallback((roomDoc: DocumentSnapshot) => {
+    if (roomDoc.exists()) {
+      const data = roomDoc.data();
+      setChatRoom({
+        id: roomDoc.id,
+        participants: data.participants,
+        participantNames: data.participantNames,
+        participantName: "",
+        lastMessage: data.lastMessage,
+        lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
+        unreadCount: 0,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        leftAt: parseLeftAt(data.leftAt),
+      });
+    } else {
+      setChatRoom(null);
     }
-    const fetchChatRoom = async () => {
-      try {
-        const roomDoc = await getDoc(doc(db, "chatRooms", roomId));
+    setRoomLoading(false);
+  }, []);
 
-        if (roomDoc.exists()) {
-          const data = roomDoc.data();
-          setChatRoom({
-            id: roomDoc.id,
-            participants: data.participants,
-            participantNames: data.participantNames,
-            participantName: "",
-            lastMessage: data.lastMessage,
-            lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
-            unreadCount: 0,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            leftAt: parseLeftAt(data.leftAt),
-          });
-        }
-      } catch (error) {
-        console.error("채팅방 불러오기 실패:", error);
-      }
-      setRoomLoading(false);
-    };
+  // 구독이 끊겨도 마지막으로 받은 채팅방 정보는 그대로 둔다
+  const handleRoomError = useCallback((error: Error) => {
+    console.error("채팅방 불러오기 실패:", error);
+    setRoomLoading(false);
+  }, []);
 
-    fetchChatRoom();
-  }, [roomId]);
+  useEffect(() => {
+    if (!roomId || !user) return;
+    return onSnapshot(doc(db, "chatRooms", roomId), handleRoomSnapshot, handleRoomError);
+  }, [roomId, user, handleRoomSnapshot, handleRoomError]);
 
   // 내가 나간 적이 있으면 나간 이후 메시지만 표시
   const myLeftAt = user ? chatRoom?.leftAt?.[user.uid] : undefined;

@@ -31,6 +31,14 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn();
       allow create, update: if isUser(userId);
+
+      // 웹 푸시 토큰 (문서 ID = 토큰). 본인만 읽고 쓴다
+      match /fcmTokens/{tokenId} {
+        allow read, delete: if isUser(userId);
+        allow create, update: if isUser(userId)
+          && request.resource.data.keys().hasOnly(['token', 'updatedAt'])
+          && request.resource.data.token == tokenId;
+      }
     }
 
     // ===== recruitPosts =====
@@ -140,9 +148,18 @@ service cloud.firestore {
         && request.resource.data.participants.size() == 2
         && request.auth.uid in request.resource.data.participants;
 
+      // 닉네임 변경 반영: participantNames에서 내 항목만, 내 users 문서의 현재 닉네임으로
+      function changesOnlyOwnName() {
+        return changedOnly(['participantNames'])
+          && request.resource.data.participantNames.diff(resource.data.participantNames)
+               .affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.participantNames[request.auth.uid]
+               == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.displayName;
+      }
+
       allow update: if signedIn()
         && request.auth.uid in resource.data.participants
-        && changedOnly(['lastMessage', 'lastMessageAt', 'leftAt']);
+        && (changedOnly(['lastMessage', 'lastMessageAt', 'leftAt']) || changesOnlyOwnName());
 
       match /messages/{messageId} {
         allow read, delete: if isParticipant();

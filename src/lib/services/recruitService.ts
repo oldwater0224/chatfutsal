@@ -14,6 +14,7 @@ import { db } from "../firebase";
 import { applicantsToNotifyOnDelete, assertCanReopen } from "./applicationRules";
 import { BatchOp, commitInChunks } from "./batchUtils";
 import { buildNotification } from "./notificationService";
+import { requestPush } from "./pushService";
 
 // 게시글 생성
 export async function createRecruitPost(
@@ -65,19 +66,22 @@ export async function deleteRecruitPost(postId: string, postTitle: string): Prom
     query(collection(db, "applications"), where("postId", "==", postId)),
   );
   const apps = appsSnap.docs.map((d) => d.data() as Application);
+  const notifyIds = applicantsToNotifyOnDelete(apps);
+  const notiRefs = notifyIds.map(() => doc(collection(db, "notifications")));
 
   const ops: BatchOp[] = [
     (batch) => batch.delete(doc(db, "recruitPosts", postId)),
     ...appsSnap.docs.map((d): BatchOp => (batch) => batch.delete(d.ref)),
-    ...applicantsToNotifyOnDelete(apps).map((applicantId): BatchOp => (batch) =>
+    ...notifyIds.map((applicantId, i): BatchOp => (batch) =>
       batch.set(
-        doc(collection(db, "notifications")),
+        notiRefs[i],
         buildNotification(applicantId, "recruit_deleted", "모집이 취소되었어요", postTitle, "/"),
       ),
     ),
   ];
 
   await commitInChunks(ops);
+  requestPush(notiRefs.map((ref) => ref.id));
 }
 
 // 모집 마감

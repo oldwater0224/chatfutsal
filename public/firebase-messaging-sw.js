@@ -24,13 +24,15 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      // 앱을 보고 있으면 인앱 알림 배지가 이미 실시간으로 갱신되므로 시스템 알림을 띄우지 않는다
-      if (clients.some((client) => client.visibilityState === "visible")) return;
+      // 푸시를 받으면 항상 알림을 띄운다. Safari·iOS는 알림 없이 끝난 푸시가 반복되면 구독을 취소한다.
+      // 앱을 보고 있으면 인앱 배지가 이미 갱신되므로 소리·진동 없이 띄운다.
+      const appVisible = clients.some((client) => client.visibilityState === "visible");
 
       return self.registration.showNotification(data.title, {
         body: data.body || "",
         icon: "/icon.svg",
         tag: data.notificationId || undefined,
+        silent: appVisible,
         data: { link: safeLink(data.link) },
       });
     }),

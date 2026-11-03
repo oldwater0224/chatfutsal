@@ -6,6 +6,8 @@ export const PUSH_MAX_IDS = 50;
 
 export interface PushNotificationDoc {
   recipientId?: unknown;
+  senderId?: unknown;
+  type?: unknown;
   title?: unknown;
   body?: unknown;
   link?: unknown;
@@ -22,8 +24,29 @@ export function shouldPush(doc: PushNotificationDoc, callerId: string | null, no
   // 서버·클라이언트 시계 차이를 고려해 약간의 미래 시각은 허용한다
   if (age > PUSH_MAX_AGE_MS || age < -PUSH_MAX_AGE_MS) return false;
   // 크론(서버)이 보낼 때는 호출자가 없다
-  if (callerId !== null && doc.recipientId === callerId) return false;
-  return true;
+  if (callerId === null) return true;
+  if (doc.recipientId === callerId) return false;
+  // 클라이언트 요청은 호출자가 만든 알림만 보낸다 (senderId는 보안 규칙이 작성자 uid로 강제)
+  return doc.senderId === callerId;
+}
+
+// 클라이언트가 만든 알림의 title은 작성자가 마음대로 쓸 수 있으므로 푸시에 쓰지 않는다.
+// 대신 알림 종류와 보낸 사람의 현재 닉네임(users 문서)으로 서버가 제목을 만든다.
+const CLIENT_PUSH_TITLES: Record<string, (name: string) => string> = {
+  new_message: (name) => `${name}님의 새 메시지`,
+  application_received: (name) => `${name}님이 참가 신청했어요`,
+  application_accepted: (name) => `${name}님이 참가 신청을 수락했어요`,
+  application_rejected: (name) => `${name}님이 참가 신청을 거절했어요`,
+  recruit_deleted: (name) => `${name}님이 모집을 취소했어요`,
+  recruit_closed: (name) => `${name}님의 모집이 마감되었어요`,
+};
+
+export const PUSH_BODY_MAX = 100;
+
+// 알 수 없는 종류면 null (보내지 않는다)
+export function clientPushTitle(type: unknown, senderName: string): string | null {
+  const template = typeof type === "string" ? CLIENT_PUSH_TITLES[type] : undefined;
+  return template ? template(senderName) : null;
 }
 
 // 요청 본문에서 알림 ID 목록을 꺼낸다 (중복 제거, 최대 개수 제한)
@@ -39,13 +62,19 @@ function isInternalPath(link: unknown): link is string {
   return typeof link === "string" && link.startsWith("/") && !link.startsWith("//") && !link.includes("\\");
 }
 
-export function buildPushMessage(token: string, notificationId: string, doc: PushNotificationDoc) {
+// title: 서버가 정한 제목 (크론 알림은 doc.title, 클라이언트 알림은 clientPushTitle)
+export function buildPushMessage(
+  token: string,
+  notificationId: string,
+  doc: PushNotificationDoc,
+  title: string,
+) {
   return {
     message: {
       token,
       data: {
-        title: String(doc.title ?? ""),
-        body: String(doc.body ?? ""),
+        title,
+        body: Array.from(String(doc.body ?? "")).slice(0, PUSH_BODY_MAX).join(""),
         link: isInternalPath(doc.link) ? doc.link : "/notifications",
         notificationId,
       },

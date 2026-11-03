@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { buildPushMessage, isStaleTokenError, parseNotificationIds, shouldPush } from './pushRules';
+import {
+  buildPushMessage,
+  clientPushTitle,
+  isStaleTokenError,
+  parseNotificationIds,
+  PUSH_BODY_MAX,
+  shouldPush,
+} from './pushRules';
 
 const now = new Date('2026-10-29T10:00:00Z');
-const fresh = { recipientId: 'bob', title: 't', body: 'b', link: '/chat/r1', createdAt: new Date(now.getTime() - 5_000) };
+const fresh = { recipientId: 'bob', senderId: 'alice', type: 'new_message', title: 't', body: 'b', link: '/chat/r1', createdAt: new Date(now.getTime() - 5_000) };
 
 describe('shouldPush', () => {
   it('방금 만든, 아직 안 보낸 다른 사람 알림이면 보낸다', () => {
@@ -29,6 +36,11 @@ describe('shouldPush', () => {
     expect(shouldPush(fresh, null, now)).toBe(true);
   });
 
+  it('클라이언트 요청은 호출자가 만든 알림만 보낸다', () => {
+    expect(shouldPush(fresh, 'carol', now)).toBe(false);
+    expect(shouldPush({ ...fresh, senderId: undefined }, 'alice', now)).toBe(false);
+  });
+
   it('recipientId가 없으면 보내지 않는다', () => {
     expect(shouldPush({ ...fresh, recipientId: '' }, 'alice', now)).toBe(false);
   });
@@ -48,19 +60,38 @@ describe('parseNotificationIds', () => {
   });
 });
 
+describe('clientPushTitle', () => {
+  it('알림 종류와 보낸 사람 닉네임으로 제목을 만든다', () => {
+    expect(clientPushTitle('new_message', 'Alice')).toBe('Alice님의 새 메시지');
+    expect(clientPushTitle('application_accepted', 'Alice')).toBe('Alice님이 참가 신청을 수락했어요');
+  });
+
+  it('알 수 없는 종류면 null', () => {
+    expect(clientPushTitle('admin_notice', 'Alice')).toBeNull();
+    expect(clientPushTitle(undefined, 'Alice')).toBeNull();
+  });
+});
+
 describe('buildPushMessage', () => {
-  it('데이터 메시지로 만든다', () => {
-    expect(buildPushMessage('tok', 'n1', fresh).message).toMatchObject({
+  it('넘겨받은 제목으로 데이터 메시지를 만든다 (문서의 title은 쓰지 않는다)', () => {
+    expect(buildPushMessage('tok', 'n1', fresh, '제목').message).toMatchObject({
       token: 'tok',
-      data: { title: 't', body: 'b', link: '/chat/r1', notificationId: 'n1' },
+      data: { title: '제목', body: 'b', link: '/chat/r1', notificationId: 'n1' },
     });
   });
 
+  it('본문은 최대 길이로 자른다', () => {
+    const body = '가'.repeat(PUSH_BODY_MAX + 20);
+    expect(Array.from(buildPushMessage('tok', 'n1', { ...fresh, body }, 't').message.data.body)).toHaveLength(
+      PUSH_BODY_MAX,
+    );
+  });
+
   it('내부 경로가 아닌 link는 알림 목록으로 바꾼다', () => {
-    expect(buildPushMessage('tok', 'n1', { ...fresh, link: 'https://evil.example' }).message.data.link).toBe(
+    expect(buildPushMessage('tok', 'n1', { ...fresh, link: 'https://evil.example' }, 't').message.data.link).toBe(
       '/notifications',
     );
-    expect(buildPushMessage('tok', 'n1', { ...fresh, link: '//evil.example' }).message.data.link).toBe(
+    expect(buildPushMessage('tok', 'n1', { ...fresh, link: '//evil.example' }, 't').message.data.link).toBe(
       '/notifications',
     );
   });

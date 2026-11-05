@@ -4,14 +4,18 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useAppData } from "@/src/contexts/AppDataContext";
+import type { PushStatus } from "@/src/hooks/usePushNotifications";
 import Header from "@/src/components/Header";
 import BottomNav from "@/src/components/BottomNav";
 import {
+  Bell,
   ChevronRight,
   ClipboardList,
   FileText,
   LogOut,
   MessageCircle,
+  UserPen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +24,40 @@ const MENU_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/mypage/applications", label: "참가 신청 내역", icon: ClipboardList },
   { href: "/chat", label: "채팅 목록", icon: MessageCircle },
 ];
+
+const PUSH_LABELS: Record<PushStatus, string> = {
+  checking: "",
+  unsupported: "이 브라우저는 지원하지 않아요",
+  default: "꺼짐",
+  denied: "차단됨 · 브라우저 설정에서 허용",
+  enabled: "켜짐",
+  error: "설정 실패 · 다시 시도",
+};
+
+// docs/features/푸시알림.md 3-2. 꺼짐·실패 상태에서만 눌러서 켤 수 있다
+function PushRow() {
+  const { push } = useAppData();
+  const canEnable = (push.status === "default" || push.status === "error") && !push.isEnabling;
+
+  return (
+    <button
+      type="button"
+      onClick={push.enable}
+      disabled={!canEnable}
+      className="-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 border-b border-gray-100 text-left enabled:hover:bg-gray-50/70 enabled:cursor-pointer transition-colors"
+    >
+      <Bell className="w-5 h-5 text-gray-500" />
+      <span className="flex-1 text-[15px] text-gray-900">푸시 알림</span>
+      <span
+        className={`text-[13px] ${
+          push.status === "enabled" ? "text-green-600 font-semibold" : push.status === "error" ? "text-red-500" : "text-gray-400"
+        }`}
+      >
+        {push.isEnabling ? "설정 중..." : PUSH_LABELS[push.status]}
+      </span>
+    </button>
+  );
+}
 
 export default function MyPage() {
   const { user, userData, isLoading, logout } = useAuth();
@@ -87,9 +125,18 @@ export default function MyPage() {
 
               <section className="pt-6">
                 <h2 className="text-[13px] font-semibold text-gray-400">계정</h2>
+                <Link
+                  href="/mypage/profile"
+                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                >
+                  <UserPen className="w-5 h-5 text-gray-500" />
+                  <span className="flex-1 text-[15px] text-gray-900">프로필 수정</span>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                </Link>
+                <PushRow />
                 <button
                   onClick={handleLogout}
-                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
+                  className="-mx-4 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
                 >
                   <LogOut className="w-5 h-5 text-red-500" />
                   <span className="text-[15px] text-red-500">로그아웃</span>

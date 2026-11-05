@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   deleteDoc,
   doc,
+  FieldPath,
   getDoc,
   limit,
   orderBy,
@@ -45,7 +46,7 @@ export function isHiddenForUser(
 export async function findExistingChatRoom(
   userId1: string,
   userId2: string,
-): Promise<string | null> {
+): Promise<{ id: string; participantNames: Record<string, string> } | null> {
   const participants = [userId1, userId2].sort();
 
   const chatRoomsRef = collection(db, "chatRooms");
@@ -55,13 +56,35 @@ export async function findExistingChatRoom(
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
-      return snapshot.docs[0].id;
+      const room = snapshot.docs[0];
+      return { id: room.id, participantNames: room.data().participantNames ?? {} };
     }
   } catch (error) {
     console.error("채팅방 검색 에러:", error);
   }
 
   return null;
+}
+
+// 채팅방에 저장된 내 이름을 현재 닉네임으로 바꾼다 (보안 규칙: 내 항목만, users 문서와 같은 값만)
+async function updateMyNameInRoom(roomId: string, uid: string, name: string): Promise<void> {
+  await updateDoc(doc(db, "chatRooms", roomId), new FieldPath("participantNames", uid), name);
+}
+
+// 닉네임 변경 후 내가 참여한 모든 채팅방의 내 이름을 갱신한다.
+// 방마다 따로 써서 한 방이 실패해도 나머지는 반영되게 한다. 실패한 방 수를 돌려준다.
+export async function updateMyNameInChatRooms(uid: string, name: string): Promise<number> {
+  const snapshot = await getDocs(
+    query(collection(db, "chatRooms"), where("participants", "array-contains", uid)),
+  );
+  const targets = snapshot.docs.filter((room) => room.data().participantNames?.[uid] !== name);
+
+  const results = await Promise.allSettled(
+    targets.map((room) => updateMyNameInRoom(room.id, uid, name)),
+  );
+  const failed = results.filter((r) => r.status === "rejected");
+  failed.forEach((r) => console.error("채팅방 이름 갱신 실패:", (r as PromiseRejectedResult).reason));
+  return failed.length;
 }
 
 // 새 채팅방 생성
@@ -92,13 +115,16 @@ export async function startChat(
   targetUser: { uid: string; displayName: string },
 ): Promise<string> {
   // 기존 채팅방 확인
-  const existingRoomId = await findExistingChatRoom(
-    currentUser.uid,
-    targetUser.uid,
-  );
+  const existingRoom = await findExistingChatRoom(currentUser.uid, targetUser.uid);
 
-  if (existingRoomId) {
-    return existingRoomId;
+  if (existingRoom) {
+    // 닉네임을 바꾸기 전에 만든 방이면 내 이름을 바로잡는다. 실패해도 채팅은 연다.
+    if (existingRoom.participantNames[currentUser.uid] !== currentUser.displayName) {
+      await updateMyNameInRoom(existingRoom.id, currentUser.uid, currentUser.displayName).catch(
+        (error) => console.error("채팅방 이름 갱신 실패:", error),
+      );
+    }
+    return existingRoom.id;
   }
 
   // 새 채팅방 생성

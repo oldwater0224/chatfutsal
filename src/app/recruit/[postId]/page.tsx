@@ -3,6 +3,7 @@
 import { useAuth } from "@/src/hooks/useAuth";
 import {
   startChat,
+  getDisplayName,
   closeRecruitPostWithApplications,
   deleteRecruitPost,
   reopenRecruitPost,
@@ -145,9 +146,11 @@ export default function RecruitDetailPage() {
     }
 
     try {
+      // authorName은 글 작성 시점 이름이라, 새 채팅방에는 작성자의 현재 닉네임을 넣는다
+      const authorName = (await getDisplayName(post.authorId).catch(() => null)) || post.authorName;
       const roomId = await startChat(
         { uid: user.uid, displayName: userData.displayName || "사용자" },
-        { uid: post.authorId, displayName: post.authorName },
+        { uid: post.authorId, displayName: authorName },
       );
 
       router.push(`/chat/${roomId}`);

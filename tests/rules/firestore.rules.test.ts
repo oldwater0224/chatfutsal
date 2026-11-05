@@ -122,6 +122,34 @@ describe('users', () => {
   });
 });
 
+describe('fcmTokens', () => {
+  const TOKEN = 'fcm-token:abc_123';
+  const tokenRef = (uid: string) => doc(db(uid), 'fcmTokens', TOKEN);
+
+  it('본인 uid로 토큰을 저장·조회·삭제할 수 있다', async () => {
+    await assertSucceeds(setDoc(tokenRef(APPLICANT), { uid: APPLICANT, updatedAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(tokenRef(APPLICANT)));
+    await assertSucceeds(deleteDoc(tokenRef(APPLICANT)));
+  });
+
+  it('다른 사람의 토큰은 읽거나 지울 수 없다', async () => {
+    await seed(`fcmTokens/${TOKEN}`, { uid: APPLICANT, updatedAt: new Date() });
+    await assertFails(getDoc(tokenRef(OTHER)));
+    await assertFails(deleteDoc(tokenRef(OTHER)));
+    await assertFails(getDocs(query(collection(db(OTHER), 'fcmTokens'), where('uid', '==', APPLICANT))));
+  });
+
+  it('같은 기기에서 다른 계정으로 로그인하면 토큰 소유자를 바꿀 수 있다', async () => {
+    await seed(`fcmTokens/${TOKEN}`, { uid: APPLICANT, updatedAt: new Date() });
+    await assertSucceeds(setDoc(tokenRef(OTHER), { uid: OTHER, updatedAt: serverTimestamp() }));
+  });
+
+  it('다른 사람 uid로 저장하거나 다른 필드를 넣을 수 없다', async () => {
+    await assertFails(setDoc(tokenRef(OTHER), { uid: APPLICANT, updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(tokenRef(APPLICANT), { uid: APPLICANT, updatedAt: serverTimestamp(), extra: 1 }));
+  });
+});
+
 describe('recruitPosts', () => {
   it('모집 중인 글을 페이지 단위로 조회할 수 있다', async () => {
     await assertSucceeds(
@@ -353,6 +381,18 @@ describe('notifications', () => {
     await assertSucceeds(setDoc(doc(db(OTHER), 'notifications/n2'), notification(APPLICANT)));
     await assertFails(setDoc(doc(db(OTHER), 'notifications/n3'), notification(OTHER)));
   });
+
+  it('senderId는 본인 uid만 넣을 수 있다 (없어도 된다)', async () => {
+    const f = db(OTHER);
+    await assertSucceeds(setDoc(doc(f, 'notifications/n2'), { ...notification(APPLICANT), senderId: OTHER }));
+    await assertFails(setDoc(doc(f, 'notifications/n3'), { ...notification(APPLICANT), senderId: AUTHOR }));
+  });
+
+  it('생성 시각은 서버 시각이어야 한다', async () => {
+    await assertFails(
+      setDoc(doc(db(OTHER), 'notifications/n2'), { ...notification(APPLICANT), createdAt: new Date() }),
+    );
+  });
 });
 
 describe('chatRooms', () => {
@@ -409,6 +449,46 @@ describe('chatRooms', () => {
   it('읽음 처리는 readBy에 자기 uid만 추가할 수 있다', async () => {
     await assertSucceeds(updateDoc(doc(db(APPLICANT), 'chatRooms/r1/messages/m1'), { readBy: [AUTHOR, APPLICANT] }));
     await assertFails(updateDoc(doc(db(APPLICANT), 'chatRooms/r1/messages/m1'), { text: '변조' }));
+  });
+
+  describe('닉네임 변경 반영 (participantNames)', () => {
+    beforeEach(async () => {
+      await seed('chatRooms/r1', { ...room, participantNames: { [APPLICANT]: '옛이름', [AUTHOR]: 'Alice' } });
+      await seed(`users/${APPLICANT}`, { displayName: '새이름' });
+      await seed(`users/${AUTHOR}`, { displayName: 'Alice' });
+    });
+
+    it('참여자는 내 항목을 users 문서의 현재 닉네임으로 바꿀 수 있다', async () => {
+      await assertSucceeds(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${APPLICANT}`]: '새이름' }),
+      );
+    });
+
+    it('users 문서와 다른 이름으로는 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${APPLICANT}`]: '아무이름' }),
+      );
+    });
+
+    it('상대 항목은 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), { [`participantNames.${AUTHOR}`]: '새이름' }),
+      );
+    });
+
+    it('다른 필드와 함께 바꿀 수 없다', async () => {
+      await assertFails(
+        updateDoc(doc(db(APPLICANT), 'chatRooms/r1'), {
+          [`participantNames.${APPLICANT}`]: '새이름',
+          lastMessage: '변조',
+        }),
+      );
+    });
+
+    it('참여자가 아니면 바꿀 수 없다', async () => {
+      await seed(`users/${OTHER}`, { displayName: 'Carol' });
+      await assertFails(updateDoc(doc(db(OTHER), 'chatRooms/r1'), { [`participantNames.${OTHER}`]: 'Carol' }));
+    });
   });
 
   it('방 나가기와 마지막 메시지 갱신이 허용된다', async () => {

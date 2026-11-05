@@ -12,6 +12,7 @@ import {
 import { Application, RecruitPost } from "../../types";
 import { db } from "../firebase";
 import { buildNotification } from "./notificationService";
+import { requestPush } from "./pushService";
 import {
   assertCanApply,
   assertPending,
@@ -65,6 +66,7 @@ export async function applyToPost(
     );
   });
 
+  requestPush([notiRef.id]);
   return appRef.id;
 }
 
@@ -122,6 +124,8 @@ export async function acceptApplication(
     return shouldClose ? appData!.postTitle : null;
   });
 
+  requestPush([notiRef.id]);
+
   // 정원이 차서 마감됐으면 남은 대기 신청을 정리한다.
   // 마감 후에는 보안 규칙상 새 신청이 생기지 않으므로 트랜잭션 밖에서 처리해도 안전하다.
   if (closed !== null) await closePendingApplications(postId, closed);
@@ -155,6 +159,8 @@ export async function closePendingApplications(
   const postRef = doc(db, "recruitPosts", postId);
   const applicantIds = pending.map((app) => app.applicantId);
 
+  const notiRefs = pending.map(() => doc(collection(db, "notifications")));
+
   const ops: BatchOp[] = [
     (batch) =>
       batch.update(postRef, {
@@ -162,11 +168,11 @@ export async function closePendingApplications(
         ...(applicantIds.length > 0 && { applicantIds: arrayRemove(...applicantIds) }),
         updatedAt: serverTimestamp(),
       }),
-    ...pending.flatMap((app): BatchOp[] => [
+    ...pending.flatMap((app, i): BatchOp[] => [
       (batch) => batch.update(app.ref, { status: "closed", updatedAt: serverTimestamp() }),
       (batch) =>
         batch.set(
-          doc(collection(db, "notifications")),
+          notiRefs[i],
           buildNotification(
             app.applicantId,
             "recruit_closed",
@@ -179,6 +185,7 @@ export async function closePendingApplications(
   ];
 
   await commitInChunks(ops);
+  requestPush(notiRefs.map((ref) => ref.id));
 }
 
 // 신청 거절
@@ -210,4 +217,6 @@ export async function rejectApplication(
       ),
     );
   });
+
+  requestPush([notiRef.id]);
 }

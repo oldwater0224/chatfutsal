@@ -1,6 +1,8 @@
 // 푸시 발송 판정과 메시지 생성 (네트워크 의존성 없는 순수 함수)
 // docs/features/푸시알림.md 4장
 
+import { isInternalPath } from "../utils/internalLink";
+
 export const PUSH_MAX_AGE_MS = 2 * 60 * 1000;
 export const PUSH_MAX_IDS = 50;
 
@@ -55,11 +57,6 @@ export function parseNotificationIds(body: unknown): string[] | null {
   if (!Array.isArray(ids) || ids.length === 0 || ids.length > PUSH_MAX_IDS) return null;
   if (!ids.every((id) => typeof id === "string" && /^[A-Za-z0-9]{1,64}$/.test(id))) return null;
   return [...new Set(ids as string[])];
-}
-
-// "/chat/x" 같은 앱 내부 경로만 허용 ("//host", "/\host"는 다른 출처로 해석된다)
-function isInternalPath(link: unknown): link is string {
-  return typeof link === "string" && link.startsWith("/") && !link.startsWith("//") && !link.includes("\\");
 }
 
 // title: 서버가 정한 제목 (크론 알림은 doc.title, 클라이언트 알림은 clientPushTitle)

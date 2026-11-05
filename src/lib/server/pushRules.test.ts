@@ -94,6 +94,10 @@ describe('buildPushMessage', () => {
     expect(buildPushMessage('tok', 'n1', { ...fresh, link: '//evil.example' }, 't').message.data.link).toBe(
       '/notifications',
     );
+    // URL 파서가 탭·줄바꿈을 지우면 "//evil.example"이 되는 우회
+    for (const link of ['/\t/evil.example', '/\n/evil.example', '/\r/evil.example']) {
+      expect(buildPushMessage('tok', 'n1', { ...fresh, link }, 't').message.data.link).toBe('/notifications');
+    }
   });
 });
 

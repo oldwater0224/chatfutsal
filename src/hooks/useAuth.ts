@@ -45,7 +45,7 @@ export function useAuth() {
 
   const logout = async () => {
     // 로그아웃 후에는 토큰 문서를 지울 권한이 없으므로 먼저 지운다
-    if (auth.currentUser) await unregisterPushToken(auth.currentUser.uid);
+    if (auth.currentUser) await unregisterPushToken();
     await signOut(auth);
     setUser(null);
     setUserData(null);

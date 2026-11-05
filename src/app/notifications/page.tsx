@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Notification } from "@/src/types";
 import { spinnerClass } from "@/src/components/ui/styles";
+import { isInternalPath } from "@/src/lib/utils/internalLink";
 
 const ICON_MAP: Record<string, typeof Bell> = {
   new_message: MessageCircle,
@@ -100,7 +101,10 @@ export default function NotificationsPage() {
     if (!notification.isRead) {
       await markRead(notification.id);
     }
-    router.push(notification.link);
+    // link는 클라이언트가 쓰는 값이라 외부 URL로 이동하지 않도록 앱 내부 경로만 허용한다
+    if (isInternalPath(notification.link)) {
+      router.push(notification.link);
+    }
   };
   useEffect(() => {
     if (!authLoading && !user) {

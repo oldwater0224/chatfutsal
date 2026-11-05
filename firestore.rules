@@ -32,13 +32,6 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create, update: if isUser(userId);
 
-      // 웹 푸시 토큰 (문서 ID = 토큰). 본인만 읽고 쓴다
-      match /fcmTokens/{tokenId} {
-        allow read, delete: if isUser(userId);
-        allow create, update: if isUser(userId)
-          && request.resource.data.keys().hasOnly(['token', 'updatedAt'])
-          && request.resource.data.token == tokenId;
-      }
     }
 
     // ===== recruitPosts =====
@@ -118,6 +111,16 @@ service cloud.firestore {
           && !existsAfter(/databases/$(database)/documents/recruitPosts/$(resource.data.postId)));
     }
 
+    // ===== fcmTokens =====
+    // 웹 푸시 토큰 (문서 ID = 토큰, 기기당 하나). 소유자(uid)만 읽고 지운다.
+    // 같은 기기에서 다른 계정으로 로그인하면 그 계정이 덮어써 소유자가 바뀐다.
+    match /fcmTokens/{token} {
+      allow read, delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow create, update: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'updatedAt']);
+    }
+
     // ===== notifications =====
     match /notifications/{notificationId} {
       allow read, delete: if isUser(resource.data.recipientId);
@@ -128,7 +131,11 @@ service cloud.firestore {
         && request.resource.data.recipientId != request.auth.uid
         && request.resource.data.isRead == false
         && request.resource.data.keys().hasOnly([
-          'recipientId', 'type', 'title', 'body', 'link', 'isRead', 'createdAt']);
+          'recipientId', 'senderId', 'type', 'title', 'body', 'link', 'isRead', 'createdAt'])
+        // 보낸 사람은 작성자 본인만 (푸시 발송이 호출자와 대조한다). 이전 버전 클라이언트는 없이 보낸다
+        && request.resource.data.get('senderId', request.auth.uid) == request.auth.uid
+        // 푸시는 방금 만든 알림만 보내므로 생성 시각을 클라이언트가 정하지 못하게 한다
+        && request.resource.data.createdAt == request.time;
 
       allow update: if isUser(resource.data.recipientId)
         && changedOnly(['isRead']);

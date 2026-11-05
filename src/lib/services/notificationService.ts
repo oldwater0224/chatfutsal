@@ -9,10 +9,11 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import { NotificationType } from "../../types";
 
 // 트랜잭션 등에서 직접 set할 때도 같은 필드 구성을 쓰도록 분리
+// senderId는 보안 규칙이 작성자 uid와 같은지 확인하고, 푸시 발송(/api/push)이 호출자와 대조한다
 export function buildNotification(
   recipientId: string,
   type: NotificationType,
@@ -20,8 +21,10 @@ export function buildNotification(
   body: string,
   link: string,
 ) {
+  const senderId = auth.currentUser?.uid;
   return {
     recipientId,
+    ...(senderId && { senderId }),
     type,
     title,
     body,

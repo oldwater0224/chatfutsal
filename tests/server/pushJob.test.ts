@@ -4,12 +4,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { collection, doc, Firestore, getDoc, getDocs, setDoc } from 'firebase/firestore';
 
-const sent: { token: string; notificationId: string }[] = [];
+const sent: { token: string; notificationId: string; title: string }[] = [];
 vi.mock('../../src/lib/server/fcm', () => ({
-  sendFcmMessage: vi.fn(async (message: { message: { token: string; data: { notificationId: string } } }) => {
-    sent.push({ token: message.message.token, notificationId: message.message.data.notificationId });
-    return message.message.token === 'stale-token' ? 'stale' : 'sent';
-  }),
+  sendFcmMessage: vi.fn(
+    async (message: { message: { token: string; data: { notificationId: string; title: string } } }) => {
+      const { token, data } = message.message;
+      sent.push({ token, notificationId: data.notificationId, title: data.title });
+      return token === 'stale-token' ? 'stale' : 'sent';
+    },
+  ),
 }));
 
 import { sendPushForNotifications } from '../../src/lib/server/pushJob';
@@ -26,8 +29,9 @@ async function withAdmin<T>(fn: (f: Firestore) => Promise<T>): Promise<T> {
 
 const notification = (createdAt: Date) => ({
   recipientId: 'bob',
+  senderId: 'alice',
   type: 'new_message',
-  title: 'Alice님의 새 메시지',
+  title: '[관리자] 계정 확인 필요',
   body: '안녕',
   link: '/chat/r1',
   isRead: false,
@@ -47,8 +51,10 @@ beforeEach(async () => {
   sent.length = 0;
   await env.clearFirestore();
   await withAdmin(async (db) => {
-    await setDoc(doc(db, 'users/bob/fcmTokens/good-token'), { token: 'good-token', updatedAt: new Date() });
-    await setDoc(doc(db, 'users/bob/fcmTokens/stale-token'), { token: 'stale-token', updatedAt: new Date() });
+    await setDoc(doc(db, 'users/alice'), { displayName: 'Alice' });
+    await setDoc(doc(db, 'fcmTokens/good-token'), { uid: 'bob', updatedAt: new Date() });
+    await setDoc(doc(db, 'fcmTokens/stale-token'), { uid: 'bob', updatedAt: new Date() });
+    await setDoc(doc(db, 'fcmTokens/carol-token'), { uid: 'carol', updatedAt: new Date() });
   });
 });
 
@@ -58,11 +64,11 @@ describe('sendPushForNotifications', () => {
 
     const result = await sendPushForNotifications(['n1'], 'alice');
 
-    expect(result).toEqual({ notifications: 1, sent: 1, staleTokens: 1 });
+    expect(result).toEqual({ notifications: 1, sent: 1, staleTokens: 1, errors: 0 });
     expect(sent.map((s) => s.token).sort()).toEqual(['good-token', 'stale-token']);
     await withAdmin(async (db) => {
-      const tokens = await getDocs(collection(db, 'users/bob/fcmTokens'));
-      expect(tokens.docs.map((d) => d.id)).toEqual(['good-token']);
+      const tokens = await getDocs(collection(db, 'fcmTokens'));
+      expect(tokens.docs.map((d) => d.id).sort()).toEqual(['carol-token', 'good-token']);
       expect((await getDoc(doc(db, 'notifications/n1'))).data()?.pushedAt).toBeTruthy();
     });
   });
@@ -89,5 +95,38 @@ describe('sendPushForNotifications', () => {
 
     expect(result.notifications).toBe(0);
     expect(sent).toHaveLength(0);
+  });
+
+  it('저장된 title 대신 보낸 사람 닉네임으로 만든 제목을 쓴다', async () => {
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n1'), notification(new Date())));
+
+    await sendPushForNotifications(['n1'], 'alice');
+
+    expect(sent.map((s) => s.title)).toEqual(['Alice님의 새 메시지', 'Alice님의 새 메시지']);
+  });
+
+  it('다른 사람이 만든 알림은 보내지 않는다', async () => {
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n1'), notification(new Date())));
+
+    const result = await sendPushForNotifications(['n1'], 'carol');
+
+    expect(result.notifications).toBe(0);
+    expect(sent).toHaveLength(0);
+  });
+
+  it('크론(호출자 없음)은 문서의 title을 그대로 쓴다', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { senderId, ...serverNotification } = notification(new Date());
+    await withAdmin((db) =>
+      setDoc(doc(db, 'notifications/n1'), {
+        ...serverNotification,
+        type: 'recruit_closed',
+        title: '모집이 마감되었어요',
+      }),
+    );
+
+    await sendPushForNotifications(['n1'], null);
+
+    expect(sent.map((s) => s.title)).toEqual(['모집이 마감되었어요', '모집이 마감되었어요']);
   });
 });

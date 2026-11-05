@@ -45,6 +45,21 @@ async function firestoreToken(): Promise<string> {
   return accessToken(SCOPES.datastore);
 }
 
+export class FirestoreRequestError extends Error {
+  constructor(
+    path: string,
+    readonly status: number,
+    readonly body: string,
+  ) {
+    super(`Firestore 요청 실패 (${path}): ${status} ${body}`);
+  }
+
+  // 쓰기 사전 조건(currentDocument)이 맞지 않음
+  get isPreconditionFailure(): boolean {
+    return this.body.includes("FAILED_PRECONDITION");
+  }
+}
+
 async function request<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${baseUrl()}/${path}`, {
     method: body === undefined ? "GET" : "POST",
@@ -54,7 +69,7 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Firestore 요청 실패 (${path}): ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new FirestoreRequestError(path, res.status, await res.text());
   return (await res.json()) as T;
 }
 
@@ -149,21 +164,6 @@ export async function getDocuments(names: string[]): Promise<RestDocument[]> {
     documents: names,
   });
   return rows.filter((row) => row.found).map((row) => toRestDocument(row.found!));
-}
-
-// 하위 컬렉션 문서를 모두 읽는다 (예: users/{uid}/fcmTokens)
-export async function listDocuments(parentName: string, collectionId: string): Promise<RestDocument[]> {
-  const docs: RestDocument[] = [];
-  let pageToken = "";
-  do {
-    const params = new URLSearchParams({ pageSize: "300", ...(pageToken && { pageToken }) });
-    const page = await request<{ documents?: RawDocument[]; nextPageToken?: string }>(
-      `${parentName}/${collectionId}?${params}`,
-    );
-    docs.push(...(page.documents ?? []).map(toRestDocument));
-    pageToken = page.nextPageToken ?? "";
-  } while (pageToken);
-  return docs;
 }
 
 // 500개 단위로 나눠 커밋한다. 앞쪽 쓰기가 먼저 반영된다.

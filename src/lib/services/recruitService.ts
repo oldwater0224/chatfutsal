@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   runTransaction,
@@ -14,11 +15,16 @@ import { db } from "../firebase";
 import { applicantsToNotifyOnDelete, assertCanReopen } from "./applicationRules";
 import { BatchOp, commitInChunks } from "./batchUtils";
 import { buildNotification } from "./notificationService";
+import { requestPush } from "./pushService";
+import { nameForCopy } from "./userRules";
 
 // 게시글 생성
+// authorName은 호출자가 넘긴 값 대신 users 문서의 현재 닉네임(없으면 '사용자')을 저장한다.
+// 보안 규칙이 이 두 값만 허용하므로, 화면의 오래된 userData나 Auth 프로필 이름으로 저장하다 거부되지 않게 한다.
+// 인자는 기존 호출부 호환을 위해 남겨 두었고 쓰지 않는다.
 export async function createRecruitPost(
   authorId: string,
-  authorName: string,
+  _authorName: string,
   postData: {
     title: string;
     content: string;
@@ -34,9 +40,10 @@ export async function createRecruitPost(
     needCount: number;
   },
 ): Promise<string> {
+  const author = await getDoc(doc(db, "users", authorId));
   const docRef = await addDoc(collection(db, "recruitPosts"), {
     authorId,
-    authorName,
+    authorName: nameForCopy(author.data()?.displayName),
     ...postData,
     status: "open",
     createdAt: serverTimestamp(),
@@ -65,19 +72,22 @@ export async function deleteRecruitPost(postId: string, postTitle: string): Prom
     query(collection(db, "applications"), where("postId", "==", postId)),
   );
   const apps = appsSnap.docs.map((d) => d.data() as Application);
+  const notifyIds = applicantsToNotifyOnDelete(apps);
+  const notiRefs = notifyIds.map(() => doc(collection(db, "notifications")));
 
   const ops: BatchOp[] = [
     (batch) => batch.delete(doc(db, "recruitPosts", postId)),
     ...appsSnap.docs.map((d): BatchOp => (batch) => batch.delete(d.ref)),
-    ...applicantsToNotifyOnDelete(apps).map((applicantId): BatchOp => (batch) =>
+    ...notifyIds.map((applicantId, i): BatchOp => (batch) =>
       batch.set(
-        doc(collection(db, "notifications")),
+        notiRefs[i],
         buildNotification(applicantId, "recruit_deleted", "모집이 취소되었어요", postTitle, "/"),
       ),
     ),
   ];
 
   await commitInChunks(ops);
+  requestPush(notiRefs.map((ref) => ref.id));
 }
 
 // 모집 마감

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { DISPLAY_NAME_MAX, DISPLAY_NAME_MIN, validateDisplayName } from "../lib/services/userRules";
 import { AuthFormProps } from "../types";
 import Logo from "./Logo";
 import { fieldInputClass, fieldLabelClass, primaryButtonClass } from "./ui/styles";
@@ -15,14 +16,25 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  // 입력을 마치거나 제출을 시도한 뒤에만 닉네임 오류를 보여준다
+  const [nameTouched, setNameTouched] = useState(false);
+
+  const isSignup = mode === "signup";
+  const nameCheck = isSignup ? validateDisplayName(displayName) : null;
+  const nameError = nameCheck && !nameCheck.ok && nameCheck.reason === "invalid" ? nameCheck.message : "";
+  const showNameError = nameTouched && !!nameError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSignup && nameError) {
+      setNameTouched(true);
+      return;
+    }
     setError("");
     setIsLoading(true);
 
     try {
-      await onSubmit(email, password, displayName);
+      await onSubmit(email, password, nameCheck?.ok ? nameCheck.value : displayName);
     } catch (e) {
       setError(e instanceof Error ? e.message : "unknown error");
     } finally {
@@ -58,9 +70,19 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  onBlur={() => setNameTouched(true)}
                   className={fieldInputClass}
                   placeholder="풋살러1"
+                  autoComplete="nickname"
+                  aria-invalid={showNameError}
+                  aria-describedby="displayName-help"
                 />
+                <p
+                  id="displayName-help"
+                  className={`mt-2 text-[13px] ${showNameError ? "text-red-500" : "text-gray-400"}`}
+                >
+                  {showNameError ? nameError : `${DISPLAY_NAME_MIN}~${DISPLAY_NAME_MAX}자`}
+                </p>
               </div>
             )}
             {/* email */}
@@ -107,7 +129,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || showNameError}
               className={`${primaryButtonClass} w-full h-12 text-[15px] mt-2`}
             >
               {isLoading

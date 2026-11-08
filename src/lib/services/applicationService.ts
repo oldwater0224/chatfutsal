@@ -12,6 +12,7 @@ import {
 import { Application, RecruitPost } from "../../types";
 import { db } from "../firebase";
 import { buildNotification } from "./notificationService";
+import { requestPush } from "./pushService";
 import {
   assertCanApply,
   assertPending,
@@ -19,17 +20,20 @@ import {
   pendingApplications,
 } from "./applicationRules";
 import { BatchOp, commitInChunks } from "./batchUtils";
+import { nameForCopy } from "./userRules";
 
 // 신청·수락·거절·취소는 모두 트랜잭션으로 처리한다.
 // 모집글을 함께 읽고 쓰기 때문에 동시 요청이 겹치면 Firestore가 재시도하고,
 // 재시도 시 최신 상태로 다시 검증되어 중복 신청이나 정원 초과가 막힌다.
 
 // 참가 신청
+// applicantName은 호출자가 넘긴 값 대신 users 문서의 현재 닉네임(없으면 '사용자')을 저장한다.
+// 보안 규칙이 이 두 값만 허용한다. 인자는 기존 호출부 호환을 위해 남겨 두었고 쓰지 않는다.
 export async function applyToPost(
   postId: string,
   postTitle: string,
   applicantId: string,
-  applicantName: string,
+  _applicantName: string,
   authorId: string,
   message: string,
 ): Promise<string> {
@@ -37,9 +41,12 @@ export async function applyToPost(
   const appRef = doc(collection(db, "applications"));
   const notiRef = doc(collection(db, "notifications"));
 
+  const applicantRef = doc(db, "users", applicantId);
+
   await runTransaction(db, async (tx) => {
-    const postSnap = await tx.get(postRef);
+    const [postSnap, applicantSnap] = await Promise.all([tx.get(postRef), tx.get(applicantRef)]);
     assertCanApply(postSnap.data() as RecruitPost | undefined, applicantId);
+    const applicantName = nameForCopy(applicantSnap.data()?.displayName);
 
     tx.set(appRef, {
       postId,
@@ -65,6 +72,7 @@ export async function applyToPost(
     );
   });
 
+  requestPush([notiRef.id]);
   return appRef.id;
 }
 
@@ -122,6 +130,8 @@ export async function acceptApplication(
     return shouldClose ? appData!.postTitle : null;
   });
 
+  requestPush([notiRef.id]);
+
   // 정원이 차서 마감됐으면 남은 대기 신청을 정리한다.
   // 마감 후에는 보안 규칙상 새 신청이 생기지 않으므로 트랜잭션 밖에서 처리해도 안전하다.
   if (closed !== null) await closePendingApplications(postId, closed);
@@ -155,6 +165,8 @@ export async function closePendingApplications(
   const postRef = doc(db, "recruitPosts", postId);
   const applicantIds = pending.map((app) => app.applicantId);
 
+  const notiRefs = pending.map(() => doc(collection(db, "notifications")));
+
   const ops: BatchOp[] = [
     (batch) =>
       batch.update(postRef, {
@@ -162,11 +174,11 @@ export async function closePendingApplications(
         ...(applicantIds.length > 0 && { applicantIds: arrayRemove(...applicantIds) }),
         updatedAt: serverTimestamp(),
       }),
-    ...pending.flatMap((app): BatchOp[] => [
+    ...pending.flatMap((app, i): BatchOp[] => [
       (batch) => batch.update(app.ref, { status: "closed", updatedAt: serverTimestamp() }),
       (batch) =>
         batch.set(
-          doc(collection(db, "notifications")),
+          notiRefs[i],
           buildNotification(
             app.applicantId,
             "recruit_closed",
@@ -179,6 +191,7 @@ export async function closePendingApplications(
   ];
 
   await commitInChunks(ops);
+  requestPush(notiRefs.map((ref) => ref.id));
 }
 
 // 신청 거절
@@ -210,4 +223,6 @@ export async function rejectApplication(
       ),
     );
   });
+
+  requestPush([notiRef.id]);
 }

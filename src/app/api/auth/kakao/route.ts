@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createCustomToken } from "@/src/lib/firebase-admin";
+import { toInitialDisplayName } from "@/src/lib/services/userRules";
 
 interface KakaoTokenResponse {
   access_token: string;
@@ -63,8 +64,8 @@ export async function POST(request: NextRequest) {
 
     const kakaoUser: KakaoUserResponse = await userRes.json();
     const uid = `kakao_${kakaoUser.id}`;
-    const nickname =
-      kakaoUser.kakao_account?.profile?.nickname ?? "카카오 사용자";
+    // 최초 가입 때 users 문서에 그대로 저장되므로 닉네임 규칙(보안 규칙 validName)에 맞게 다듬는다
+    const nickname = toInitialDisplayName(kakaoUser.kakao_account?.profile?.nickname);
     const profileImage =
       kakaoUser.kakao_account?.profile?.profile_image_url ?? null;
 

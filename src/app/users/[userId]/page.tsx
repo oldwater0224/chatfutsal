@@ -17,7 +17,7 @@ export default function UserProfilePage() {
   const router = useRouter();
   const targetUserId = params.userId as string;
 
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, userData } = useAuth();
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startingChat, setStartingChat] = useState(false);
@@ -38,8 +38,10 @@ export default function UserProfilePage() {
     setStartingChat(true);
     try {
       const roomId = await startChat(
-        { uid: currentUser.uid, displayName: currentUser.displayName || "사용자" },
-        { uid: targetUser.uid, displayName: targetUser.displayName },
+        // 보안 규칙이 채팅방의 내 이름을 users 문서 닉네임과 비교하므로 같은 출처를 쓴다
+        // Auth 프로필 이름은 users 문서와 다를 수 있어 대체값으로 쓰지 않는다
+        { uid: currentUser.uid, displayName: userData?.displayName || "사용자" },
+        { uid: targetUser.uid, displayName: targetUser.displayName || "사용자" },
       );
       router.push(`/chat/${roomId}`);
     } catch (e) {

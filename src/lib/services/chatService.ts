@@ -15,6 +15,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { nameForCopy } from "./userRules";
 
 // 안 읽은 메시지를 셀 때 확인하는 최근 메시지 수 (채팅 목록 배지는 99+로 표시)
 export const UNREAD_SCAN_LIMIT = 100;
@@ -87,18 +88,27 @@ export async function updateMyNameInChatRooms(uid: string, name: string): Promis
   return failed.length;
 }
 
+// 채팅방에 복사할 이름: users 문서의 현재 닉네임 (없으면 '사용자')
+// 보안 규칙이 이 두 값만 허용하므로, 화면이 넘긴 이름(오래된 userData, Auth 프로필, 글에 복사된 이름)은 쓰지 않는다.
+async function nameForChat(uid: string): Promise<string> {
+  const snap = await getDoc(doc(db, "users", uid));
+  return nameForCopy(snap.data()?.displayName);
+}
+
 // 새 채팅방 생성
+// participantNames는 넘겨받은 displayName 대신 각자의 users 문서 닉네임으로 채운다 (nameForChat)
 export async function createChatRoom(
   user1: { uid: string; displayName: string },
   user2: { uid: string; displayName: string },
 ): Promise<string> {
   const participants = [user1.uid, user2.uid].sort();
+  const [name1, name2] = await Promise.all([nameForChat(user1.uid), nameForChat(user2.uid)]);
 
   const chatRoomData = {
     participants,
     participantNames: {
-      [user1.uid]: user1.displayName,
-      [user2.uid]: user2.displayName,
+      [user1.uid]: name1,
+      [user2.uid]: name2,
     },
     lastMessage: "",
     lastMessageAt: serverTimestamp(),
@@ -118,11 +128,15 @@ export async function startChat(
   const existingRoom = await findExistingChatRoom(currentUser.uid, targetUser.uid);
 
   if (existingRoom) {
-    // 닉네임을 바꾸기 전에 만든 방이면 내 이름을 바로잡는다. 실패해도 채팅은 연다.
-    if (existingRoom.participantNames[currentUser.uid] !== currentUser.displayName) {
-      await updateMyNameInRoom(existingRoom.id, currentUser.uid, currentUser.displayName).catch(
-        (error) => console.error("채팅방 이름 갱신 실패:", error),
-      );
+    // 닉네임을 바꾸기 전에 만든 방이면 내 이름을 users 문서 닉네임으로 바로잡는다. 실패해도 채팅은 연다.
+    // (보안 규칙이 users 문서와 같은 값만 허용하므로 넘겨받은 이름이 아니라 users 문서를 읽는다)
+    try {
+      const myName = (await getDoc(doc(db, "users", currentUser.uid))).data()?.displayName;
+      if (typeof myName === "string" && myName && existingRoom.participantNames[currentUser.uid] !== myName) {
+        await updateMyNameInRoom(existingRoom.id, currentUser.uid, myName);
+      }
+    } catch (error) {
+      console.error("채팅방 이름 갱신 실패:", error);
     }
     return existingRoom.id;
   }

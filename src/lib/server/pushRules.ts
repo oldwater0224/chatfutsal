@@ -1,6 +1,7 @@
 // 푸시 발송 판정과 메시지 생성 (네트워크 의존성 없는 순수 함수)
 // docs/features/푸시알림.md 4장
 
+import { isValidDisplayName } from "../services/userRules";
 import { isInternalPath } from "../utils/internalLink";
 
 export const PUSH_MAX_AGE_MS = 2 * 60 * 1000;
@@ -34,21 +35,24 @@ export function shouldPush(doc: PushNotificationDoc, callerId: string | null, no
 
 // 클라이언트가 만든 알림의 title은 작성자가 마음대로 쓸 수 있으므로 푸시에 쓰지 않는다.
 // 대신 알림 종류와 보낸 사람의 현재 닉네임(users 문서)으로 서버가 제목을 만든다.
-const CLIENT_PUSH_TITLES: Record<string, (name: string) => string> = {
-  new_message: (name) => `${name}님의 새 메시지`,
-  application_received: (name) => `${name}님이 참가 신청했어요`,
-  application_accepted: (name) => `${name}님이 참가 신청을 수락했어요`,
-  application_rejected: (name) => `${name}님이 참가 신청을 거절했어요`,
-  recruit_deleted: (name) => `${name}님이 모집을 취소했어요`,
-  recruit_closed: (name) => `${name}님의 모집이 마감되었어요`,
+// 닉네임이 없거나 현재 규칙에 맞지 않으면(예전에 저장된 긴 이름, 금지 문자) 이름 없는 제목을 쓴다.
+const CLIENT_PUSH_TITLES: Record<string, { named: (name: string) => string; generic: string }> = {
+  new_message: { named: (name) => `${name}님의 새 메시지`, generic: "새 메시지가 도착했어요" },
+  application_received: { named: (name) => `${name}님이 참가 신청했어요`, generic: "새 참가 신청이 도착했어요" },
+  application_accepted: { named: (name) => `${name}님이 참가 신청을 수락했어요`, generic: "참가 신청이 수락되었어요" },
+  application_rejected: { named: (name) => `${name}님이 참가 신청을 거절했어요`, generic: "참가 신청이 거절되었어요" },
+  recruit_deleted: { named: (name) => `${name}님이 모집을 취소했어요`, generic: "모집이 취소되었어요" },
+  recruit_closed: { named: (name) => `${name}님의 모집이 마감되었어요`, generic: "모집이 마감되었어요" },
 };
 
 export const PUSH_BODY_MAX = 100;
 
-// 알 수 없는 종류면 null (보내지 않는다)
-export function clientPushTitle(type: unknown, senderName: string): string | null {
-  const template = typeof type === "string" ? CLIENT_PUSH_TITLES[type] : undefined;
-  return template ? template(senderName) : null;
+// 알 수 없는 종류면 null (보내지 않는다).
+// "constructor"·"__proto__" 같은 프로토타입 키가 템플릿으로 잡히지 않게 자기 속성만 본다.
+export function clientPushTitle(type: unknown, senderName: unknown): string | null {
+  if (typeof type !== "string" || !Object.hasOwn(CLIENT_PUSH_TITLES, type)) return null;
+  const template = CLIENT_PUSH_TITLES[type];
+  return isValidDisplayName(senderName) ? template.named(senderName) : template.generic;
 }
 
 // 요청 본문에서 알림 ID 목록을 꺼낸다 (중복 제거, 최대 개수 제한)

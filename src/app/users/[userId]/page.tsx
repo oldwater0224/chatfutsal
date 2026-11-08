@@ -39,8 +39,9 @@ export default function UserProfilePage() {
     try {
       const roomId = await startChat(
         // 보안 규칙이 채팅방의 내 이름을 users 문서 닉네임과 비교하므로 같은 출처를 쓴다
-        { uid: currentUser.uid, displayName: userData?.displayName || currentUser.displayName || "사용자" },
-        { uid: targetUser.uid, displayName: targetUser.displayName },
+        // Auth 프로필 이름은 users 문서와 다를 수 있어 대체값으로 쓰지 않는다
+        { uid: currentUser.uid, displayName: userData?.displayName || "사용자" },
+        { uid: targetUser.uid, displayName: targetUser.displayName || "사용자" },
       );
       router.push(`/chat/${roomId}`);
     } catch (e) {

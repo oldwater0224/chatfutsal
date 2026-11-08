@@ -27,11 +27,41 @@ service cloud.firestore {
         .difference(request.resource.data.get(field, []).toSet());
     }
 
+    // ===== 닉네임 =====
+    // 클라이언트 검사(src/lib/services/userRules.ts)와 같은 규칙. size()는 UTF-16 코드 단위라
+    // 클라이언트의 12자(코드 포인트)는 최대 24단위가 된다. ZWJ(이모지 조합)는 허용한다.
+    // 금지 문자: C0 제어문자·DEL, 보이지 않는 문자(U+200B, U+2060, U+FEFF), 방향 제어(U+202A-202E, U+2066-2069)
+    function validName(v) {
+      return v is string
+        && v.size() >= 2
+        && v.size() <= 24
+        && v.trim() == v
+        && !v.matches('(?s).*[\\x{0}-\\x{1F}\\x{7F}\\x{200B}\\x{2060}\\x{FEFF}\\x{202A}-\\x{202E}\\x{2066}-\\x{2069}].*');
+    }
+
+    // 다른 문서에 복사하는 이름(authorName, applicantName, participantNames)은
+    // 그 사용자의 users 문서 닉네임과 같거나 기본값 '사용자'여야 한다.
+    // 형식 검사는 하지 않는다 (예전에 저장된 긴 닉네임도 그대로 복사할 수 있게)
+    function copiedNameOf(v, uid) {
+      return v is string
+        && (v == '사용자'
+          || (exists(/databases/$(database)/documents/users/$(uid))
+            && get(/databases/$(database)/documents/users/$(uid)).data.get('displayName', null) == v));
+    }
+
     // ===== users =====
     match /users/{userId} {
-      allow read: if signedIn();
-      allow create, update: if isUser(userId);
+      // 닉네임을 건드릴 때만 검사한다. 예전 규칙으로 저장된 닉네임이 있어도 다른 필드는 바꿀 수 있고,
+      // 닉네임 삭제는 validName(null)이 거짓이라 막힌다.
+      function nameUnchangedOrValid() {
+        return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName'])
+          || validName(request.resource.data.get('displayName', null));
+      }
 
+      allow read: if signedIn();
+      allow create: if isUser(userId)
+        && validName(request.resource.data.get('displayName', null));
+      allow update: if isUser(userId) && nameUnchangedOrValid();
     }
 
     // ===== recruitPosts =====
@@ -47,12 +77,15 @@ service cloud.firestore {
       allow read: if signedIn();
 
       allow create: if isUser(request.resource.data.authorId)
-        && request.resource.data.status == 'open';
+        && request.resource.data.status == 'open'
+        && copiedNameOf(request.resource.data.get('authorName', null), request.auth.uid);
 
       allow update: if
-        // 작성자: 자유롭게 수정 (작성자 변경은 불가)
+        // 작성자: 자유롭게 수정 (작성자 변경은 불가, 작성자 이름은 바꿀 때만 현재 닉네임으로)
         (isUser(resource.data.authorId)
-          && request.resource.data.authorId == resource.data.authorId)
+          && request.resource.data.authorId == resource.data.authorId
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['authorName'])
+            || copiedNameOf(request.resource.data.get('authorName', null), request.auth.uid)))
         // 신청자: 모집 중인 글의 applicantIds에 자기 uid만 추가
         || (signedIn()
           && resource.data.status == 'open'
@@ -88,6 +121,7 @@ service cloud.firestore {
           'postId', 'postTitle', 'applicantId', 'applicantName',
           'authorId', 'message', 'status', 'createdAt', 'updatedAt'])
         && request.resource.data.status == 'pending'
+        && copiedNameOf(request.resource.data.get('applicantName', null), request.auth.uid)
         && postOf(request.resource.data.postId).status == 'open'
         && request.resource.data.authorId == postOf(request.resource.data.postId).authorId
         && request.resource.data.authorId != request.auth.uid
@@ -150,10 +184,22 @@ service cloud.firestore {
 
       allow read, delete: if signedIn() && request.auth.uid in resource.data.participants;
 
+      // 새 방의 participantNames: 참여자 항목만, 각 값은 그 사람의 users 문서 닉네임 또는 '사용자'
+      // (항목이 없으면 화면이 '사용자'로 표시하므로 허용)
+      function participantNamesValid(data) {
+        let names = data.get('participantNames', {});
+        let p = data.participants;
+        return names is map
+          && names.keys().hasOnly(p)
+          && copiedNameOf(names.get(p[0], '사용자'), p[0])
+          && copiedNameOf(names.get(p[1], '사용자'), p[1]);
+      }
+
       allow create: if signedIn()
         && request.resource.data.participants is list
         && request.resource.data.participants.size() == 2
-        && request.auth.uid in request.resource.data.participants;
+        && request.auth.uid in request.resource.data.participants
+        && participantNamesValid(request.resource.data);
 
       // 닉네임 변경 반영: participantNames에서 내 항목만, 내 users 문서의 현재 닉네임으로
       function changesOnlyOwnName() {

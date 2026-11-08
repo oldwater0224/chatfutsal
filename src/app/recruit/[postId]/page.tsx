@@ -147,7 +147,8 @@ export default function RecruitDetailPage() {
 
     try {
       // authorName은 글 작성 시점 이름이라, 새 채팅방에는 작성자의 현재 닉네임을 넣는다
-      const authorName = (await getDisplayName(post.authorId).catch(() => null)) || post.authorName;
+      // 조회에 실패하면 보안 규칙이 허용하는 기본값 "사용자"를 쓴다 (옛 이름은 users 문서와 달라 거부된다)
+      const authorName = (await getDisplayName(post.authorId).catch(() => null)) || "사용자";
       const roomId = await startChat(
         { uid: user.uid, displayName: userData.displayName || "사용자" },
         { uid: post.authorId, displayName: authorName },

@@ -11,6 +11,7 @@ import {
   arrayUnion,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   Firestore,
   getDoc,
@@ -32,6 +33,9 @@ let env: RulesTestEnvironment;
 const AUTHOR = 'alice';
 const APPLICANT = 'bob';
 const OTHER = 'carol';
+
+// users 문서 닉네임 (복사된 이름은 이 값과 같아야 한다)
+const NAMES: Record<string, string> = { [AUTHOR]: 'Alice', [APPLICANT]: 'Bob', [OTHER]: 'Carol' };
 
 const db = (uid?: string) =>
   (uid ? env.authenticatedContext(uid) : env.unauthenticatedContext()).firestore() as unknown as Firestore;
@@ -68,7 +72,7 @@ const notification = (recipientId: string) => ({
 });
 
 // applicationService.applyToPost와 같은 형태의 트랜잭션
-async function apply(uid: string, postId = 'p1') {
+async function apply(uid: string, postId = 'p1', applicantName = NAMES[uid]) {
   const f = db(uid);
   const postRef = doc(f, 'recruitPosts', postId);
   await runTransaction(f, async (tx) => {
@@ -77,7 +81,7 @@ async function apply(uid: string, postId = 'p1') {
       postId,
       postTitle: '주말 풋살',
       applicantId: uid,
-      applicantName: uid,
+      applicantName,
       authorId: AUTHOR,
       message: '',
       status: 'pending',
@@ -103,6 +107,7 @@ afterAll(async () => {
 beforeEach(async () => {
   await env.clearFirestore();
   await seed('recruitPosts/p1', futurePost);
+  for (const [uid, displayName] of Object.entries(NAMES)) await seed(`users/${uid}`, { displayName });
 });
 
 describe('기본 거부', () => {
@@ -116,9 +121,62 @@ describe('기본 거부', () => {
 });
 
 describe('users', () => {
+  const NEW = 'dave';
+  const ch = (code: number) => String.fromCharCode(code);
+  const create = (displayName: unknown) => setDoc(doc(db(NEW), 'users', NEW), { displayName });
+  const rename = (displayName: unknown) => updateDoc(doc(db(APPLICANT), 'users', APPLICANT), { displayName });
+
   it('본인 문서만 쓸 수 있다', async () => {
     await assertSucceeds(setDoc(doc(db(APPLICANT), 'users', APPLICANT), { displayName: 'Bob' }));
     await assertFails(setDoc(doc(db(OTHER), 'users', APPLICANT), { displayName: 'hack' }));
+  });
+
+  it('가입 시 닉네임은 2~24 UTF-16 단위여야 한다', async () => {
+    await assertFails(create('김'));
+    await assertSucceeds(create('김밥'));
+    await assertSucceeds(create('가'.repeat(24)));
+    await assertFails(create('가'.repeat(25)));
+  });
+
+  it('닉네임이 없거나 문자열이 아니면 가입할 수 없다', async () => {
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { email: null }));
+    await assertFails(create(123));
+  });
+
+  it('이모지 12개(24단위)는 허용, 13개는 거부', async () => {
+    await assertSucceeds(create('😀'.repeat(12)));
+    await assertFails(rename('😀'.repeat(13)));
+  });
+
+  it('앞뒤 공백이 있으면 거부', async () => {
+    await assertFails(create(' 풋살러'));
+    await assertFails(create('풋살러 '));
+  });
+
+  it('제어문자·보이지 않는 문자·방향 제어 문자는 거부', async () => {
+    for (const code of [0x00, 0x0a, 0x1f, 0x7f, 0x200b, 0x2060, 0xfeff, 0x202a, 0x202e, 0x2066, 0x2069]) {
+      await assertFails(rename(`풋${ch(code)}살`));
+    }
+  });
+
+  it('ZWJ 이모지 조합은 허용', async () => {
+    await assertSucceeds(rename(`풋살👨${ch(0x200d)}👩`));
+  });
+
+  it('닉네임 변경도 같은 규칙으로 검사한다', async () => {
+    await assertSucceeds(rename('새닉네임'));
+    await assertFails(rename('x'));
+  });
+
+  it('예전 규칙으로 저장된 긴 닉네임이 있어도 다른 필드는 바꿀 수 있다', async () => {
+    await seed(`users/${APPLICANT}`, { displayName: '가'.repeat(30) });
+    await assertSucceeds(updateDoc(doc(db(APPLICANT), 'users', APPLICANT), { profileImage: 'x' }));
+    await assertFails(rename('가'.repeat(30) + '나'));
+  });
+
+  it('닉네임을 지울 수 없다', async () => {
+    await assertFails(updateDoc(doc(db(APPLICANT), 'users', APPLICANT), { displayName: deleteField() }));
+    await assertFails(setDoc(doc(db(APPLICANT), 'users', APPLICANT), { profileImage: 'x' }));
   });
 });
 
@@ -179,6 +237,35 @@ describe('recruitPosts', () => {
     await assertFails(setDoc(doc(db(OTHER), 'recruitPosts/p3'), futurePost));
   });
 
+  it('작성자 이름은 users 문서 닉네임이나 기본값만 쓸 수 있다', async () => {
+    const f = db(AUTHOR);
+    await assertSucceeds(setDoc(doc(f, 'recruitPosts/p2'), { ...futurePost, authorName: '사용자' }));
+    await assertFails(setDoc(doc(f, 'recruitPosts/p3'), { ...futurePost, authorName: '운영팀' }));
+    await assertFails(setDoc(doc(f, 'recruitPosts/p4'), { ...futurePost, authorName: 'Bob' }));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { authorName, ...noName } = futurePost;
+    await assertFails(setDoc(doc(f, 'recruitPosts/p5'), noName));
+  });
+
+  it('users 문서가 없으면 기본값으로만 작성할 수 있다', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await deleteDoc(doc(ctx.firestore() as unknown as Firestore, `users/${AUTHOR}`));
+    });
+    const f = db(AUTHOR);
+    await assertFails(setDoc(doc(f, 'recruitPosts/p2'), futurePost));
+    await assertSucceeds(setDoc(doc(f, 'recruitPosts/p3'), { ...futurePost, authorName: '사용자' }));
+  });
+
+  it('작성자 이름은 바꿀 때만 검사한다', async () => {
+    // 글을 쓴 뒤 닉네임을 바꿔 authorName이 users 문서와 달라도 다른 필드는 수정할 수 있다
+    await seed(`users/${AUTHOR}`, { displayName: '새이름' });
+    const ref = doc(db(AUTHOR), 'recruitPosts/p1');
+    await assertSucceeds(updateDoc(ref, { title: '수정' }));
+    await assertFails(updateDoc(ref, { authorName: '운영팀' }));
+    await assertFails(updateDoc(ref, { authorName: deleteField() }));
+    await assertSucceeds(updateDoc(ref, { authorName: '새이름' }));
+  });
+
   it('작성자가 아니면 수정·삭제할 수 없다', async () => {
     await assertSucceeds(updateDoc(doc(db(AUTHOR), 'recruitPosts/p1'), { title: '수정' }));
     await assertFails(updateDoc(doc(db(OTHER), 'recruitPosts/p1'), { acceptedCount: 99 }));
@@ -203,6 +290,12 @@ describe('recruitPosts', () => {
 describe('applications', () => {
   it('트랜잭션으로 신청할 수 있다', async () => {
     await assertSucceeds(apply(APPLICANT));
+  });
+
+  it('신청자 이름은 users 문서 닉네임이나 기본값만 쓸 수 있다', async () => {
+    await assertFails(apply(APPLICANT, 'p1', '운영팀'));
+    await assertFails(apply(APPLICANT, 'p1', 'Alice'));
+    await assertSucceeds(apply(APPLICANT, 'p1', '사용자'));
   });
 
   it('같은 글에 중복 신청할 수 없다', async () => {
@@ -434,6 +527,30 @@ describe('chatRooms', () => {
     await assertFails(setDoc(doc(db(OTHER), 'chatRooms/r3'), { participants: [APPLICANT, AUTHOR] }));
   });
 
+  describe('새 방의 participantNames', () => {
+    const create = (participantNames: Record<string, unknown>, id = 'r2') =>
+      setDoc(doc(db(OTHER), 'chatRooms', id), { participants: [AUTHOR, OTHER].sort(), participantNames });
+
+    it('각자의 users 문서 닉네임이나 기본값이면 만들 수 있다', async () => {
+      await assertSucceeds(create({ [OTHER]: 'Carol', [AUTHOR]: 'Alice' }));
+      await assertSucceeds(create({ [OTHER]: '사용자', [AUTHOR]: '사용자' }, 'r3'));
+      await assertSucceeds(create({ [OTHER]: 'Carol' }, 'r4'));
+    });
+
+    it('상대 이름을 바꿔 쓸 수 없다', async () => {
+      await assertFails(create({ [OTHER]: 'Carol', [AUTHOR]: '운영팀' }));
+      await assertFails(create({ [OTHER]: '관리자', [AUTHOR]: 'Alice' }));
+    });
+
+    it('참여자가 아닌 항목을 넣을 수 없다', async () => {
+      await assertFails(create({ [OTHER]: 'Carol', [AUTHOR]: 'Alice', [APPLICANT]: 'Bob' }));
+    });
+
+    it('이름이 문자열이 아니면 거부', async () => {
+      await assertFails(create({ [OTHER]: 'Carol', [AUTHOR]: null }));
+    });
+  });
+
   it('본인 명의로만 메시지를 보낼 수 있다', async () => {
     await assertSucceeds(
       setDoc(doc(db(APPLICANT), 'chatRooms/r1/messages/m2'), { senderId: APPLICANT, text: 'yo', readBy: [APPLICANT] }),
@@ -514,5 +631,31 @@ describe('chatRooms', () => {
     snap.docs.forEach((d) => batch.delete(d.ref));
     await assertSucceeds(batch.commit());
     await assertSucceeds(deleteDoc(doc(f, 'chatRooms/r1')));
+  });
+});
+
+// 지금 규칙(2자 이상)보다 먼저 저장된 1글자 닉네임 사용자도 기존 기능을 그대로 쓸 수 있어야 한다
+describe('예전 규칙으로 저장된 1글자 닉네임', () => {
+  beforeEach(async () => {
+    await seed(`users/${AUTHOR}`, { displayName: '김' });
+    await seed(`users/${APPLICANT}`, { displayName: '이' });
+    await seed('recruitPosts/p1', { ...futurePost, authorName: '김' });
+  });
+
+  it('다른 필드는 바꿀 수 있고, 닉네임을 같은 값으로 다시 써도 된다', async () => {
+    const ref = doc(db(APPLICANT), 'users', APPLICANT);
+    await assertSucceeds(updateDoc(ref, { profileImage: 'x' }));
+    await assertSucceeds(setDoc(ref, { displayName: '이', profileImage: 'y' }));
+  });
+
+  it('모집글을 쓰고 신청하고 채팅방을 만들 수 있다', async () => {
+    await assertSucceeds(setDoc(doc(db(AUTHOR), 'recruitPosts/p2'), { ...futurePost, authorName: '김' }));
+    await assertSucceeds(apply(APPLICANT, 'p1', '이'));
+    await assertSucceeds(
+      setDoc(doc(db(APPLICANT), 'chatRooms/r9'), {
+        participants: [APPLICANT, AUTHOR].sort(),
+        participantNames: { [APPLICANT]: '이', [AUTHOR]: '김' },
+      }),
+    );
   });
 });

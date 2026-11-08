@@ -70,6 +70,25 @@ describe('clientPushTitle', () => {
     expect(clientPushTitle('admin_notice', 'Alice')).toBeNull();
     expect(clientPushTitle(undefined, 'Alice')).toBeNull();
   });
+
+  it('프로토타입 키는 알림 종류로 보지 않는다', () => {
+    for (const type of ['constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+      expect(clientPushTitle(type, 'Alice')).toBeNull();
+    }
+  });
+
+  it('닉네임이 없거나 규칙에 맞지 않으면 이름 없는 제목', () => {
+    expect(clientPushTitle('new_message', null)).toBe('새 메시지가 도착했어요');
+    expect(clientPushTitle('new_message', undefined)).toBe('새 메시지가 도착했어요');
+    expect(clientPushTitle('new_message', 123)).toBe('새 메시지가 도착했어요');
+    // 예전 규칙으로 저장된 1글자 닉네임
+    expect(clientPushTitle('new_message', '김')).toBe('새 메시지가 도착했어요');
+    expect(clientPushTitle('new_message', '[관리자] 계정 확인이 필요합니다 지금')).toBe('새 메시지가 도착했어요');
+    expect(clientPushTitle('application_received', `Al${String.fromCharCode(0x202e)}ice`)).toBe(
+      '새 참가 신청이 도착했어요',
+    );
+    expect(clientPushTitle('recruit_closed', ' Alice')).toBe('모집이 마감되었어요');
+  });
 });
 
 describe('buildPushMessage', () => {

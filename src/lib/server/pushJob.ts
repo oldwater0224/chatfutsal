@@ -39,11 +39,11 @@ async function claimNotification(name: string, updateTime: string): Promise<bool
   }
 }
 
-// 클라이언트 알림의 푸시 제목에 쓸 보낸 사람 닉네임 (users 문서 기준)
-async function senderName(uid: string): Promise<string | null> {
+// 클라이언트 알림의 푸시 제목에 쓸 보낸 사람 닉네임 (users 문서 기준).
+// 검증은 clientPushTitle이 한다 (없거나 규칙에 맞지 않으면 이름 없는 제목)
+async function senderName(uid: string): Promise<unknown> {
   const [user] = await getDocuments([documentPath("users", uid)]);
-  const name = user?.data.displayName;
-  return typeof name === "string" && name ? name : null;
+  return user?.data.displayName;
 }
 
 // 알림 하나를 발송한다. 다른 요청이 이미 맡았으면 아무것도 하지 않는다
@@ -86,11 +86,11 @@ export async function sendPushForNotifications(
   if (targets.length === 0) return result;
 
   // 클라이언트가 만든 알림은 저장된 title 대신 서버가 만든 제목을 쓴다 (pushRules.clientPushTitle)
-  const name = callerId === null ? null : await senderName(callerId);
-  if (callerId !== null && !name) return result;
+  const name = callerId === null ? undefined : await senderName(callerId);
 
   for (const doc of targets) {
-    const title = name === null ? String(doc.data.title ?? "") : clientPushTitle(doc.data.type, name);
+    const title =
+      callerId === null ? String(doc.data.title ?? "") : clientPushTitle(doc.data.type, name);
     if (!title) continue;
     try {
       await pushOne(doc, title, result);

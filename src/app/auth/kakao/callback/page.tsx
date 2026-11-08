@@ -1,6 +1,7 @@
 "use client";
 
 import { auth, db } from "@/src/lib/firebase";
+import { validateDisplayName } from "@/src/lib/services/userRules";
 import { signInWithCustomToken } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,10 +35,12 @@ function KakaoCallbackContent() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
+          // 카카오 닉네임이 닉네임 규칙(2~12자 등)에 맞지 않으면 기본값으로 가입시킨다
+          const nameCheck = validateDisplayName(data.user.nickname ?? "");
           await setDoc(userRef, {
             uid: data.user.uid,
             email: null,
-            displayName: data.user.nickname,
+            displayName: nameCheck.ok ? nameCheck.value : "사용자",
             provider: "kakao",
             profileImage: data.user.profileImage,
             createdAt: serverTimestamp(),

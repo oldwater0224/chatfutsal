@@ -39,7 +39,12 @@ function ProfileForm({ authUser, currentName }: { authUser: AuthUser; currentNam
       router.push("/mypage");
     } catch (e) {
       console.error("닉네임 변경 에러:", e);
-      setError("닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.");
+      const code = (e as { code?: string } | null)?.code;
+      setError(
+        code === "permission-denied"
+          ? "사용할 수 없는 닉네임이에요."
+          : "닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
+      );
       setIsSaving(false);
     }
   };

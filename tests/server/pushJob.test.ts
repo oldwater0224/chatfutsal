@@ -105,6 +105,34 @@ describe('sendPushForNotifications', () => {
     expect(sent.map((s) => s.title)).toEqual(['Alice님의 새 메시지', 'Alice님의 새 메시지']);
   });
 
+  it('보낸 사람 닉네임이 규칙에 맞지 않거나 없으면 이름 없는 제목을 쓴다', async () => {
+    await withAdmin((db) => setDoc(doc(db, 'users/alice'), { displayName: '[관리자] 계정 확인 필요 지금 바로 확인' }));
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n1'), notification(new Date())));
+
+    await sendPushForNotifications(['n1'], 'alice');
+
+    expect(sent.map((s) => s.title)).toEqual(['새 메시지가 도착했어요', '새 메시지가 도착했어요']);
+
+    sent.length = 0;
+    await withAdmin((db) => setDoc(doc(db, 'users/alice'), { email: null }));
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n2'), notification(new Date())));
+
+    await sendPushForNotifications(['n2'], 'alice');
+
+    // 만료 토큰은 앞의 발송에서 지워졌다
+    expect(sent.map((s) => s.title)).toEqual(['새 메시지가 도착했어요']);
+  });
+
+  it('프로토타입 키(constructor 등)를 종류로 쓴 알림은 보내지 않는다', async () => {
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n1'), { ...notification(new Date()), type: 'constructor' }));
+    await withAdmin((db) => setDoc(doc(db, 'notifications/n2'), { ...notification(new Date()), type: '__proto__' }));
+
+    const result = await sendPushForNotifications(['n1', 'n2'], 'alice');
+
+    expect(result.notifications).toBe(0);
+    expect(sent).toHaveLength(0);
+  });
+
   it('다른 사람이 만든 알림은 보내지 않는다', async () => {
     await withAdmin((db) => setDoc(doc(db, 'notifications/n1'), notification(new Date())));
 

@@ -149,9 +149,10 @@ export const LEVEL_LABELS: Record<string, string> = {
   pro: "프로",
 };
 
+// 레벨은 의미 색 없이 조용한 배지로만 보여준다
 export const LEVEL_COLORS: Record<string, string> = {
-  beginner: "bg-green-100 text-green-700",
-  amateur: "bg-blue-100 text-blue-700",
-  semipro: "bg-purple-100 text-purple-700",
-  pro: "bg-red-100 text-red-700",
+  beginner: "bg-gray-100 text-gray-600",
+  amateur: "bg-gray-100 text-gray-600",
+  semipro: "bg-gray-100 text-gray-600",
+  pro: "bg-gray-100 text-gray-600",
 };

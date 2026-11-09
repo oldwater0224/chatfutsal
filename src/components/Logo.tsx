@@ -1,14 +1,19 @@
 import Link from "next/link";
+import { focusRingClass } from "./ui/styles";
 
 const SIZES = {
-  md: { mark: "w-6 h-6 sm:w-7 sm:h-7", text: "text-lg sm:text-xl", gap: "gap-1.5" },
+  md: { mark: "w-6 h-6 sm:w-7 sm:h-7", text: "text-lg sm:text-xl", gap: "gap-2" },
   lg: { mark: "w-10 h-10", text: "text-3xl", gap: "gap-2" },
 };
 
 export default function Logo({ size = "md" }: { size?: keyof typeof SIZES }) {
   const s = SIZES[size];
   return (
-    <Link href="/" aria-label="ChatFutsal 홈" className={`inline-flex items-center ${s.gap}`}>
+    <Link
+      href="/"
+      aria-label="ChatFutsal 홈"
+      className={`inline-flex items-center rounded-lg ${s.gap} ${focusRingClass}`}
+    >
       <svg viewBox="0 0 32 32" className={`${s.mark} text-green-600`} aria-hidden="true">
         <path
           fill="currentColor"
@@ -20,7 +25,7 @@ export default function Logo({ size = "md" }: { size?: keyof typeof SIZES }) {
           points="16,11.9 18.6,13.8 17.6,16.8 14.4,16.8 13.4,13.8"
         />
       </svg>
-      <span className={`${s.text} font-bold tracking-tight text-gray-900`}>
+      <span className={`${s.text} font-semibold text-gray-900`}>
         chat<span className="text-green-600">futsal</span>
       </span>
     </Link>

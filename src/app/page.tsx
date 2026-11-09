@@ -13,7 +13,14 @@ import Link from "next/link";
 import { CalendarSearch, LogIn, Plus } from "lucide-react";
 import { RecruitPost } from "@/src/types";
 import { formatMatchDate } from "@/src/lib/utils/dateUtils";
-import { primaryButtonClass, secondaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
+import {
+  emptyIconTileClass,
+  fabClass,
+  primaryButtonClass,
+  quietButtonClass,
+  secondaryButtonClass,
+  spinnerClass,
+} from "@/src/components/ui/styles";
 
 function groupByDate(posts: RecruitPost[]) {
   const sorted = [...posts].sort((a, b) =>
@@ -45,9 +52,9 @@ export default function HomePage() {
       <Header />
 
       <main className="pt-14 pb-36">
-        <div className="max-w-2xl mx-auto px-4 pt-3 pb-2">
-          <h1 className="text-[22px] font-bold text-gray-900">용병 모집</h1>
-          <div className="mt-3">
+        <div className="max-w-2xl mx-auto px-4 pt-4 pb-2">
+          <h1 className="text-[22px] font-semibold text-gray-900">용병 모집</h1>
+          <div className="mt-4">
             <SearchBar
               value={filters.keyword}
               onChange={(keyword) => setFilters((prev) => ({ ...prev, keyword }))}
@@ -60,28 +67,28 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto px-4">
           {authLoading || isLoading || (posts.length === 0 && loadingMore) ? (
             <div className="flex items-center justify-center py-24">
-              <div className={spinnerClass} />
+              <div className={spinnerClass} role="status" aria-label="불러오는 중" />
             </div>
           ) : permissionDenied && !user ? (
             <div className="flex flex-col items-center text-center py-20">
-              <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
-                <LogIn className="w-7 h-7 text-green-600" />
+              <div className={emptyIconTileClass}>
+                <LogIn className="w-5 h-5" aria-hidden="true" />
               </div>
               <p className="text-[15px] font-semibold text-gray-900">로그인하면 모집글을 볼 수 있어요</p>
-              <p className="mt-1 text-sm text-gray-500">카카오 계정으로 바로 시작할 수 있어요</p>
-              <div className="mt-5 flex gap-2">
-                <Link href="/login" className={`${primaryButtonClass} h-10 px-5 text-sm`}>
+              <p className="mt-1 text-[13px] text-gray-600">카카오 계정으로 바로 시작할 수 있어요</p>
+              <div className="mt-6 flex gap-2">
+                <Link href="/login" className={`${primaryButtonClass} h-10 px-5 text-[15px]`}>
                   로그인
                 </Link>
-                <Link href="/signup" className={`${secondaryButtonClass} h-10 px-5 text-sm`}>
+                <Link href="/signup" className={`${secondaryButtonClass} h-10 px-5 text-[15px]`}>
                   회원가입
                 </Link>
               </div>
             </div>
           ) : posts.length === 0 ? (
             <div className="flex flex-col items-center text-center py-20">
-              <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
-                <CalendarSearch className="w-7 h-7 text-green-600" />
+              <div className={emptyIconTileClass}>
+                <CalendarSearch className="w-5 h-5" aria-hidden="true" />
               </div>
               <p className="text-[15px] font-semibold text-gray-900">
                 {filters.keyword
@@ -90,22 +97,22 @@ export default function HomePage() {
                     ? "조건에 맞는 모집이 없어요"
                     : "아직 등록된 모집이 없어요"}
               </p>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-[13px] text-gray-600">
                 {hasAnyFilter
                   ? "날짜나 지역을 바꿔서 다시 찾아보세요"
-                  : "같이 뛸 용병을 가장 먼저 모집해보세요"}
+                  : "같이 뛸 용병을 가장 먼저 모집해 보세요"}
               </p>
               {hasAnyFilter ? (
                 <button
                   onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="mt-5 h-10 px-5 rounded-xl bg-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-200 cursor-pointer"
+                  className={`${quietButtonClass} mt-6 h-10 px-5 text-[15px]`}
                 >
                   필터 초기화
                 </button>
               ) : (
                 <Link
                   href={user ? "/create" : "/login"}
-                  className="mt-5 h-10 px-5 inline-flex items-center rounded-xl bg-green-600 text-sm font-semibold text-white hover:bg-green-700"
+                  className={`${primaryButtonClass} mt-6 h-10 px-5 text-[15px]`}
                 >
                   {user ? "첫 모집글 쓰기" : "로그인하고 모집하기"}
                 </Link>
@@ -114,7 +121,7 @@ export default function HomePage() {
           ) : (
             groups.map((group) => (
               <section key={group.date} className="pt-5">
-                <h2 className="text-[15px] font-bold text-gray-900">
+                <h2 className="text-[15px] font-semibold text-gray-900 tabular-nums">
                   {formatMatchDate(group.date)}
                 </h2>
                 <div>
@@ -127,7 +134,7 @@ export default function HomePage() {
           )}
           {!(authLoading || isLoading) && posts.length > 0 && loadingMore && (
             <div className="flex justify-center py-4">
-              <div className={spinnerClass} />
+              <div className={spinnerClass} role="status" aria-label="불러오는 중" />
             </div>
           )}
           {!(authLoading || isLoading) && !permissionDenied && hasMore && (
@@ -141,9 +148,9 @@ export default function HomePage() {
           <div className="max-w-2xl mx-auto px-4 flex justify-end">
             <Link
               href="/create"
-              className="pointer-events-auto h-12 pl-4 pr-5 inline-flex items-center gap-1.5 rounded-full bg-green-600 text-white text-sm font-semibold shadow-lg shadow-green-600/25 hover:bg-green-700"
+              className={`${fabClass} pointer-events-auto`}
             >
-              <Plus className="w-4 h-4" strokeWidth={2.5} />
+              <Plus className="w-5 h-5" aria-hidden="true" />
               모집하기
             </Link>
           </div>

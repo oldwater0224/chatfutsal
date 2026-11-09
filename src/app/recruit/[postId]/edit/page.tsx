@@ -1,7 +1,14 @@
 "use client";
 
 import SubHeader, { headerActionButtonClass } from "@/src/components/SubHeader";
-import { fieldInputClass, fieldLabelClass, fieldTextareaClass, spinnerClass } from "@/src/components/ui/styles";
+import {
+  fieldInputClass,
+  fieldLabelClass,
+  fieldTextareaClass,
+  focusRingClass,
+  spinnerClass,
+} from "@/src/components/ui/styles";
+import { Minus, Plus } from "lucide-react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { db } from "@/src/lib/firebase";
 import { updateRecruitPost } from "@/src/lib/services";
@@ -13,6 +20,9 @@ import KakaoMapSearch from "@/src/components/KakaoMapSearch";
 import { getTodayString } from "@/src/lib/utils/dateUtils";
 
 const LEVELS = Object.entries(LEVEL_LABELS).map(([value, label]) => ({ value: value as RecruitPost["level"], label }));
+
+const stepperButtonClass = `w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-900 hover:bg-gray-50 disabled:text-gray-300 disabled:hover:bg-transparent cursor-pointer disabled:cursor-default transition-colors ${focusRingClass}`;
+
 
 export default function EditRecruitPage() {
   const params = useParams();
@@ -64,7 +74,7 @@ export default function EditRecruitPage() {
 
           // 작성자 확인
           if (user && data.authorId !== user.uid) {
-            alert("수정 권한이 없습니다.");
+            alert("이 글을 수정할 권한이 없어요");
             router.push(`/recruit/${postId}`);
             return;
           }
@@ -85,12 +95,12 @@ export default function EditRecruitPage() {
             needCount: data.needCount || 1,
           });
         } else {
-          alert("게시글을 찾을 수 없습니다.");
+          alert("모집글을 찾을 수 없어요");
           router.push("/");
         }
       } catch (error) {
         console.error("게시글 불러오기 실패", error);
-        alert("게시글을 불러오는데에 실패했습니다.");
+        alert("모집글을 불러오지 못했어요");
       }
       setIsLoading(false);
     };
@@ -118,16 +128,16 @@ export default function EditRecruitPage() {
       return;
     }
     if (!formData.date) {
-      alert("경기 날짜를 선택해주세요.");
+      alert("경기 날짜를 선택해 주세요");
       return;
     }
     if (!formData.time) {
-      alert("경기 시간을 선택해주세요.");
+      alert("경기 시간을 선택해 주세요");
       return;
     }
     //지도 선택 확인
     if (!formData.location.trim() || formData.locationCoord.lat === 0) {
-      alert("구장을 지도에서 선택해주세요.");
+      alert("구장을 지도에서 선택해 주세요");
       return;
     }
 
@@ -135,11 +145,11 @@ export default function EditRecruitPage() {
 
     try {
       await updateRecruitPost(postId, formData);
-      alert("게시글이 수정 되었습니다.");
+      alert("모집글을 수정했어요");
       router.push(`/recruit/${postId}`);
     } catch (error) {
       console.error("게시글 수정 실패", error);
-      alert("게시글 수정에 실패했습니다.");
+      alert("모집글을 수정하지 못했어요");
     }
     setIsSubmitting(false);
   };
@@ -148,7 +158,7 @@ export default function EditRecruitPage() {
     //둘 중 하나라도 로딩 중이면
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className={spinnerClass} />
+        <div className={spinnerClass} role="status" aria-label="불러오는 중" />
       </div>
     );
   }
@@ -161,27 +171,28 @@ export default function EditRecruitPage() {
         backHref={`/recruit/${postId}`}
         right={
           <button onClick={handleSubmit} disabled={isSubmitting} className={headerActionButtonClass}>
-            {isSubmitting ? "수정 중..." : "완료"}
+            {isSubmitting ? "저장 중" : "완료"}
           </button>
         }
       />
 
       {/* 폼 */}
       <main className="pt-14 pb-16 px-4 max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-7 pt-6">
+        <form onSubmit={handleSubmit} className="space-y-8 pt-6">
           {/* 제목 */}
           <div>
-            <label className={fieldLabelClass}>
-              제목 *
+            <label htmlFor="title" className={fieldLabelClass}>
+              제목
             </label>
             <input
               required
+              id="title"
               type="text"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              placeholder="예: 토요일 저녁 풋살 용병 구합니다"
+              placeholder="예: 토요일 저녁 풋살 용병 구해요"
               className={fieldInputClass}
               maxLength={50}
             />
@@ -190,11 +201,12 @@ export default function EditRecruitPage() {
           {/* 경기 날짜 & 시간 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={fieldLabelClass}>
-                경기 날짜 *
+              <label htmlFor="date" className={fieldLabelClass}>
+                경기 날짜
               </label>
               <input
                 required
+                id="date"
                 type="date"
                 value={formData.date}
                 min={getTodayString()}
@@ -205,11 +217,12 @@ export default function EditRecruitPage() {
               />
             </div>
             <div>
-              <label className={fieldLabelClass}>
-                경기 시간 *
+              <label htmlFor="time" className={fieldLabelClass}>
+                경기 시간
               </label>
               <input
                 required
+                id="time"
                 type="time"
                 value={formData.time}
                 onChange={(e) =>
@@ -220,12 +233,13 @@ export default function EditRecruitPage() {
             </div>
           </div>
 
-          {/* 👇 구장 선택 (지도) - 수정된 부분 */}
+          {/* 구장 선택 (지도) */}
           <div>
-            <label className={fieldLabelClass}>
-              구장 선택 *
+            <label htmlFor="location-search" className={fieldLabelClass}>
+              구장 선택
             </label>
             <KakaoMapSearch
+              inputId="location-search"
               onSelect={(loc) => {
                 setFormData({
                   ...formData,
@@ -252,10 +266,10 @@ export default function EditRecruitPage() {
 
           {/* 레벨 */}
           <div>
-            <label className={fieldLabelClass}>
-              실력 수준 *
-            </label>
-            <div className="grid grid-cols-4 gap-2">
+            <p id="level-label" className={fieldLabelClass}>
+              실력 수준
+            </p>
+            <div role="group" aria-labelledby="level-label" className="grid grid-cols-4 gap-2">
               {LEVELS.map((level) => (
                 <button
                   key={level.value}
@@ -263,10 +277,11 @@ export default function EditRecruitPage() {
                   onClick={() =>
                     setFormData({ ...formData, level: level.value })
                   }
-                  className={`h-11 rounded-xl text-sm font-semibold border transition-colors cursor-pointer ${
+                  aria-pressed={formData.level === level.value}
+                  className={`h-12 rounded-lg text-[15px] font-medium border transition-colors cursor-pointer ${focusRingClass} ${
                     formData.level === level.value
                       ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-200 hover:border-green-600"
+                      : "bg-white text-gray-900 border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   {level.label}
@@ -277,10 +292,10 @@ export default function EditRecruitPage() {
 
           {/* 모집 인원 */}
           <div>
-            <label className={fieldLabelClass}>
-              모집 인원 *
-            </label>
-            <div className="flex items-center gap-4">
+            <p id="needcount-label" className={fieldLabelClass}>
+              모집 인원
+            </p>
+            <div role="group" aria-labelledby="needcount-label" className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() =>
@@ -289,13 +304,18 @@ export default function EditRecruitPage() {
                     needCount: Math.max(1, formData.needCount - 1),
                   })
                 }
-                className="w-10 h-10 rounded-full border border-gray-200 text-lg text-gray-700 hover:bg-gray-50 cursor-pointer"
+                disabled={formData.needCount <= 1}
+                aria-label="인원 줄이기"
+                className={stepperButtonClass}
               >
-                -
+                <Minus className="w-5 h-5" aria-hidden="true" />
               </button>
-              <span className="text-xl font-bold w-10 text-center">
+              <output
+                aria-live="polite"
+                className="w-10 text-center text-[22px] font-semibold text-gray-900 tabular-nums"
+              >
                 {formData.needCount}
-              </span>
+              </output>
               <button
                 type="button"
                 onClick={() =>
@@ -304,25 +324,28 @@ export default function EditRecruitPage() {
                     needCount: Math.min(10, formData.needCount + 1),
                   })
                 }
-                className="w-10 h-10 rounded-full border border-gray-200 text-lg text-gray-700 hover:bg-gray-50 cursor-pointer"
+                disabled={formData.needCount >= 10}
+                aria-label="인원 늘리기"
+                className={stepperButtonClass}
               >
-                +
+                <Plus className="w-5 h-5" aria-hidden="true" />
               </button>
-              <span className="text-gray-500">명</span>
+              <span className="text-[15px] text-gray-600">명</span>
             </div>
           </div>
 
           {/* 상세 내용 */}
           <div>
-            <label className={fieldLabelClass}>
-              상세 내용
+            <label htmlFor="content" className={fieldLabelClass}>
+              상세 내용 <span className="font-normal text-gray-500">(선택)</span>
             </label>
             <textarea
+              id="content"
               value={formData.content}
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              placeholder="추가로 알려주고 싶은 내용을 작성해주세요"
+              placeholder="추가로 알려주고 싶은 내용"
               rows={5}
               className={fieldTextareaClass}
             />

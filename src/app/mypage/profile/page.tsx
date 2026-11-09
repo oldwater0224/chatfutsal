@@ -42,8 +42,8 @@ function ProfileForm({ authUser, currentName }: { authUser: AuthUser; currentNam
       const code = (e as { code?: string } | null)?.code;
       setError(
         code === "permission-denied"
-          ? "사용할 수 없는 닉네임이에요."
-          : "닉네임을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
+          ? "사용할 수 없는 닉네임이에요"
+          : "닉네임을 저장하지 못했어요. 잠시 후 다시 시도해 주세요",
       );
       setIsSaving(false);
     }
@@ -69,14 +69,18 @@ function ProfileForm({ authUser, currentName }: { authUser: AuthUser; currentNam
           />
           <p
             id="displayName-help"
-            className={`mt-2 text-[13px] ${inputError ? "text-red-500" : "text-gray-400"}`}
+            className={`mt-2 text-[13px] tabular-nums ${inputError ? "text-red-600" : "text-gray-500"}`}
           >
             {inputError || `${DISPLAY_NAME_MIN}~${DISPLAY_NAME_MAX}자`}
           </p>
-          <p className="mt-4 text-[13px] text-gray-400">
-            이미 작성한 모집글·신청·채팅에는 바뀌기 전 닉네임이 그대로 표시돼요.
+          <p className="mt-4 text-[13px] text-gray-600">
+            이미 작성한 모집글·신청·채팅에는 바뀌기 전 닉네임이 그대로 표시돼요
           </p>
-          {error && <p className="mt-4 text-[13px] text-red-500">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-4 text-[13px] text-red-600">
+              {error}
+            </p>
+          )}
         </div>
       </main>
 
@@ -87,7 +91,7 @@ function ProfileForm({ authUser, currentName }: { authUser: AuthUser; currentNam
             disabled={!check.ok || isSaving}
             className={`${primaryButtonClass} w-full h-12 text-[15px]`}
           >
-            {isSaving ? "저장 중..." : "저장"}
+            {isSaving ? "저장 중" : "저장"}
           </button>
         </div>
       </div>
@@ -111,7 +115,7 @@ export default function ProfileEditPage() {
 
       {isLoading || !user ? (
         <div className="min-h-screen flex items-center justify-center">
-          <div className={spinnerClass} />
+          <div className={spinnerClass} role="status" aria-label="불러오는 중" />
         </div>
       ) : (
         <ProfileForm

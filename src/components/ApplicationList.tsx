@@ -10,6 +10,7 @@ import {
 } from "../lib/services";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
+import { avatarClass, badgeClass, focusRingClass } from "./ui/styles";
 
 interface ApplicationListProps {
   applications: Application[];
@@ -18,9 +19,9 @@ interface ApplicationListProps {
 }
 
 const STATUS_STYLE: Record<string, { label: string; className: string }> = {
-  pending: { label: "대기중", className: "bg-yellow-100 text-yellow-700" },
-  accepted: { label: "수락", className: "bg-green-100 text-green-700" },
-  rejected: { label: "거절", className: "bg-red-100 text-red-700" },
+  pending: { label: "대기 중", className: "bg-yellow-50 text-yellow-700" },
+  accepted: { label: "수락", className: "bg-green-50 text-green-700" },
+  rejected: { label: "거절", className: "bg-red-50 text-red-600" },
   closed: { label: "마감", className: "bg-gray-100 text-gray-600" },
 };
 
@@ -36,7 +37,7 @@ export default function ApplicationList({
     try {
       await acceptApplication(app.id, postId);
     } catch (e) {
-      alert(e instanceof ApplicationError ? e.message : "수락에 실패했습니다.");
+      alert(e instanceof ApplicationError ? e.message : "수락하지 못했어요");
     }
     setProcessingId(null);
   };
@@ -46,14 +47,14 @@ export default function ApplicationList({
     try {
       await rejectApplication(app.id, postId, app.applicantId);
     } catch (e) {
-      alert(e instanceof ApplicationError ? e.message : "거절에 실패했습니다.");
+      alert(e instanceof ApplicationError ? e.message : "거절하지 못했어요");
     }
     setProcessingId(null);
   };
 
   if (applications.length === 0) {
     return (
-      <p className="py-6 text-center text-sm text-gray-400">아직 들어온 신청이 없어요</p>
+      <p className="py-6 text-center text-[13px] text-gray-500">아직 들어온 신청이 없어요</p>
     );
   }
 
@@ -67,31 +68,30 @@ export default function ApplicationList({
         const isProcessing = processingId === app.id;
 
         return (
-          <li key={app.id} className="py-3.5">
+          <li key={app.id} className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
                 <Link
                   href={`/users/${app.applicantId}`}
-                  className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0"
+                  aria-label={`${app.applicantName} 프로필`}
+                  className={`w-10 h-10 text-[15px] ${avatarClass} ${focusRingClass}`}
                 >
-                  <span className="text-green-600 font-medium text-sm">
-                    {app.applicantName.charAt(0)}
-                  </span>
+                  {app.applicantName.charAt(0)}
                 </Link>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/users/${app.applicantId}`}
-                      className="text-[15px] font-semibold text-gray-900 hover:underline"
+                      className={`text-[15px] font-medium text-gray-900 hover:underline rounded-sm ${focusRingClass}`}
                     >
                       {app.applicantName}
                     </Link>
-                    <span className={`px-1.5 py-0.5 text-[11px] rounded-md font-semibold ${status.className}`}>
+                    <span className={`${badgeClass} ${status.className}`}>
                       {status.label}
                     </span>
                   </div>
                   {app.message && (
-                    <p className="text-[13px] text-gray-500 mt-0.5 truncate">
+                    <p className="mt-1 text-[13px] text-gray-600 truncate">
                       {app.message}
                     </p>
                   )}
@@ -99,22 +99,22 @@ export default function ApplicationList({
               </div>
 
               {displayStatus === "pending" && (
-                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <div className="flex items-center gap-2 shrink-0 ml-2">
                   <button
                     onClick={() => handleAccept(app)}
                     disabled={isProcessing}
-                    aria-label="수락"
-                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                    aria-label={`${app.applicantName} 신청 수락`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 cursor-pointer transition-colors ${focusRingClass}`}
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-5 h-5" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => handleReject(app)}
                     disabled={isProcessing}
-                    aria-label="거절"
-                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-50 cursor-pointer"
+                    aria-label={`${app.applicantName} 신청 거절`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 cursor-pointer transition-colors ${focusRingClass}`}
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" aria-hidden="true" />
                   </button>
                 </div>
               )}

@@ -91,22 +91,29 @@ export function useChatRooms(userId: string | undefined) {
           );
           const myLeftAt = room.leftAt?.[userId];
 
-          const msgUnsubscribe = onSnapshot(messagesQuery, (msgSnapshot) => {
-            const unreadCount = countUnread(msgSnapshot.docs, userId, myLeftAt);
+          const msgUnsubscribe = onSnapshot(
+            messagesQuery,
+            (msgSnapshot) => {
+              const unreadCount = countUnread(msgSnapshot.docs, userId, myLeftAt);
 
-            setState((prev) => {
-              // 유저가 바뀐 뒤 늦게 도착한 스냅샷은 무시
-              if (prev.ownerId !== userId) return prev;
+              setState((prev) => {
+                // 유저가 바뀐 뒤 늦게 도착한 스냅샷은 무시
+                if (prev.ownerId !== userId) return prev;
 
-              const roomIndex = prev.rooms.findIndex((r) => r.id === room.id);
-              if (roomIndex === -1 || prev.rooms[roomIndex].unreadCount === unreadCount) {
-                return prev;
-              }
-              const rooms = [...prev.rooms];
-              rooms[roomIndex] = { ...rooms[roomIndex], unreadCount };
-              return { ...prev, rooms };
-            });
-          });
+                const roomIndex = prev.rooms.findIndex((r) => r.id === room.id);
+                if (roomIndex === -1 || prev.rooms[roomIndex].unreadCount === unreadCount) {
+                  return prev;
+                }
+                const rooms = [...prev.rooms];
+                rooms[roomIndex] = { ...rooms[roomIndex], unreadCount };
+                return { ...prev, rooms };
+              });
+            },
+            // 방 하나의 메시지 구독이 실패해도 목록은 유지하고 그 방의 unreadCount는 마지막 값을 둔다
+            (error) => {
+              console.error(`채팅방 ${room.id} 안 읽은 메시지 조회 에러:`, error);
+            },
+          );
 
           messageUnsubscribes.push(msgUnsubscribe);
         });

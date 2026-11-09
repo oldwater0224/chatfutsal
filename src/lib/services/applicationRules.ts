@@ -14,16 +14,16 @@ type ClosableState = Pick<RecruitPost, "status"> &
 export class ApplicationError extends Error {}
 
 export function assertCanApply(post: PostState | undefined, applicantId: string): void {
-  if (!post) throw new ApplicationError("존재하지 않는 모집글입니다.");
-  if (post.status !== "open") throw new ApplicationError("마감된 모집입니다.");
+  if (!post) throw new ApplicationError("존재하지 않는 모집글이에요");
+  if (post.status !== "open") throw new ApplicationError("마감된 모집이에요");
   if (post.applicantIds?.includes(applicantId)) {
-    throw new ApplicationError("이미 신청한 모집입니다.");
+    throw new ApplicationError("이미 신청한 모집글이에요");
   }
 }
 
 export function assertPending(app: Pick<Application, "status"> | undefined): void {
-  if (!app) throw new ApplicationError("존재하지 않는 신청입니다.");
-  if (app.status !== "pending") throw new ApplicationError("이미 처리된 신청입니다.");
+  if (!app) throw new ApplicationError("존재하지 않는 신청이에요");
+  if (app.status !== "pending") throw new ApplicationError("이미 처리된 신청이에요");
 }
 
 // 모집글 삭제 시 취소 알림을 받을 신청자 (대기·수락 상태, 중복 제거)
@@ -73,13 +73,13 @@ export function displayApplicationStatus(
 export function assertCanReopen(
   post: (PostState & Pick<RecruitPost, "date" | "time">) | undefined,
 ): void {
-  if (!post) throw new ApplicationError("존재하지 않는 모집글입니다.");
-  if (post.status === "open") throw new ApplicationError("이미 모집 중입니다.");
+  if (!post) throw new ApplicationError("존재하지 않는 모집글이에요");
+  if (post.status === "open") throw new ApplicationError("이미 모집 중이에요");
   if (isPostExpired(post.date, post.time)) {
-    throw new ApplicationError("경기 시간이 지난 모집은 다시 열 수 없습니다.");
+    throw new ApplicationError("경기 시간이 지난 모집은 다시 열 수 없어요");
   }
   if ((post.acceptedCount ?? 0) >= post.needCount) {
-    throw new ApplicationError("모집 인원이 모두 찼습니다. 모집 인원을 늘린 뒤 다시 열어주세요.");
+    throw new ApplicationError("모집 인원이 모두 찼어요. 모집 인원을 늘린 뒤 다시 열어 주세요.");
   }
 }
 
@@ -88,11 +88,11 @@ export function nextAcceptState(post: PostState | undefined): {
   acceptedCount: number;
   shouldClose: boolean;
 } {
-  if (!post) throw new ApplicationError("존재하지 않는 모집글입니다.");
-  if (post.status !== "open") throw new ApplicationError("마감된 모집입니다.");
+  if (!post) throw new ApplicationError("존재하지 않는 모집글이에요");
+  if (post.status !== "open") throw new ApplicationError("마감된 모집이에요");
 
   const current = post.acceptedCount ?? 0;
-  if (current >= post.needCount) throw new ApplicationError("모집 인원이 모두 찼습니다.");
+  if (current >= post.needCount) throw new ApplicationError("모집 인원이 모두 찼어요");
 
   const acceptedCount = current + 1;
   return { acceptedCount, shouldClose: acceptedCount >= post.needCount };

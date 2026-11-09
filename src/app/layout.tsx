@@ -5,7 +5,7 @@ import { Noto_Sans_KR } from "next/font/google";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { AppDataProvider } from "../contexts/AppDataContext";
 
-const DESCRIPTION = "풋살 용병 모집부터 참가 신청, 1:1 실시간 채팅까지 한 곳에서";
+const DESCRIPTION = "풋살 용병 모집, 참가 신청, 1:1 채팅";
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 

@@ -51,7 +51,7 @@ describe('nextAcceptState', () => {
   });
 
   it('정원이 찬 상태에서는 수락 불가', () => {
-    expect(() => nextAcceptState({ ...openPost, acceptedCount: 3 })).toThrow('모두 찼습니다');
+    expect(() => nextAcceptState({ ...openPost, acceptedCount: 3 })).toThrow('모두 찼어요');
   });
 
   it('마감된 모집글은 수락 불가', () => {
@@ -108,7 +108,7 @@ describe('assertCanReopen', () => {
   });
 
   it('정원이 찬 글은 재오픈 불가', () => {
-    expect(() => assertCanReopen({ ...closedPost, acceptedCount: 3 })).toThrow('모두 찼습니다');
+    expect(() => assertCanReopen({ ...closedPost, acceptedCount: 3 })).toThrow('모두 찼어요');
   });
 
   it('경기 시간이 지난 글은 재오픈 불가', () => {

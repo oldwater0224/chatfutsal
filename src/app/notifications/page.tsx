@@ -19,7 +19,12 @@ import {
   Lock,
 } from "lucide-react";
 import { Notification } from "@/src/types";
-import { spinnerClass } from "@/src/components/ui/styles";
+import {
+  emptyIconTileClass,
+  focusRingClass,
+  focusRingInsetClass,
+  spinnerClass,
+} from "@/src/components/ui/styles";
 import { isInternalPath } from "@/src/lib/utils/internalLink";
 
 const ICON_MAP: Record<string, typeof Bell> = {
@@ -29,15 +34,6 @@ const ICON_MAP: Record<string, typeof Bell> = {
   application_rejected: UserX,
   recruit_deleted: CalendarX,
   recruit_closed: Lock,
-};
-
-const ICON_COLOR_MAP: Record<string, string> = {
-  new_message: "bg-blue-100 text-blue-600",
-  application_received: "bg-green-100 text-green-600",
-  application_accepted: "bg-green-100 text-green-600",
-  application_rejected: "bg-red-100 text-red-600",
-  recruit_deleted: "bg-gray-100 text-gray-600",
-  recruit_closed: "bg-gray-100 text-gray-600",
 };
 
 function formatTime(date: Date): string {
@@ -61,31 +57,30 @@ function NotificationItem({
   onClick: () => void;
 }) {
   const Icon = ICON_MAP[notification.type] || Bell;
-  const colorClass = ICON_COLOR_MAP[notification.type] || "bg-gray-100 text-gray-600";
 
   return (
     <button
       onClick={onClick}
-      className={`-mx-4 w-[calc(100%+2rem)] flex items-start gap-3 px-4 py-4 text-left border-b border-gray-100 transition-colors cursor-pointer ${
-        !notification.isRead ? "bg-green-50/40 hover:bg-green-50/70" : "hover:bg-gray-50/70"
-      }`}
+      className={`-mx-4 w-[calc(100%+2rem)] flex items-start gap-3 px-4 py-4 text-left border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${focusRingInsetClass}`}
     >
-      <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${colorClass}`}>
-        <Icon className="w-5 h-5" />
+      <div className="shrink-0 w-10 h-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center">
+        <Icon className="w-5 h-5" aria-hidden="true" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-[15px] leading-snug ${!notification.isRead ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+        <p className={`text-[15px] leading-snug ${!notification.isRead ? "font-semibold text-gray-900" : "text-gray-600"}`}>
           {notification.title}
         </p>
-        <p className="text-[13px] text-gray-500 mt-0.5 truncate">
+        <p className="mt-1 text-[13px] text-gray-600 truncate">
           {notification.body}
         </p>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="mt-1 text-xs text-gray-500 tabular-nums">
           {formatTime(notification.createdAt)}
         </p>
       </div>
       {!notification.isRead && (
-        <div className="shrink-0 w-2 h-2 bg-green-600 rounded-full mt-2" />
+        <span className="shrink-0 w-2 h-2 mt-2 bg-green-600 rounded-full">
+          <span className="sr-only">읽지 않음</span>
+        </span>
       )}
     </button>
   );
@@ -125,14 +120,14 @@ export default function NotificationsPage() {
       <Header />
       <main className="pt-14 pb-24">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="pt-3 pb-2 flex items-center justify-between">
-            <h1 className="text-[22px] font-bold text-gray-900">알림</h1>
+          <div className="pt-4 pb-2 flex items-center justify-between">
+            <h1 className="text-[22px] font-semibold text-gray-900">알림</h1>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="flex items-center gap-1 text-[13px] font-semibold text-green-600 hover:text-green-700 cursor-pointer"
+                className={`-mr-2 h-8 px-2 flex items-center gap-1 rounded-lg text-[13px] font-medium text-gray-600 hover:text-gray-900 cursor-pointer transition-colors ${focusRingClass}`}
               >
-                <CheckCheck className="w-4 h-4" />
+                <CheckCheck className="w-4 h-4" aria-hidden="true" />
                 모두 읽음
               </button>
             )}
@@ -140,15 +135,15 @@ export default function NotificationsPage() {
 
           {authLoading || isLoading ? (
             <div className="flex items-center justify-center py-24">
-              <div className={spinnerClass} />
+              <div className={spinnerClass} role="status" aria-label="불러오는 중" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center text-center py-20">
-              <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
-                <Bell className="w-7 h-7 text-green-600" />
+              <div className={emptyIconTileClass}>
+                <Bell className="w-5 h-5" aria-hidden="true" />
               </div>
               <p className="text-[15px] font-semibold text-gray-900">알림이 없어요</p>
-              <p className="mt-1 text-sm text-gray-500">새로운 소식이 생기면 알려드릴게요</p>
+              <p className="mt-1 text-[13px] text-gray-600">새로운 소식이 생기면 알려드릴게요</p>
             </div>
           ) : (
             <ul>

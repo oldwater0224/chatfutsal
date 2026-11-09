@@ -20,7 +20,7 @@ function SignupContent() {
     // 계정을 만들기 전에 검사해, 보안 규칙에 막혀 users 문서 없는 계정이 남지 않게 한다
     const nameCheck = validateDisplayName(rawDisplayName ?? '');
     if (!nameCheck.ok) {
-      throw new Error(nameCheck.reason === 'invalid' ? nameCheck.message : '닉네임을 확인해주세요.');
+      throw new Error(nameCheck.reason === 'invalid' ? nameCheck.message : '닉네임을 확인해 주세요');
     }
     const displayName = nameCheck.value;
 

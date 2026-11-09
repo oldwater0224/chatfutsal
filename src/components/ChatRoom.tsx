@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '@/src/types';
-import { spinnerClass } from './ui/styles';
+import { primaryButtonClass, quietButtonClass, searchInputClass, spinnerClass } from './ui/styles';
 
 interface ChatRoomProps {
   messages: Message[];
@@ -61,15 +61,15 @@ export default function ChatRoom({
           <div className="flex justify-center">
             <button
               onClick={onLoadMore}
-              className="h-8 px-4 rounded-full bg-gray-100 text-xs font-semibold text-gray-600 hover:bg-gray-200 cursor-pointer"
+              className={`${quietButtonClass} h-8 px-4 text-xs`}
             >
               이전 메시지 보기
             </button>
           </div>
         )}
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400">
-            <p className="text-sm">대화를 시작해보세요</p>
+          <div className="h-full flex items-center justify-center">
+            <p className="text-[13px] text-gray-500">대화를 시작해 보세요</p>
           </div>
         ) : (
           messages.map((message) => {
@@ -88,15 +88,15 @@ export default function ChatRoom({
                       : 'bg-gray-100 text-gray-900 rounded-r-2xl rounded-tl-2xl'
                   } px-4 py-2 text-[15px]`}
                 >
-                  <p className="wrap-break-words">{message.text}</p>
+                  <p className="wrap-break-word">{message.text}</p>
                   <div
                     className={`flex items-center gap-1 mt-1 ${
                       isMe ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     <span
-                      className={`text-xs ${
-                        isMe ? 'text-green-100' : 'text-gray-400'
+                      className={`text-xs tabular-nums ${
+                        isMe ? 'text-green-100' : 'text-gray-500'
                       }`}
                     >
                       {formatTime(message.createdAt)}
@@ -125,13 +125,14 @@ export default function ChatRoom({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="메시지를 입력하세요"
-          className="flex-1 h-11 px-4 bg-gray-100 rounded-full text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600/30"
+          placeholder="메시지 입력"
+          aria-label="메시지"
+          className={`${searchInputClass} flex-1 h-12 px-4`}
         />
         <button
           type="submit"
           disabled={!inputText.trim()}
-          className="h-11 px-5 bg-green-600 text-white rounded-full text-sm font-semibold hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
+          className={`${primaryButtonClass} h-12 px-5 text-[15px]`}
         >
           전송
         </button>

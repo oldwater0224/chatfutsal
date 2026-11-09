@@ -6,7 +6,7 @@ import { useState } from "react";
 import { DISPLAY_NAME_MAX, DISPLAY_NAME_MIN, validateDisplayName } from "../lib/services/userRules";
 import { AuthFormProps } from "../types";
 import Logo from "./Logo";
-import { fieldInputClass, fieldLabelClass, primaryButtonClass } from "./ui/styles";
+import { fieldInputClass, fieldLabelClass, focusRingClass, primaryButtonClass } from "./ui/styles";
 
 // 카카오 로그인은 외부로 나갔다 돌아오므로, 돌아갈 경로를 콜백 페이지가 읽도록 잠시 보관한다
 export const LOGIN_NEXT_STORAGE_KEY = "chatfutsal:loginNext";
@@ -44,7 +44,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
     try {
       await onSubmit(email, password, nameCheck?.ok ? nameCheck.value : displayName);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "unknown error");
+      setError(e instanceof Error ? e.message : "알 수 없는 오류가 생겼어요");
     } finally {
       setIsLoading(false);
     }
@@ -65,10 +65,10 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
-        <div className="max-w-sm w-full space-y-7">
+        <div className="max-w-sm w-full space-y-8">
           <div className="flex flex-col items-center text-center">
             <Logo size="lg" />
-            <p className="mt-3 text-sm text-gray-500">
+            <p className="mt-4 text-[15px] text-gray-600">
               {mode === "login"
                 ? "풋살 용병 모집부터 채팅까지 한 곳에서"
                 : "가입하고 함께 뛸 용병을 찾아보세요"}
@@ -99,7 +99,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
                 />
                 <p
                   id="displayName-help"
-                  className={`mt-2 text-[13px] ${showNameError ? "text-red-500" : "text-gray-400"}`}
+                  className={`mt-2 text-[13px] tabular-nums ${showNameError ? "text-red-600" : "text-gray-500"}`}
                 >
                   {showNameError ? nameError : `${DISPLAY_NAME_MIN}~${DISPLAY_NAME_MAX}자`}
                 </p>
@@ -144,7 +144,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
             </div>
 
             {error && (
-              <p className="text-red-500 text-[13px] text-center">{error}</p>
+              <p role="alert" className="text-red-600 text-[13px] text-center">{error}</p>
             )}
 
             <button
@@ -153,7 +153,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
               className={`${primaryButtonClass} w-full h-12 text-[15px] mt-2`}
             >
               {isLoading
-                ? "처리 중..."
+                ? "처리 중"
                 : mode === "login"
                   ? "로그인"
                   : "회원가입"}
@@ -164,18 +164,18 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-gray-400">또는</span>
+            <div className="relative flex justify-center text-[13px]">
+              <span className="px-3 bg-white text-gray-500">또는</span>
             </div>
           </div>
 
           <a
             href={KAKAO_AUTH_URL}
             onClick={handleKakaoClick}
-            className="w-full h-12 flex items-center justify-center gap-2 px-4 rounded-xl text-[15px] font-semibold transition-opacity hover:opacity-90"
+            className={`w-full h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-[15px] font-semibold transition-opacity hover:opacity-90 ${focusRingClass}`}
             style={{ backgroundColor: "#FEE500", color: "rgba(0,0,0,0.85)" }}
           >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path
                 fillRule="evenodd"
                 clipRule="evenodd"
@@ -186,13 +186,13 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
             카카오로 시작하기
           </a>
 
-          <p className="text-center text-sm text-gray-600">
+          <p className="text-center text-[13px] text-gray-600">
             {mode === "login" ? (
               <>
                 계정이 없으신가요?{" "}
                 <Link
                   href={`/signup${nextQuery}`}
-                  className="text-green-600 hover:text-green-500 font-medium"
+                  className={`text-green-700 hover:underline font-medium rounded-sm ${focusRingClass}`}
                 >
                   회원가입
                 </Link>
@@ -202,7 +202,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
                 이미 계정이 있으신가요?{" "}
                 <Link
                   href={`/login${nextQuery}`}
-                  className="text-green-600 hover:text-green-500 font-medium"
+                  className={`text-green-700 hover:underline font-medium rounded-sm ${focusRingClass}`}
                 >
                   로그인
                 </Link>

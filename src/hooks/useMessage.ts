@@ -83,7 +83,7 @@ export async function sendMessage(
         recipientId,
         "new_message",
         `${senderName}님의 새 메시지`,
-        text.length > 50 ? text.slice(0, 50) + "..." : text,
+        text.length > 50 ? text.slice(0, 50) + "…" : text,
         `/chat/${roomId}`,
       );
       requestPush([notificationId]);

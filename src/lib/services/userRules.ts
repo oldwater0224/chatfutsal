@@ -31,14 +31,14 @@ export function validateDisplayName(raw: string, current?: string | null): Displ
     return {
       ok: false,
       reason: "invalid",
-      message: `닉네임은 ${DISPLAY_NAME_MIN}~${DISPLAY_NAME_MAX}자로 입력해주세요.`,
+      message: `닉네임은 ${DISPLAY_NAME_MIN}~${DISPLAY_NAME_MAX}자로 입력해 주세요`,
     };
   }
   if (FORBIDDEN_CHARS.test(value)) {
     return {
       ok: false,
       reason: "invalid",
-      message: "닉네임에 쓸 수 없는 문자가 들어 있어요.",
+      message: "닉네임에 쓸 수 없는 문자가 들어 있어요",
     };
   }
   if (value === current?.trim()) return { ok: false, reason: "unchanged" };

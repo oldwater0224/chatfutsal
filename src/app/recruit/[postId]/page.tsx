@@ -37,9 +37,22 @@ import {
   PencilLine,
   Trash2,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import SubHeader from "@/src/components/SubHeader";
-import { primaryButtonClass, secondaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
+import {
+  avatarClass,
+  badgeClass,
+  dangerMenuItemClass,
+  focusRingClass,
+  iconButtonClass,
+  menuItemClass,
+  primaryButtonClass,
+  quietButtonClass,
+  secondaryButtonClass,
+  spinnerClass,
+} from "@/src/components/ui/styles";
+import SeatDots from "@/src/components/SeatDots";
 import KakaoMap from "@/src/components/KakaoMap";
 import ApplicationModal from "@/src/components/ApplicationModal";
 import ApplicationList from "@/src/components/ApplicationList";
@@ -137,8 +150,8 @@ export default function RecruitDetailPage() {
     );
     const confirmed = window.confirm(
       hasApplicants
-        ? "정말 삭제하시겠습니까?\n신청자에게 모집 취소 알림이 전송됩니다."
-        : "정말 삭제하시겠습니까?",
+        ? "이 모집글을 삭제할까요?\n신청자에게 모집 취소 알림이 가요"
+        : "이 모집글을 삭제할까요?",
     );
     if (!confirmed) return;
 
@@ -146,7 +159,7 @@ export default function RecruitDetailPage() {
       await deleteRecruitPost(postId, post?.title ?? "");
       router.push("/");
     } catch {
-      alert("삭제에 실패했습니다.");
+      alert("삭제하지 못했어요");
     }
   };
 
@@ -159,7 +172,7 @@ export default function RecruitDetailPage() {
         if (
           pendingCount > 0 &&
           !window.confirm(
-            `대기 중인 신청 ${pendingCount}건은 모집 마감 처리되고 신청자에게 알림이 전송됩니다.\n마감하시겠습니까?`,
+            `대기 중인 신청 ${pendingCount}건은 마감 처리되고 신청자에게 알림이 가요.\n마감할까요?`,
           )
         ) {
           return;
@@ -169,7 +182,7 @@ export default function RecruitDetailPage() {
         await reopenRecruitPost(postId);
       }
     } catch (e) {
-      alert(e instanceof ApplicationError ? e.message : "상태 변경에 실패했습니다.");
+      alert(e instanceof ApplicationError ? e.message : "모집 상태를 바꾸지 못했어요");
     }
   };
 
@@ -177,7 +190,7 @@ export default function RecruitDetailPage() {
     if (!user || !userData || !post) return;
 
     if (user.uid === post.authorId) {
-      alert("본인에게는 채팅을 보낼 수 없습니다.");
+      alert("내 글에는 채팅을 보낼 수 없어요");
       return;
     }
 
@@ -192,7 +205,7 @@ export default function RecruitDetailPage() {
 
       router.push(`/chat/${roomId}`);
     } catch {
-      alert("채팅 시작에 실패했습니다.");
+      alert("채팅을 시작하지 못했어요");
     }
   };
 
@@ -210,16 +223,16 @@ export default function RecruitDetailPage() {
         className="min-h-screen flex flex-col items-center justify-center text-center px-4"
       >
         <p className="text-[15px] font-semibold text-gray-900">{loadError}</p>
-        <p className="mt-1 text-sm text-gray-500">잠시 후 다시 시도해 주세요</p>
-        <div className="mt-5 flex gap-2">
+        <p className="mt-1 text-[13px] text-gray-600">잠시 후 다시 시도해 주세요</p>
+        <div className="mt-6 flex gap-2">
           <button
             type="button"
             onClick={handleRetry}
-            className={`${primaryButtonClass} h-10 px-5 text-sm`}
+            className={`${primaryButtonClass} h-10 px-5 text-[15px]`}
           >
             다시 시도
           </button>
-          <Link href="/" className={`${secondaryButtonClass} h-10 px-5 text-sm`}>
+          <Link href="/" className={`${secondaryButtonClass} h-10 px-5 text-[15px]`}>
             목록으로
           </Link>
         </div>
@@ -230,8 +243,8 @@ export default function RecruitDetailPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
         <p className="text-[15px] font-semibold text-gray-900">게시글을 찾을 수 없어요</p>
-        <p className="mt-1 text-sm text-gray-500">삭제되었거나 주소가 잘못되었어요</p>
-        <Link href="/" className={`${primaryButtonClass} mt-5 h-10 px-5 text-sm`}>
+        <p className="mt-1 text-[13px] text-gray-600">삭제되었거나 주소가 잘못되었어요</p>
+        <Link href="/" className={`${primaryButtonClass} mt-6 h-10 px-5 text-[15px]`}>
           목록으로 돌아가기
         </Link>
       </div>
@@ -254,43 +267,48 @@ export default function RecruitDetailPage() {
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="게시글 메뉴"
-                className="-mr-2 w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 cursor-pointer"
+                aria-haspopup="menu"
+                aria-expanded={showMenu}
+                className={`-mr-2 ${iconButtonClass}`}
               >
-                <MoreVertical className="w-5 h-5" />
+                <MoreVertical className="w-5 h-5" aria-hidden="true" />
               </button>
 
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-11 z-20 min-w-36 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
+                  <div role="menu" className="absolute right-0 top-12 z-20 min-w-36 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
                     <Link
                       href={`/recruit/${postId}/edit`}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                      role="menuitem"
+                      className={menuItemClass}
                     >
-                      <PencilLine className="w-4 h-4" />
+                      <PencilLine className="w-4 h-4 text-gray-500" aria-hidden="true" />
                       수정
                     </Link>
                     <button
                       onClick={handleToggleStatus}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                      role="menuitem"
+                      className={menuItemClass}
                     >
                       {post.status === "open" ? (
                         <>
-                          <CopyMinus className="w-4 h-4" />
+                          <CopyMinus className="w-4 h-4 text-gray-500" aria-hidden="true" />
                           마감하기
                         </>
                       ) : (
                         <>
-                          <CopyPlus className="w-4 h-4" />
+                          <CopyPlus className="w-4 h-4 text-gray-500" aria-hidden="true" />
                           다시 모집하기
                         </>
                       )}
                     </button>
                     <button
                       onClick={handleDelete}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-gray-50 cursor-pointer"
+                      role="menuitem"
+                      className={dangerMenuItemClass}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
                       삭제
                     </button>
                   </div>
@@ -303,28 +321,28 @@ export default function RecruitDetailPage() {
 
       <main className={`pt-14 ${showActionBar ? "pb-28" : "pb-12"} max-w-2xl mx-auto px-4`}>
         <section className="pt-5 pb-6">
-          <div className="flex items-center gap-1.5">
-            <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${LEVEL_COLORS[post.level]}`}>
+          <div className="flex items-center gap-2">
+            <span className={`${badgeClass} ${LEVEL_COLORS[post.level]}`}>
               {LEVEL_LABELS[post.level]}
             </span>
             <span
-              className={`px-2 py-0.5 rounded-md text-xs font-semibold ${
+              className={`${badgeClass} tabular-nums ${
                 isClosed
                   ? "bg-gray-100 text-gray-500"
                   : remaining <= 1
-                    ? "bg-red-50 text-red-500"
+                    ? "bg-red-50 text-red-600"
                     : "bg-green-50 text-green-700"
               }`}
             >
               {isClosed ? "모집 마감" : remaining <= 1 ? "마감임박" : `${remaining}자리 남음`}
             </span>
           </div>
-          <h2 className="mt-3 text-xl font-bold text-gray-900 leading-snug">{post.title}</h2>
+          <h2 className="mt-4 text-[22px] font-semibold text-gray-900 leading-snug">{post.title}</h2>
           <Link
             href={`/users/${post.authorId}`}
-            className="mt-3 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+            className={`mt-4 inline-flex items-center gap-2 rounded-lg text-[13px] text-gray-600 hover:text-gray-900 transition-colors ${focusRingClass}`}
           >
-            <span className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-[11px] font-semibold text-green-600">
+            <span className={`w-6 h-6 text-xs ${avatarClass}`} aria-hidden="true">
               {post.authorName?.charAt(0)}
             </span>
             {post.authorName}
@@ -334,32 +352,36 @@ export default function RecruitDetailPage() {
         <div className="-mx-4 h-2 bg-gray-50" />
 
         <section className="py-5 space-y-4">
-          <InfoRow icon={<Calendar className="w-5 h-5 text-blue-500" />} label="경기 일시">
-            {formatMatchDate(post.date)} {post.time}
+          <InfoRow icon={Calendar} label="경기 일시">
+            <span className="tabular-nums">
+              {formatMatchDate(post.date)} {post.time}
+            </span>
           </InfoRow>
-          <InfoRow icon={<MapPin className="w-5 h-5 text-red-500" />} label="장소">
+          <InfoRow icon={MapPin} label="장소">
             {post.location}
             {post.locationCoord?.address && (
-              <span className="block text-[13px] font-normal text-gray-400">
+              <span className="block mt-1 text-[13px] font-normal text-gray-600">
                 {post.locationCoord.address}
               </span>
             )}
           </InfoRow>
-          <InfoRow icon={<AudioLines className="w-5 h-5 text-purple-500" />} label="실력 수준">
+          <InfoRow icon={AudioLines} label="실력 수준">
             {LEVEL_LABELS[post.level]}
           </InfoRow>
-          <InfoRow icon={<Users className="w-5 h-5 text-green-600" />} label="모집 인원">
-            {accepted}/{post.needCount}명
-            <span className="mt-2 block h-1.5 w-full max-w-60 bg-gray-100 rounded-full overflow-hidden">
-              <span
-                className="block h-full bg-green-600 rounded-full transition-all"
-                style={{ width: `${Math.min((accepted / post.needCount) * 100, 100)}%` }}
-              />
+          <InfoRow icon={Users} label="모집 인원">
+            <span className="tabular-nums">
+              {accepted}/{post.needCount}명
+              {!isClosed && remaining > 0 && (
+                <span className="ml-2 font-medium text-green-700">{remaining}자리 남음</span>
+              )}
+            </span>
+            <span className="mt-2 block">
+              <SeatDots filled={accepted} total={post.needCount} size="md" closed={isClosed} />
             </span>
           </InfoRow>
 
           {post.locationCoord?.lat && post.locationCoord?.lng && (
-            <div className="pt-1">
+            <div>
               <KakaoMap
                 lat={post.locationCoord.lat}
                 lng={post.locationCoord.lng}
@@ -373,8 +395,8 @@ export default function RecruitDetailPage() {
           <>
             <div className="-mx-4 h-2 bg-gray-50" />
             <section className="py-5">
-              <h3 className="text-[15px] font-bold text-gray-900">상세 내용</h3>
-              <p className="mt-3 text-[15px] leading-relaxed text-gray-700 whitespace-pre-wrap">
+              <h3 className="text-[15px] font-semibold text-gray-900">상세 내용</h3>
+              <p className="mt-4 text-[15px] leading-relaxed text-gray-900 whitespace-pre-wrap">
                 {post.content}
               </p>
             </section>
@@ -385,8 +407,8 @@ export default function RecruitDetailPage() {
           <>
             <div className="-mx-4 h-2 bg-gray-50" />
             <section className="py-5">
-              <h3 className="text-[15px] font-bold text-gray-900">
-                신청 현황 <span className="text-green-600">{applications.length}</span>
+              <h3 className="text-[15px] font-semibold text-gray-900">
+                신청 현황 <span className="text-gray-500 tabular-nums">{applications.length}</span>
               </h3>
               <div className="mt-2">
                 <ApplicationList
@@ -407,7 +429,7 @@ export default function RecruitDetailPage() {
               onClick={handleStartChat}
               className={`${secondaryButtonClass} h-12 px-5 text-[15px]`}
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-5 h-5" aria-hidden="true" />
               채팅
             </button>
             {post.applicantIds?.includes(user.uid) ? (
@@ -417,18 +439,18 @@ export default function RecruitDetailPage() {
                     (a) => a.applicantId === user.uid && a.status === "pending",
                   );
                   if (myApp) {
-                    const confirmed = window.confirm("신청을 취소하시겠습니까?");
+                    const confirmed = window.confirm("신청을 취소할까요?");
                     if (!confirmed) return;
                     try {
                       await cancelApplication(myApp.id, postId, user.uid);
                     } catch (e) {
-                      alert(e instanceof ApplicationError ? e.message : "취소에 실패했습니다.");
+                      alert(e instanceof ApplicationError ? e.message : "신청을 취소하지 못했어요");
                     }
                   } else {
-                    alert("이미 처리된 신청입니다.");
+                    alert("이미 처리된 신청이에요");
                   }
                 }}
-                className="flex-1 h-12 rounded-xl bg-gray-100 text-[15px] font-semibold text-gray-600 hover:bg-gray-200 cursor-pointer"
+                className={`${quietButtonClass} flex-1 h-12 text-[15px]`}
               >
                 신청 취소
               </button>
@@ -465,20 +487,20 @@ export default function RecruitDetailPage() {
 }
 
 function InfoRow({
-  icon,
+  icon: Icon,
   label,
   children,
 }: {
-  icon: React.ReactNode;
+  icon: LucideIcon;
   label: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 shrink-0">{icon}</div>
+      <Icon className="w-5 h-5 shrink-0 text-gray-500" aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] text-gray-500">{label}</p>
-        <div className="mt-0.5 text-[15px] font-semibold text-gray-900">{children}</div>
+        <p className="text-[13px] leading-5 text-gray-600">{label}</p>
+        <div className="mt-1 text-[15px] font-medium text-gray-900">{children}</div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { getDayName, toLocalDateString } from "@/src/lib/utils/dateUtils";
+import { focusRingClass } from "./ui/styles";
 
 export interface FilterState {
   date: string;
@@ -65,9 +66,9 @@ function WeekArrow({
       onClick={onClick}
       disabled={disabled}
       aria-label={direction === "prev" ? "이전 주" : "다음 주"}
-      className="shrink-0 w-10 h-14 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer disabled:text-gray-200 disabled:cursor-default disabled:hover:bg-transparent"
+      className={`shrink-0 w-10 h-14 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors disabled:text-gray-300 disabled:cursor-default disabled:hover:bg-transparent ${focusRingClass}`}
     >
-      <Icon className="w-5 h-5" />
+      <Icon className="w-5 h-5" aria-hidden="true" />
     </button>
   );
 }
@@ -90,10 +91,10 @@ function FilterSelect({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
-        className={`appearance-none h-10 pl-3 pr-7 rounded-full text-[13px] font-medium cursor-pointer focus:outline-none transition-colors ${
+        className={`appearance-none h-10 pl-4 pr-8 rounded-full text-[13px] font-medium cursor-pointer transition-colors ${focusRingClass} ${
           active
             ? "bg-green-600 text-white"
-            : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
+            : "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50"
         }`}
       >
         {options.map((o) => (
@@ -103,7 +104,8 @@ function FilterSelect({
         ))}
       </select>
       <ChevronDown
-        className={`absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${
+        aria-hidden="true"
+        className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
           active ? "text-white" : "text-gray-400"
         }`}
       />
@@ -136,7 +138,7 @@ export default function RecruitFilter({ filters, onFilterChange }: RecruitFilter
             disabled={week === 0}
             onClick={() => setWeek((w) => w - 1)}
           />
-          <div className="flex-1 grid grid-cols-7 gap-1.5">
+          <div className="flex-1 grid grid-cols-7 gap-1">
             {dates.map((date) => {
               const selected = filters.date === date.value;
               return (
@@ -144,19 +146,19 @@ export default function RecruitFilter({ filters, onFilterChange }: RecruitFilter
                   key={date.value}
                   onClick={() => handleDateClick(date.value)}
                   aria-pressed={selected}
-                  className={`h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-colors ${
+                  className={`h-14 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors ${focusRingClass} ${
                     selected ? "bg-green-600 text-white" : "bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
                   <span
-                    className={`text-[11px] font-medium ${
-                      selected ? "text-white/90" : date.isWeekend ? "text-red-500" : "text-gray-500"
+                    className={`text-xs font-medium leading-none ${
+                      selected ? "text-white" : date.isWeekend ? "text-red-500" : "text-gray-600"
                     }`}
                   >
                     {date.day}
                   </span>
                   <span
-                    className={`text-base font-bold leading-none ${
+                    className={`text-[15px] font-semibold leading-none tabular-nums ${
                       selected ? "text-white" : date.isWeekend ? "text-red-500" : "text-gray-900"
                     }`}
                   >
@@ -173,7 +175,7 @@ export default function RecruitFilter({ filters, onFilterChange }: RecruitFilter
           />
         </div>
 
-        <div className="flex items-center gap-2 px-4 pt-1 pb-3 border-b border-gray-100">
+        <div className="flex items-center gap-2 px-4 pb-3 border-b border-gray-100">
           <FilterSelect
             value={filters.region}
             options={REGIONS}
@@ -189,9 +191,9 @@ export default function RecruitFilter({ filters, onFilterChange }: RecruitFilter
           {hasActiveFilter && (
             <button
               onClick={handleReset}
-              className="shrink-0 h-10 px-3 flex items-center gap-1 rounded-full text-[13px] text-gray-500 hover:text-gray-700 cursor-pointer"
+              className={`shrink-0 h-10 px-3 flex items-center gap-1 rounded-full text-[13px] text-gray-600 hover:text-gray-900 cursor-pointer transition-colors ${focusRingClass}`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-4 h-4" aria-hidden="true" />
               초기화
             </button>
           )}

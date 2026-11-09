@@ -14,7 +14,7 @@ export async function updateDisplayName(
 ): Promise<string> {
   const check = validateDisplayName(raw, current);
   if (!check.ok) {
-    throw new Error(check.reason === "invalid" ? check.message : "변경된 내용이 없습니다.");
+    throw new Error(check.reason === "invalid" ? check.message : "변경된 내용이 없어요");
   }
 
   // 다른 사용자에게 보이는 원본인 Firestore를 먼저 쓴다

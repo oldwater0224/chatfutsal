@@ -29,7 +29,7 @@ export default function ChatRoomPage() {
     isLoading: messagesLoading,
     hasMore: hasMoreMessages,
     loadMore: loadMoreMessages,
-  } = useMessages(roomId);
+  } = useMessages(roomId, user?.uid);
   const [chatRoom, setChatRoom] = useState<ChatRoomType | null>(null);
   const [roomLoading, setRoomLoading] = useState(true);
   const [showMenu, setShowMenu] = useState(false);

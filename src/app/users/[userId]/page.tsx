@@ -17,21 +17,52 @@ export default function UserProfilePage() {
   const router = useRouter();
   const targetUserId = params.userId as string;
 
-  const { user: currentUser, userData } = useAuth();
+  const { user: currentUser, userData, isLoading: authLoading } = useAuth();
+  // user 객체 대신 uid로 의존해 같은 사용자의 토큰 갱신에는 다시 조회하지 않는다
+  const currentUid = currentUser?.uid;
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startingChat, setStartingChat] = useState(false);
 
+  // 로그인하지 않은 사용자는 로그인 후 이 프로필로 돌아오도록 보낸다
   useEffect(() => {
-    const fetchUser = async () => {
-      const userDoc = await getDoc(doc(db, "users", targetUserId));
-      if (userDoc.exists()) {
-        setTargetUser({ uid: userDoc.id, ...userDoc.data() } as User);
-      }
+    if (authLoading || currentUser) return;
+    router.replace(`/login?next=${encodeURIComponent(`/users/${targetUserId}`)}`);
+  }, [authLoading, currentUser, targetUserId, router]);
+
+  // 로그인 확인 후에만 조회한다 (users 문서는 로그인 사용자만 읽을 수 있다)
+  useEffect(() => {
+    if (authLoading || !currentUid) return;
+
+    let cancelled = false;
+
+    const handleLoaded = (loaded: User | null) => {
+      if (cancelled) return;
+      setTargetUser(loaded);
+    };
+
+    const handleDone = () => {
+      if (cancelled) return;
       setIsLoading(false);
     };
+
+    const fetchUser = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, "users", targetUserId));
+        handleLoaded(userDoc.exists() ? ({ uid: userDoc.id, ...userDoc.data() } as User) : null);
+      } catch (e) {
+        console.error("사용자 조회 에러:", e);
+        handleLoaded(null);
+      } finally {
+        handleDone();
+      }
+    };
     fetchUser();
-  }, [targetUserId]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUserId, currentUid, authLoading]);
 
   const handleStartChat = async () => {
     if (!currentUser || !targetUser) return;
@@ -51,10 +82,10 @@ export default function UserProfilePage() {
     setStartingChat(false);
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className={spinnerClass} />
+        <div className={spinnerClass} role="status" aria-label="불러오는 중" />
       </div>
     );
   }

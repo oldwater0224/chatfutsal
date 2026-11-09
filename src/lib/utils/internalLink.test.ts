@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isInternalPath } from './internalLink';
+import { isInternalPath, resolveNextPath } from './internalLink';
 
 describe('isInternalPath', () => {
   it('앱 내부 경로는 허용한다', () => {
@@ -43,5 +43,36 @@ describe('isInternalPath', () => {
     expect(isInternalPath(null)).toBe(false);
     expect(isInternalPath(123)).toBe(false);
     expect(isInternalPath({ toString: () => '/chat/r1' })).toBe(false);
+  });
+});
+
+describe('resolveNextPath', () => {
+  it('앱 내부 경로는 그대로 돌려준다', () => {
+    expect(resolveNextPath('/recruit/abc')).toBe('/recruit/abc');
+    expect(resolveNextPath('/users/x?tab=1')).toBe('/users/x?tab=1');
+    expect(resolveNextPath('/loginhelp')).toBe('/loginhelp');
+  });
+
+  it('값이 없으면 "/"', () => {
+    expect(resolveNextPath(null)).toBe('/');
+    expect(resolveNextPath(undefined)).toBe('/');
+    expect(resolveNextPath('')).toBe('/');
+  });
+
+  it('외부 주소는 "/"', () => {
+    expect(resolveNextPath('//evil.com')).toBe('/');
+    expect(resolveNextPath('https://evil.com')).toBe('/');
+    expect(resolveNextPath('javascript:alert(1)')).toBe('/');
+    expect(resolveNextPath('/\t/evil.com')).toBe('/');
+  });
+
+  it('로그인·가입·인증 경로로 되돌아가면 "/"', () => {
+    expect(resolveNextPath('/login')).toBe('/');
+    expect(resolveNextPath('/login?next=/x')).toBe('/');
+    expect(resolveNextPath('/login/')).toBe('/');
+    expect(resolveNextPath('/signup')).toBe('/');
+    expect(resolveNextPath('/auth/kakao')).toBe('/');
+    expect(resolveNextPath('/./login')).toBe('/');
+    expect(resolveNextPath('/x/../signup')).toBe('/');
   });
 });

@@ -21,13 +21,14 @@ const PAGE_SIZE = 50;
 
 // 최근 PAGE_SIZE개는 실시간, 이전 메시지는 "이전 메시지 보기"로 한 번씩 읽는다.
 // 최신순으로 받아 화면에는 오래된 순으로 뒤집어 보여준다.
-export function useMessages(roomId: string) {
+// 규칙상 참여자만 읽을 수 있으므로 로그인(uid)이 확인되기 전에는 구독하지 않는다.
+export function useMessages(roomId: string, uid: string | undefined) {
   const buildQuery = useMemo(
     () =>
-      roomId
+      roomId && uid
         ? () => query(collection(db, "chatRooms", roomId, "messages"), orderBy("createdAt", "desc"))
         : null,
-    [roomId],
+    [roomId, uid],
   );
   const { docs, canLoadMore, loadMore, isLoading } = useLivePagedQuery(buildQuery, PAGE_SIZE, "메시지");
 

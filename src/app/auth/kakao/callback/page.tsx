@@ -2,12 +2,25 @@
 
 import { auth, db } from "@/src/lib/firebase";
 import { validateDisplayName } from "@/src/lib/services/userRules";
+import { resolveNextPath } from "@/src/lib/utils/internalLink";
+import { LOGIN_NEXT_STORAGE_KEY } from "@/src/components/AuthForm";
 import { signInWithCustomToken } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 
 const processedCodes = new Set<string>();
+
+// 카카오로 떠나기 전에 AuthForm이 보관한 돌아갈 경로를 꺼내고 지운다
+function takeStoredNext(): string | null {
+  try {
+    const stored = sessionStorage.getItem(LOGIN_NEXT_STORAGE_KEY);
+    sessionStorage.removeItem(LOGIN_NEXT_STORAGE_KEY);
+    return stored;
+  } catch {
+    return null;
+  }
+}
 
 function KakaoCallbackContent() {
   const router = useRouter();
@@ -47,7 +60,7 @@ function KakaoCallbackContent() {
           });
         }
 
-        router.push("/");
+        router.replace(resolveNextPath(takeStoredNext()));
       } catch (e) {
         setError(e instanceof Error ? e.message : "로그인 처리 중 오류 발생");
       }

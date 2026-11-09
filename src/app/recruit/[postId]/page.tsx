@@ -15,7 +15,14 @@ import {
 } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
 import { LEVEL_COLORS, LEVEL_LABELS, RecruitPost } from "@/src/types";
-import { doc, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+  type DocumentSnapshot,
+  type FirestoreError,
+} from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -44,20 +51,34 @@ export default function RecruitDetailPage() {
   const router = useRouter();
   const postId = params.postId as string;
 
-  const { user, userData } = useAuth();
+  const { user, userData, isLoading: authLoading } = useAuth();
+  // user 객체 대신 uid로 의존해 같은 사용자의 토큰 갱신에는 다시 구독하지 않는다
+  const uid = user?.uid;
   const [post, setPost] = useState<RecruitPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  // 값이 바뀌면 게시글 구독을 다시 연다 ("다시 시도" 버튼용)
+  const [retryKey, setRetryKey] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
-  const { applications } = usePostApplications(postId);
+  // 비로그인 상태에서는 보안 규칙에 막히므로 구독하지 않는다
+  const { applications } = usePostApplications(user ? postId : undefined);
   // 대기 신청 정리를 세션당 한 번만 시도하기 위한 기록
   const cleanupAttemptedRef = useRef(false);
 
-  // 실시간 게시글 불러오기
+  // 로그인하지 않은 사용자는 로그인 후 이 글로 돌아오도록 보낸다
   useEffect(() => {
+    if (authLoading || user) return;
+    router.replace(`/login?next=${encodeURIComponent(`/recruit/${postId}`)}`);
+  }, [authLoading, user, postId, router]);
+
+  // 실시간 게시글 불러오기 (로그인 확인 후에만 구독한다)
+  useEffect(() => {
+    if (authLoading || !uid) return;
+
     const postRef = doc(db, "recruitPosts", postId);
 
-    const unsubscribe = onSnapshot(postRef, (snapshot) => {
+    const handleSnapshot = (snapshot: DocumentSnapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         const postData = {
@@ -76,11 +97,26 @@ export default function RecruitDetailPage() {
       } else {
         setPost(null);
       }
+      setLoadError(null);
       setIsLoading(false);
-    });
+    };
+
+    const handleError = (error: FirestoreError) => {
+      console.error("게시글 구독 에러:", error);
+      setLoadError("게시글을 불러오지 못했어요");
+      setIsLoading(false);
+    };
+
+    const unsubscribe = onSnapshot(postRef, handleSnapshot, handleError);
 
     return () => unsubscribe();
-  }, [postId]);
+  }, [postId, uid, authLoading, retryKey]);
+
+  const handleRetry = () => {
+    setLoadError(null);
+    setIsLoading(true);
+    setRetryKey((k) => k + 1);
+  };
 
   const isAuthor = user?.uid === post?.authorId;
 
@@ -160,10 +196,33 @@ export default function RecruitDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className={spinnerClass} />
+        <div className={spinnerClass} role="status" aria-label="불러오는 중" />
+      </div>
+    );
+  }
+  if (loadError) {
+    return (
+      <div
+        role="alert"
+        className="min-h-screen flex flex-col items-center justify-center text-center px-4"
+      >
+        <p className="text-[15px] font-semibold text-gray-900">{loadError}</p>
+        <p className="mt-1 text-sm text-gray-500">잠시 후 다시 시도해 주세요</p>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="button"
+            onClick={handleRetry}
+            className={`${primaryButtonClass} h-10 px-5 text-sm`}
+          >
+            다시 시도
+          </button>
+          <Link href="/" className={`${secondaryButtonClass} h-10 px-5 text-sm`}>
+            목록으로
+          </Link>
+        </div>
       </div>
     );
   }

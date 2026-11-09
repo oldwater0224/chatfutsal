@@ -8,9 +8,17 @@ import { AuthFormProps } from "../types";
 import Logo from "./Logo";
 import { fieldInputClass, fieldLabelClass, primaryButtonClass } from "./ui/styles";
 
+// 카카오 로그인은 외부로 나갔다 돌아오므로, 돌아갈 경로를 콜백 페이지가 읽도록 잠시 보관한다
+export const LOGIN_NEXT_STORAGE_KEY = "chatfutsal:loginNext";
+
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}&redirect_uri=${process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI}&response_type=code`;
 
-export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
+type Props = AuthFormProps & {
+  /** 로그인·가입 후 돌아갈 경로 (?next= 값). 검증은 사용하는 쪽에서 resolveNextPath로 한다 */
+  next?: string | null;
+};
+
+export default function AuthForm({ mode, onSubmit, next }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -41,6 +49,18 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
       setIsLoading(false);
     }
   };
+
+  const handleKakaoClick = () => {
+    try {
+      if (next) sessionStorage.setItem(LOGIN_NEXT_STORAGE_KEY, next);
+      else sessionStorage.removeItem(LOGIN_NEXT_STORAGE_KEY);
+    } catch {
+      // 저장소를 쓸 수 없으면 로그인 후 홈으로 간다
+    }
+  };
+
+  // 로그인·회원가입 화면을 오가도 돌아갈 경로를 유지한다
+  const nextQuery = next ? `?next=${encodeURIComponent(next)}` : "";
 
   return (
     <>
@@ -151,6 +171,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
 
           <a
             href={KAKAO_AUTH_URL}
+            onClick={handleKakaoClick}
             className="w-full h-12 flex items-center justify-center gap-2 px-4 rounded-xl text-[15px] font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: "#FEE500", color: "rgba(0,0,0,0.85)" }}
           >
@@ -170,7 +191,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               <>
                 계정이 없으신가요?{" "}
                 <Link
-                  href="/signup"
+                  href={`/signup${nextQuery}`}
                   className="text-green-600 hover:text-green-500 font-medium"
                 >
                   회원가입
@@ -180,7 +201,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               <>
                 이미 계정이 있으신가요?{" "}
                 <Link
-                  href="/login"
+                  href={`/login${nextQuery}`}
                   className="text-green-600 hover:text-green-500 font-medium"
                 >
                   로그인

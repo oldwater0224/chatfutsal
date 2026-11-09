@@ -23,3 +23,20 @@ export function isInternalPath(link: unknown): link is string {
     return false;
   }
 }
+
+// 로그인·가입 흐름으로 되돌아가는 경로. 로그인 후 여기로 보내면 다시 로그인 화면을 만나거나 루프가 생긴다
+const AUTH_PATH_PREFIXES = ["/login", "/signup", "/auth"];
+
+function isAuthPath(pathname: string): boolean {
+  return AUTH_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+// 로그인 후 이동할 ?next= 값을 안전한 내부 경로로 바꾼다. 쓸 수 없으면 "/"
+export function resolveNextPath(next: string | null | undefined): string {
+  if (!isInternalPath(next)) return "/";
+  // isInternalPath를 통과했으므로 같은 출처로 해석된다. 정규화된 pathname으로 판정해 "/./login" 같은 우회도 막는다
+  const { pathname } = new URL(next, BASE_ORIGIN);
+  return isAuthPath(pathname) ? "/" : next;
+}

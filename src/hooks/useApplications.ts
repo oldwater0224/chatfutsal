@@ -14,18 +14,28 @@ function mapApplications(snapshot: QuerySnapshot): Application[] {
   })) as Application[];
 }
 
-export function usePostApplications(postId: string | undefined) {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [isLoading, setIsLoading] = useState(!!postId);
+// 스냅샷 결과를 원본 postId와 함께 보관해, postId가 바뀌거나 undefined(로그아웃)가 되는 순간
+// 이전 목록이 노출되지 않게 한다 (useChatRooms의 ownerId 패턴)
+interface PostApplicationsState {
+  postId: string | undefined;
+  applications: Application[];
+  isLoading: boolean;
+}
 
-  const handleSnapshot = useCallback((snapshot: QuerySnapshot) => {
-    setApplications(mapApplications(snapshot));
-    setIsLoading(false);
+export function usePostApplications(postId: string | undefined) {
+  const [state, setState] = useState<PostApplicationsState>({
+    postId,
+    applications: [],
+    isLoading: !!postId,
+  });
+
+  const handleSnapshot = useCallback((sourcePostId: string, snapshot: QuerySnapshot) => {
+    setState({ postId: sourcePostId, applications: mapApplications(snapshot), isLoading: false });
   }, []);
 
-  const handleError = useCallback((error: Error) => {
+  const handleError = useCallback((sourcePostId: string, error: Error) => {
     console.error("신청 목록 조회 에러:", error);
-    setIsLoading(false);
+    setState({ postId: sourcePostId, applications: [], isLoading: false });
   }, []);
 
   useEffect(() => {
@@ -37,11 +47,21 @@ export function usePostApplications(postId: string | undefined) {
       orderBy("createdAt", "desc"),
     );
 
-    const unsubscribe = onSnapshot(q, handleSnapshot, handleError);
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => handleSnapshot(postId, snapshot),
+      (error) => handleError(postId, error),
+    );
     return () => unsubscribe();
   }, [postId, handleSnapshot, handleError]);
 
-  return { applications, isLoading };
+  // 보관된 결과가 현재 postId의 것일 때만 사용
+  const isCurrent = !!postId && state.postId === postId;
+
+  return {
+    applications: isCurrent ? state.applications : [],
+    isLoading: postId ? (isCurrent ? state.isLoading : true) : false,
+  };
 }
 
 export function useMyApplications(userId: string | undefined) {

@@ -2,7 +2,16 @@
 
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { useEffect, useState, useCallback } from "react";
+import { ChevronRight, SearchX, X } from "lucide-react";
 import { db } from "../lib/firebase";
+import {
+  avatarClass,
+  emptyIconTileClass,
+  focusRingInsetClass,
+  iconButtonClass,
+  searchInputClass,
+  spinnerClass,
+} from "./ui/styles";
 
 interface User {
   uid: string;
@@ -84,19 +93,23 @@ export default function UserSearchModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       {/* 배경 */}
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} aria-hidden="true" />
 
       {/* 모달 */}
-      <div className="relative w-full max-w-lg bg-white rounded-t-2xl max-h-[80vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-search-title"
+        className="relative w-full max-w-lg bg-white rounded-t-2xl max-h-[80vh] flex flex-col"
+      >
         {/* 헤더 */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">새 채팅 시작</h2>
-            <button
-              onClick={handleClose}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-full"
-            >
-              ✕
+            <h2 id="user-search-title" className="text-[17px] font-semibold text-gray-900">
+              새 채팅 시작
+            </h2>
+            <button onClick={handleClose} aria-label="닫기" className={`-mr-2 ${iconButtonClass}`}>
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
@@ -104,9 +117,10 @@ export default function UserSearchModal({
           <input
             type="text"
             placeholder="닉네임 또는 이메일로 검색"
+            aria-label="닉네임 또는 이메일로 검색"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className={`${searchInputClass} h-10 px-4`}
             autoFocus
           />
         </div>
@@ -115,12 +129,14 @@ export default function UserSearchModal({
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
-              <div className="w-6 h-6 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+              <div className={spinnerClass} role="status" aria-label="불러오는 중" />
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-gray-500">
-              <span className="text-3xl mb-2">🔍</span>
-              <p>
+            <div className="flex flex-col items-center justify-center text-center py-10">
+              <div className={emptyIconTileClass}>
+                <SearchX className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <p className="text-[15px] text-gray-600">
                 {searchTerm
                   ? "검색 결과가 없어요"
                   : "채팅할 수 있는 유저가 없어요"}
@@ -132,22 +148,20 @@ export default function UserSearchModal({
                 <li key={user.uid}>
                   <button
                     onClick={() => onSelectUser(user)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                    className={`w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-gray-50 cursor-pointer transition-colors ${focusRingInsetClass}`}
                   >
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                      <span className="text-green-600 font-medium">
-                        {user.displayName.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                    <span className={`w-10 h-10 text-[15px] ${avatarClass}`} aria-hidden="true">
+                      {user.displayName.charAt(0)}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[15px] font-medium text-gray-900 truncate">
                         {user.displayName}
-                      </p>
-                      <p className="text-sm text-gray-500 truncate">
+                      </span>
+                      <span className="block mt-1 text-[13px] text-gray-600 truncate">
                         {user.email}
-                      </p>
-                    </div>
-                    <span className="text-gray-400">→</span>
+                      </span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 shrink-0 text-gray-400" aria-hidden="true" />
                   </button>
                 </li>
               ))}

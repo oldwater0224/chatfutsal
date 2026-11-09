@@ -122,7 +122,7 @@ export async function acceptApplication(
       buildNotification(
         appData!.applicantId,
         "application_accepted",
-        "참가 신청이 수락되었어요!",
+        "참가 신청이 수락되었어요",
         appData!.postTitle,
         `/recruit/${postId}`,
       ),

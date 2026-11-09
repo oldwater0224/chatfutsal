@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Pin, Search, X } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
+import {
+  fieldInputClass,
+  focusRingClass,
+  iconButtonBaseClass,
+  iconButtonClass,
+  primaryButtonClass,
+} from "./ui/styles";
 
 import { KakaoMap, KakaoMarker, KakaoPlaceSearchResult } from "@/src/types";
 
@@ -15,11 +22,14 @@ interface LocationData {
 interface KakaoMapSearchProps {
   onSelect: (location: LocationData) => void;
   initialLocation?: LocationData | null;
+  /** 바깥 label과 검색 입력을 잇는 id */
+  inputId?: string;
 }
 
 export default function KakaoMapSearch({
   onSelect,
   initialLocation,
+  inputId,
 }: KakaoMapSearchProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<KakaoMap | null>(null);
@@ -87,7 +97,7 @@ export default function KakaoMapSearch({
         setSearchResults(data.slice(0, 5)); // 최대 5개
       } else {
         setSearchResults([]);
-        alert("검색 결과가 없습니다.");
+        alert("검색 결과가 없어요");
       }
     });
   };
@@ -141,12 +151,13 @@ export default function KakaoMapSearch({
       <div className="flex gap-2">
         <div className="relative flex-1">
           <input
+            id={inputId}
             type="text"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="구장명 또는 주소 검색"
-            className="w-full h-12 px-4 pr-10 rounded-xl border border-gray-200 text-[15px] placeholder:text-gray-400 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/15"
+            className={`${fieldInputClass} pr-12`}
           />
           {searchKeyword && (
             <button
@@ -155,9 +166,10 @@ export default function KakaoMapSearch({
                 setSearchKeyword("");
                 setSearchResults([]);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              aria-label="검색어 지우기"
+              className={`absolute right-1 top-1/2 -translate-y-1/2 ${iconButtonBaseClass} text-gray-500 hover:text-gray-700`}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -165,9 +177,10 @@ export default function KakaoMapSearch({
           type="button"
           onClick={handleSearch}
           disabled={isSearching}
-          className="w-12 h-12 shrink-0 flex items-center justify-center bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:bg-gray-300 cursor-pointer"
+          aria-label="구장 검색"
+          className={`${primaryButtonClass} w-12 h-12 shrink-0`}
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -175,15 +188,17 @@ export default function KakaoMapSearch({
       {searchResults.length > 0 && (
         <ul className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-48 overflow-y-auto bg-white">
           {searchResults.map((place, idx) => (
-            <li
-              key={idx}
-              onClick={() => handleSelectPlace(place)}
-              className="p-3 hover:bg-green-50 cursor-pointer"
-            >
-              <p className="font-medium text-gray-900">{place.place_name}</p>
-              <p className="text-sm text-gray-500">
-                {place.road_address_name || place.address_name}
-              </p>
+            <li key={idx}>
+              <button
+                type="button"
+                onClick={() => handleSelectPlace(place)}
+                className={`w-full px-4 py-3 text-left hover:bg-gray-50 cursor-pointer transition-colors ${focusRingClass} focus-visible:ring-inset`}
+              >
+                <span className="block text-[15px] font-medium text-gray-900">{place.place_name}</span>
+                <span className="block mt-1 text-[13px] text-gray-600">
+                  {place.road_address_name || place.address_name}
+                </span>
+              </button>
             </li>
           ))}
         </ul>
@@ -194,20 +209,21 @@ export default function KakaoMapSearch({
 
       {/* 선택된 장소 표시 */}
       {selectedPlace && selectedPlace.name && (
-        <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
-          <div>
-            <p className="font-medium text-green-800 flex items-center gap-1">
-             
-              <Pin className="w-4 h-4 text-red-500" /> {selectedPlace.name}
+        <div className="flex items-center justify-between gap-2 py-3 pl-4 pr-1 rounded-xl border border-green-600">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-[15px] font-medium text-gray-900">
+              <MapPin className="w-4 h-4 shrink-0 text-gray-500" aria-hidden="true" />
+              <span className="truncate">{selectedPlace.name}</span>
             </p>
-            <p className="text-sm text-green-600">{selectedPlace.address}</p>
+            <p className="mt-1 text-[13px] text-gray-600 truncate">{selectedPlace.address}</p>
           </div>
           <button
             type="button"
             onClick={handleClear}
-            className="p-1 text-green-600 hover:text-red-500"
+            aria-label="선택한 구장 지우기"
+            className={iconButtonClass}
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
       )}

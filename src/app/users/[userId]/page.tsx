@@ -1,7 +1,7 @@
 "use client";
 
 import SubHeader from "@/src/components/SubHeader";
-import { primaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
+import { avatarClass, primaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
 import { useAuth } from "@/src/hooks/useAuth";
 import { startChat } from "@/src/lib/services";
 import { db } from "@/src/lib/firebase";
@@ -77,7 +77,7 @@ export default function UserProfilePage() {
       router.push(`/chat/${roomId}`);
     } catch (e) {
       console.error("채팅 시작 에러:", e);
-      alert("채팅을 시작할 수 없습니다.");
+      alert("채팅을 시작하지 못했어요");
     }
     setStartingChat(false);
   };
@@ -94,7 +94,7 @@ export default function UserProfilePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
         <p className="text-[15px] font-semibold text-gray-900">사용자를 찾을 수 없어요</p>
-        <Link href="/" className={`${primaryButtonClass} mt-5 h-10 px-5 text-sm`}>
+        <Link href="/" className={`${primaryButtonClass} mt-6 h-10 px-5 text-[15px]`}>
           홈으로 돌아가기
         </Link>
       </div>
@@ -110,13 +110,11 @@ export default function UserProfilePage() {
 
       <main className={`pt-14 ${showChatButton ? "pb-28" : "pb-12"} max-w-2xl mx-auto px-4`}>
         <section className="py-10 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-            <span className="text-green-600 text-3xl font-bold">
-              {targetUser.displayName?.charAt(0) || "U"}
-            </span>
+          <div className={`w-20 h-20 text-[22px] ${avatarClass}`} aria-hidden="true">
+            {targetUser.displayName?.charAt(0) || "U"}
           </div>
-          <h2 className="mt-4 text-xl font-bold text-gray-900">{targetUser.displayName}</h2>
-          <p className="mt-1 text-[13px] text-gray-500">
+          <h2 className="mt-4 text-[22px] font-semibold text-gray-900">{targetUser.displayName}</h2>
+          <p className="mt-1 text-[13px] text-gray-600">
             {targetUser.provider === "kakao" ? "카카오 회원" : "ChatFutsal 회원"}
           </p>
         </section>
@@ -130,8 +128,8 @@ export default function UserProfilePage() {
               disabled={startingChat}
               className={`${primaryButtonClass} w-full h-12 text-[15px]`}
             >
-              <MessageCircle className="w-5 h-5" />
-              {startingChat ? "채팅방 여는 중..." : "채팅하기"}
+              <MessageCircle className="w-5 h-5" aria-hidden="true" />
+              {startingChat ? "채팅방 여는 중" : "채팅하기"}
             </button>
           </div>
         </div>

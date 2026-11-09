@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!code) {
       return NextResponse.json(
-        { error: "인가 코드가 필요합니다" },
+        { error: "인가 코드가 필요해요" },
         { status: 400 },
       );
     }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!tokenRes.ok) {
       return NextResponse.json(
-        { error: "카카오 토큰 발급 실패" },
+        { error: "카카오 토큰을 받지 못했어요" },
         { status: 401 },
       );
     }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     if (!userRes.ok) {
       return NextResponse.json(
-        { error: "카카오 사용자 정보 조회 실패" },
+        { error: "카카오 사용자 정보를 가져오지 못했어요" },
         { status: 401 },
       );
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("카카오 로그인 에러:", error);
     return NextResponse.json(
-      { error: "로그인 처리 중 오류가 발생했습니다" },
+      { error: "로그인 처리 중 오류가 생겼어요" },
       { status: 500 },
     );
   }

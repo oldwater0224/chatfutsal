@@ -16,7 +16,14 @@ import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
 import { LogOut, MoreVertical } from "lucide-react";
 import SubHeader from "@/src/components/SubHeader";
-import { primaryButtonClass, spinnerClass } from "@/src/components/ui/styles";
+import {
+  avatarClass,
+  dangerMenuItemClass,
+  focusRingClass,
+  iconButtonClass,
+  primaryButtonClass,
+  spinnerClass,
+} from "@/src/components/ui/styles";
 
 export default function ChatRoomPage() {
   const params = useParams();
@@ -135,7 +142,7 @@ export default function ChatRoomPage() {
 
   const handleLeaveChatRoom = async () => {
     const confirmed = window.confirm(
-      "채팅방을 나가시겠습니까?\n내 채팅 목록에서 대화 내용이 사라집니다.",
+      "채팅방을 나갈까요?\n내 채팅 목록에서 대화 내용이 사라져요",
     );
 
     if (!confirmed || !user) return;
@@ -146,7 +153,7 @@ export default function ChatRoomPage() {
       router.push("/chat");
     } catch (error) {
       console.error("채팅방 나가기 실패:", error);
-      alert("채팅방 나가기에 실패했습니다.");
+      alert("채팅방을 나가지 못했어요");
     }
     setIsLeaving(false);
   };
@@ -154,7 +161,7 @@ export default function ChatRoomPage() {
   if (authLoading || roomLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className={spinnerClass} />
+        <div className={spinnerClass} role="status" aria-label="불러오는 중" />
       </div>
     );
   }
@@ -162,7 +169,7 @@ export default function ChatRoomPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
         <p className="text-[15px] font-semibold text-gray-900">채팅방을 찾을 수 없어요</p>
-        <Link href="/chat" className={`${primaryButtonClass} mt-5 h-10 px-5 text-sm`}>
+        <Link href="/chat" className={`${primaryButtonClass} mt-6 h-10 px-5 text-[15px]`}>
           채팅 목록으로
         </Link>
       </div>
@@ -183,12 +190,12 @@ export default function ChatRoomPage() {
           title={
             <Link
               href={otherUserId ? `/users/${otherUserId}` : "#"}
-              className="inline-flex items-center gap-2 max-w-full"
+              className={`inline-flex items-center gap-2 max-w-full rounded-lg ${focusRingClass}`}
             >
-              <span className="w-8 h-8 shrink-0 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm font-semibold">
+              <span className={`w-8 h-8 text-[13px] ${avatarClass}`} aria-hidden="true">
                 {otherUserName.charAt(0)}
               </span>
-              <span className="truncate text-[16px]">{otherUserName}</span>
+              <span className="truncate">{otherUserName}</span>
             </Link>
           }
           right={
@@ -196,23 +203,26 @@ export default function ChatRoomPage() {
               <button
                 onClick={() => setShowMenu(!showMenu)}
                 aria-label="채팅방 메뉴"
-                className="-mr-2 w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 cursor-pointer"
+                aria-haspopup="menu"
+                aria-expanded={showMenu}
+                className={`-mr-2 ${iconButtonClass}`}
               >
-                <MoreVertical className="w-5 h-5" />
+                <MoreVertical className="w-5 h-5" aria-hidden="true" />
               </button>
 
               {showMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-11 z-20 min-w-32 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
+                  <div role="menu" className="absolute right-0 top-12 z-20 min-w-32 py-1 bg-white border border-gray-100 rounded-xl shadow-lg">
                     <button
                       onClick={() => {
                         setShowMenu(false);
                         handleLeaveChatRoom();
                       }}
-                      className="w-full px-4 py-2.5 flex items-center gap-2 text-left text-sm text-red-500 hover:bg-gray-50 cursor-pointer"
+                      role="menuitem"
+                      className={dangerMenuItemClass}
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
                       나가기
                     </button>
                   </div>
@@ -237,9 +247,9 @@ export default function ChatRoomPage() {
 
       {isLeaving && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center">
-          <div className="bg-white rounded-lg px-6 py-4 flex items-center gap-3">
-            <div className="w-5 h-5 border-2 border-red-200 border-t-red-600 rounded-full animate-spin" />
-            <span>채팅방 나가는 중...</span>
+          <div role="status" className="bg-white rounded-xl px-6 py-4 flex items-center gap-3">
+            <div className={spinnerClass} aria-hidden="true" />
+            <span className="text-[15px] text-gray-900">채팅방 나가는 중</span>
           </div>
         </div>
       )}

@@ -4,16 +4,27 @@ import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useAppData } from '@/src/contexts/AppDataContext';
 
-import { MessageCircleIcon, Bell, Plus } from 'lucide-react';
+import { MessageCircle, Bell, Plus } from 'lucide-react';
 import Logo from './Logo';
+import {
+  avatarClass,
+  focusRingClass,
+  iconButtonClass,
+  primaryButtonClass,
+  unreadBadgeClass,
+} from './ui/styles';
 
 function UnreadBadge({ count }: { count: number }) {
   if (count <= 0) return null;
   return (
-    <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold leading-none">
+    <span className={`absolute top-1 right-1 ${unreadBadgeClass}`} aria-hidden="true">
       {count > 99 ? '99+' : count}
     </span>
   );
+}
+
+function unreadLabel(base: string, count: number) {
+  return count > 0 ? `${base}, 읽지 않음 ${count}개` : base;
 }
 
 export default function Header() {
@@ -22,10 +33,10 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto h-14 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-2xl mx-auto h-14 px-4 flex items-center justify-between">
         <Logo />
 
-        <nav className="flex items-center gap-0.5 sm:gap-1 text-gray-700">
+        <nav aria-label="주요 메뉴" className="flex items-center gap-1">
           {isLoading ? (
             <div className="w-8 h-8 bg-gray-100 rounded-full animate-pulse" />
           ) : user ? (
@@ -33,44 +44,39 @@ export default function Header() {
               {/* 모바일은 홈 화면의 플로팅 버튼을 쓴다 */}
               <Link
                 href="/create"
-                className="hidden md:inline-flex mr-2 h-9 pl-3 pr-4 items-center gap-1 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
+                className={`${primaryButtonClass} max-md:hidden mr-2 h-9 pl-3 pr-4 text-[13px]`}
               >
-                <Plus className="w-4 h-4" strokeWidth={2.5} />
+                <Plus className="w-5 h-5" aria-hidden="true" />
                 모집하기
               </Link>
               <Link
                 href="/notifications"
-                aria-label="알림"
-                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                aria-label={unreadLabel('알림', notificationUnread)}
+                className={`relative ${iconButtonClass}`}
               >
-                <Bell className="w-[22px] h-[22px]" />
+                <Bell className="w-5 h-5" aria-hidden="true" />
                 <UnreadBadge count={notificationUnread} />
               </Link>
 
               <Link
                 href="/chat"
-                aria-label="채팅"
-                className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                aria-label={unreadLabel('채팅', totalUnread)}
+                className={`relative ${iconButtonClass}`}
               >
-                <MessageCircleIcon className="w-[22px] h-[22px]" />
+                <MessageCircle className="w-5 h-5" aria-hidden="true" />
                 <UnreadBadge count={totalUnread} />
               </Link>
 
               <Link
                 href="/mypage"
                 aria-label="마이페이지"
-                className="ml-1 sm:ml-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200"
+                className={`ml-1 w-8 h-8 text-[13px] hover:bg-gray-200 transition-colors ${avatarClass} ${focusRingClass}`}
               >
-                <span className="text-green-600 text-sm font-semibold">
-                  {user.displayName?.charAt(0) || 'U'}
-                </span>
+                {user.displayName?.charAt(0) || 'U'}
               </Link>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="h-9 px-4 inline-flex items-center rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
-            >
+            <Link href="/login" className={`${primaryButtonClass} h-9 px-4 text-[13px]`}>
               로그인
             </Link>
           )}

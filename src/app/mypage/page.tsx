@@ -18,6 +18,7 @@ import {
   UserPen,
   type LucideIcon,
 } from "lucide-react";
+import { avatarClass, focusRingInsetClass, spinnerClass } from "@/src/components/ui/styles";
 
 const MENU_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/mypage/recruits", label: "내가 작성한 모집글", icon: FileText },
@@ -44,16 +45,16 @@ function PushRow() {
       type="button"
       onClick={push.enable}
       disabled={!canEnable}
-      className="-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 border-b border-gray-100 text-left enabled:hover:bg-gray-50/70 enabled:cursor-pointer transition-colors"
+      className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 border-b border-gray-100 text-left enabled:hover:bg-gray-50 enabled:cursor-pointer transition-colors ${focusRingInsetClass}`}
     >
-      <Bell className="w-5 h-5 text-gray-500" />
+      <Bell className="w-5 h-5 text-gray-500" aria-hidden="true" />
       <span className="flex-1 text-[15px] text-gray-900">푸시 알림</span>
       <span
         className={`text-[13px] ${
-          push.status === "enabled" ? "text-green-600 font-semibold" : push.status === "error" ? "text-red-500" : "text-gray-400"
+          push.status === "enabled" ? "text-green-700 font-medium" : push.status === "error" ? "text-red-600" : "text-gray-500"
         }`}
       >
-        {push.isEnabling ? "설정 중..." : PUSH_LABELS[push.status]}
+        {push.isEnabling ? "켜는 중" : PUSH_LABELS[push.status]}
       </span>
     </button>
   );
@@ -68,7 +69,7 @@ export default function MyPage() {
   }, [user, isLoading, router]);
 
   const handleLogout = async () => {
-    if (!window.confirm("로그아웃 하시겠습니까?")) return;
+    if (!window.confirm("로그아웃할까요?")) return;
     await logout();
     router.push("/");
   };
@@ -83,21 +84,21 @@ export default function MyPage() {
 
       <main className="pt-14 pb-24">
         <div className="max-w-2xl mx-auto px-4">
-          <h1 className="pt-3 pb-2 text-[22px] font-bold text-gray-900">MY</h1>
+          <h1 className="pt-4 pb-2 text-[22px] font-semibold text-gray-900">MY</h1>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-24">
-              <div className="w-7 h-7 border-[3px] border-green-100 border-t-green-600 rounded-full animate-spin" />
+              <div className={spinnerClass} role="status" aria-label="불러오는 중" />
             </div>
           ) : (
             <>
               <section className="flex items-center gap-4 py-5">
-                <div className="w-14 h-14 shrink-0 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 text-xl font-bold">{displayName.charAt(0)}</span>
+                <div className={`w-14 h-14 text-[22px] ${avatarClass}`} aria-hidden="true">
+                  {displayName.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-lg font-bold text-gray-900 truncate">{displayName}</p>
-                  <p className="mt-0.5 text-[13px] text-gray-500 truncate">
+                  <p className="text-[17px] font-semibold text-gray-900 truncate">{displayName}</p>
+                  <p className="mt-1 text-[13px] text-gray-600 truncate">
                     {user?.email || "카카오 계정으로 로그인"}
                   </p>
                 </div>
@@ -106,17 +107,17 @@ export default function MyPage() {
               <div className="-mx-4 h-2 bg-gray-50" />
 
               <section className="pt-5">
-                <h2 className="text-[13px] font-semibold text-gray-400">내 활동</h2>
-                <ul className="mt-1">
+                <h2 className="text-[13px] font-medium text-gray-500">내 활동</h2>
+                <ul className="mt-2">
                   {MENU_ITEMS.map(({ href, label, icon: Icon }) => (
                     <li key={href}>
                       <Link
                         href={href}
-                        className="-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                        className={`-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${focusRingInsetClass}`}
                       >
-                        <Icon className="w-5 h-5 text-gray-500" />
+                        <Icon className="w-5 h-5 text-gray-500" aria-hidden="true" />
                         <span className="flex-1 text-[15px] text-gray-900">{label}</span>
-                        <ChevronRight className="w-4 h-4 text-gray-300" />
+                        <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
                       </Link>
                     </li>
                   ))}
@@ -124,22 +125,22 @@ export default function MyPage() {
               </section>
 
               <section className="pt-6">
-                <h2 className="text-[13px] font-semibold text-gray-400">계정</h2>
+                <h2 className="text-[13px] font-medium text-gray-500">계정</h2>
                 <Link
                   href="/mypage/profile"
-                  className="-mx-4 mt-1 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
+                  className={`-mx-4 mt-2 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${focusRingInsetClass}`}
                 >
-                  <UserPen className="w-5 h-5 text-gray-500" />
+                  <UserPen className="w-5 h-5 text-gray-500" aria-hidden="true" />
                   <span className="flex-1 text-[15px] text-gray-900">프로필 수정</span>
-                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                  <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
                 </Link>
                 <PushRow />
                 <button
                   onClick={handleLogout}
-                  className="-mx-4 px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50/70 transition-colors cursor-pointer"
+                  className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors cursor-pointer ${focusRingInsetClass}`}
                 >
-                  <LogOut className="w-5 h-5 text-red-500" />
-                  <span className="text-[15px] text-red-500">로그아웃</span>
+                  <LogOut className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                  <span className="text-[15px] text-gray-900">로그아웃</span>
                 </button>
               </section>
             </>

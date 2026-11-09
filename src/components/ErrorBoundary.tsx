@@ -1,6 +1,8 @@
 "use client";
 
 import { Component, ReactNode } from "react";
+import { TriangleAlert } from "lucide-react";
+import { emptyIconTileClass, primaryButtonClass } from "./ui/styles";
 
 interface Props {
   children: ReactNode;
@@ -25,20 +27,20 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="min-h-screen flex flex-col items-center justify-center p-4">
-            <span className="text-5xl mb-4">⚠️</span>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              문제가 발생했습니다
-            </h2>
-            <p className="text-gray-500 text-sm text-center mb-6">
-              {this.state.error?.message || "잠시 후 다시 시도해주세요"}
+          <div role="alert" className="min-h-screen flex flex-col items-center justify-center text-center p-4">
+            <div className={emptyIconTileClass}>
+              <TriangleAlert className="w-5 h-5" aria-hidden="true" />
+            </div>
+            <h2 className="text-[17px] font-semibold text-gray-900">문제가 생겼어요</h2>
+            <p className="mt-1 text-[13px] text-gray-600">
+              {this.state.error?.message || "잠시 후 다시 시도해 주세요"}
             </p>
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className={`${primaryButtonClass} mt-6 h-10 px-5 text-[15px]`}
             >
               다시 시도
             </button>

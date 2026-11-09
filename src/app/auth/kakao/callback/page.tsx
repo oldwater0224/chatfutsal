@@ -4,6 +4,7 @@ import { auth, db } from "@/src/lib/firebase";
 import { validateDisplayName } from "@/src/lib/services/userRules";
 import { resolveNextPath } from "@/src/lib/utils/internalLink";
 import { LOGIN_NEXT_STORAGE_KEY } from "@/src/components/AuthForm";
+import { kakaoSpinnerClass, secondaryButtonClass } from "@/src/components/ui/styles";
 import { signInWithCustomToken } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -39,7 +40,7 @@ function KakaoCallbackContent() {
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error || "로그인 실패");
+          throw new Error(data.error || "로그인하지 못했어요");
         }
 
         await signInWithCustomToken(auth, data.token);
@@ -62,41 +63,39 @@ function KakaoCallbackContent() {
 
         router.replace(resolveNextPath(takeStoredNext()));
       } catch (e) {
-        setError(e instanceof Error ? e.message : "로그인 처리 중 오류 발생");
+        setError(e instanceof Error ? e.message : "로그인 중 오류가 생겼어요");
       }
     },
     [router],
   );
 
+  const code = searchParams.get("code");
+  // 주소만 보고 알 수 있는 오류는 effect에서 상태로 옮기지 않고 렌더링 중에 계산한다
+  const paramError = searchParams.get("error")
+    ? "카카오 로그인을 취소했어요"
+    : !code
+      ? "인가 코드가 없어요"
+      : "";
+
   useEffect(() => {
-    const code = searchParams.get("code");
-    const errorParam = searchParams.get("error");
-
-    if (errorParam) {
-      setError("카카오 로그인이 취소되었습니다");
-      return;
-    }
-
-    if (!code) {
-      setError("인가 코드가 없습니다");
-      return;
-    }
-
+    if (paramError || !code) return;
     if (processedCodes.has(code)) return;
     processedCodes.add(code);
 
     processLogin(code);
-  }, [searchParams, processLogin]);
+  }, [code, paramError, processLogin]);
 
-  if (error) {
+  const shownError = paramError || error;
+
+  if (shownError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-red-500">{error}</p>
+      <div role="alert" className="min-h-screen flex flex-col items-center justify-center text-center gap-6 px-4">
+        <p className="text-[15px] text-red-600">{shownError}</p>
         <button
           onClick={() => router.push("/login")}
-          className="text-green-600 font-medium"
+          className={`${secondaryButtonClass} h-10 px-5 text-[15px]`}
         >
-          로그인 페이지로 돌아가기
+          로그인 화면으로 돌아가기
         </button>
       </div>
     );
@@ -104,9 +103,9 @@ function KakaoCallbackContent() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-3">
-        <div className="w-8 h-8 border-4 border-yellow-200 border-t-yellow-500 rounded-full animate-spin mx-auto" />
-        <p className="text-gray-500">카카오 로그인 처리 중...</p>
+      <div role="status" className="flex flex-col items-center gap-4">
+        <div className={kakaoSpinnerClass} aria-hidden="true" />
+        <p className="text-[15px] text-gray-600">카카오 로그인 중</p>
       </div>
     </div>
   );
@@ -117,7 +116,7 @@ export default function KakaoCallbackPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-yellow-200 border-t-yellow-500 rounded-full animate-spin" />
+          <div className={kakaoSpinnerClass} role="status" aria-label="불러오는 중" />
         </div>
       }
     >

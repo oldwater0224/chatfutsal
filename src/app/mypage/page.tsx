@@ -15,6 +15,8 @@ import {
   FileText,
   LogOut,
   MessageCircle,
+  ScrollText,
+  ShieldCheck,
   UserPen,
   type LucideIcon,
 } from "lucide-react";
@@ -135,6 +137,23 @@ export default function MyPage() {
                   <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
                 </Link>
                 <PushRow />
+                <Link
+                  href="/terms"
+                  className={`-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${focusRingInsetClass}`}
+                >
+                  <ScrollText className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                  <span className="flex-1 text-[15px] text-gray-900">이용약관</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                </Link>
+                {/* 개인정보 처리방침은 다른 고지와 구분되게 굵게 표시한다 (법령상 요구) */}
+                <Link
+                  href="/privacy"
+                  className={`-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${focusRingInsetClass}`}
+                >
+                  <ShieldCheck className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                  <span className="flex-1 text-[15px] font-semibold text-gray-900">개인정보 처리방침</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                </Link>
                 <button
                   onClick={handleLogout}
                   className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors cursor-pointer ${focusRingInsetClass}`}

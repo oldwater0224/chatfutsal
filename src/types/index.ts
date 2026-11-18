@@ -1,9 +1,9 @@
+// Firestore users 문서. 다른 사용자도 읽을 수 있으므로 이메일·프로필 사진 같은 개인정보는 두지 않는다
+// (보안 규칙 users 참고). 이메일이 필요하면 Firebase Auth의 user.email을 쓴다.
 export interface User {
   uid: string;
-  email: string | null;
   displayName: string;
   provider?: "email" | "kakao";
-  profileImage?: string;
   createdAt: Date;
 }
 

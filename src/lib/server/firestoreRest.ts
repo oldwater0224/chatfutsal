@@ -119,12 +119,24 @@ export function decodeFields(fields: Record<string, RawValue>): Record<string, F
 
 // ===== 조회·쓰기 =====
 
-type FieldFilter = { field: string; op: "EQUAL" | "GREATER_THAN_OR_EQUAL" | "LESS_THAN_OR_EQUAL"; value: FirestoreValue };
+type FieldFilter = {
+  field: string;
+  op: "EQUAL" | "LESS_THAN" | "GREATER_THAN_OR_EQUAL" | "LESS_THAN_OR_EQUAL";
+  value: FirestoreValue;
+};
+
+export interface QueryOptions {
+  // 최대 문서 수
+  limit?: number;
+  // 받을 필드. 빈 배열이면 문서 이름만 받는다 (삭제 대상 조회 등)
+  select?: string[];
+}
 
 // 컬렉션에서 AND 조건으로 문서를 조회한다
 export async function queryCollection(
   collectionId: string,
   filters: FieldFilter[],
+  options: QueryOptions = {},
 ): Promise<RestDocument[]> {
   const fieldFilters = filters.map((f) => ({
     fieldFilter: { field: { fieldPath: f.field }, op: f.op, value: encodeValue(f.value) },
@@ -134,7 +146,16 @@ export async function queryCollection(
 
   const rows = await request<{ document?: { name: string; fields?: Record<string, RawValue> } }[]>(
     `${databasePath()}/documents:runQuery`,
-    { structuredQuery: { from: [{ collectionId }], where } },
+    {
+      structuredQuery: {
+        from: [{ collectionId }],
+        where,
+        ...(options.select && {
+          select: { fields: options.select.map((fieldPath) => ({ fieldPath })) },
+        }),
+        ...(options.limit !== undefined && { limit: options.limit }),
+      },
+    },
   );
 
   return rows

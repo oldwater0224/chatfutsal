@@ -139,7 +139,7 @@ describe('users', () => {
   });
 
   it('닉네임이 없거나 문자열이 아니면 가입할 수 없다', async () => {
-    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { email: null }));
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { uid: NEW }));
     await assertFails(create(123));
   });
 
@@ -168,10 +168,67 @@ describe('users', () => {
     await assertFails(rename('x'));
   });
 
-  it('예전 규칙으로 저장된 긴 닉네임이 있어도 다른 필드는 바꿀 수 있다', async () => {
-    await seed(`users/${APPLICANT}`, { displayName: '가'.repeat(30) });
-    await assertSucceeds(updateDoc(doc(db(APPLICANT), 'users', APPLICANT), { profileImage: 'x' }));
+  it('예전 규칙으로 저장된 긴 닉네임이 있어도 레거시 필드는 지울 수 있다', async () => {
+    await seed(`users/${APPLICANT}`, { displayName: '가'.repeat(30), profileImage: 'x' });
+    await assertSucceeds(updateDoc(doc(db(APPLICANT), 'users', APPLICANT), { profileImage: deleteField() }));
     await assertFails(rename('가'.repeat(30) + '나'));
+  });
+
+  it('가입 시 허용 키(uid, displayName, provider, createdAt)만 저장할 수 있다', async () => {
+    await assertSucceeds(
+      setDoc(doc(db(NEW), 'users', NEW), {
+        uid: NEW, displayName: '풋살러', provider: 'kakao', createdAt: serverTimestamp(),
+      }),
+    );
+  });
+
+  it('가입 시 이메일·프로필 사진·기타 필드는 저장할 수 없다', async () => {
+    const base = { uid: NEW, displayName: '풋살러', provider: 'email', createdAt: serverTimestamp() };
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { ...base, email: 'dave@test.com' }));
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { ...base, email: null }));
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { ...base, profileImage: 'https://x' }));
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { ...base, role: 'admin' }));
+  });
+
+  it('가입 시 uid는 문서 ID와 같아야 하고 provider는 email·kakao만', async () => {
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { uid: OTHER, displayName: '풋살러' }));
+    await assertFails(setDoc(doc(db(NEW), 'users', NEW), { displayName: '풋살러', provider: 'admin' }));
+  });
+
+  it('이메일·프로필 사진을 나중에 추가할 수 없다', async () => {
+    const ref = doc(db(APPLICANT), 'users', APPLICANT);
+    await assertFails(updateDoc(ref, { email: 'bob@test.com' }));
+    await assertFails(updateDoc(ref, { profileImage: 'x' }));
+    await assertFails(updateDoc(ref, { displayName: '새닉네임', email: 'bob@test.com' }));
+  });
+
+  it('닉네임 외 필드(uid, provider, createdAt)는 바꿀 수 없다', async () => {
+    await seed(`users/${APPLICANT}`, { uid: APPLICANT, displayName: 'Bob', provider: 'email', createdAt: new Date(0) });
+    const ref = doc(db(APPLICANT), 'users', APPLICANT);
+    await assertFails(updateDoc(ref, { uid: OTHER }));
+    await assertFails(updateDoc(ref, { provider: 'kakao' }));
+    await assertFails(updateDoc(ref, { createdAt: new Date() }));
+    await assertFails(updateDoc(ref, { uid: deleteField() }));
+  });
+
+  describe('이메일·프로필 사진이 남아 있는 예전 문서', () => {
+    beforeEach(async () => {
+      await seed(`users/${APPLICANT}`, {
+        uid: APPLICANT, email: 'bob@test.com', displayName: 'Bob', provider: 'kakao',
+        profileImage: 'https://img', createdAt: new Date(0),
+      });
+    });
+
+    it('닉네임을 바꿀 수 있다', async () => {
+      await assertSucceeds(rename('새닉네임'));
+    });
+
+    it('레거시 값을 바꿀 수는 없고 지울 수만 있다', async () => {
+      const ref = doc(db(APPLICANT), 'users', APPLICANT);
+      await assertFails(updateDoc(ref, { email: 'other@test.com' }));
+      await assertFails(updateDoc(ref, { profileImage: 'https://other' }));
+      await assertSucceeds(updateDoc(ref, { email: deleteField(), profileImage: deleteField() }));
+    });
   });
 
   it('닉네임을 지울 수 없다', async () => {
@@ -424,6 +481,54 @@ describe('applications', () => {
       );
     });
 
+    it('신청자 본인과 작성자만 신청 문서를 읽을 수 있다', async () => {
+      await assertSucceeds(getDoc(doc(db(APPLICANT), 'applications/a1')));
+      await assertSucceeds(getDoc(doc(db(AUTHOR), 'applications/a1')));
+      await assertFails(getDoc(doc(db(OTHER), 'applications/a1')));
+      await assertFails(getDoc(doc(db(), 'applications/a1')));
+    });
+
+    it('작성자는 authorId 조건을 건 글별 신청 목록을 조회할 수 있다 (usePostApplications, closePendingApplications)', async () => {
+      const f = db(AUTHOR);
+      await assertSucceeds(
+        getDocs(query(collection(f, 'applications'), where('postId', '==', 'p1'), where('authorId', '==', AUTHOR))),
+      );
+      await assertSucceeds(
+        getDocs(query(
+          collection(f, 'applications'),
+          where('postId', '==', 'p1'), where('authorId', '==', AUTHOR), orderBy('createdAt', 'desc'),
+        )),
+      );
+    });
+
+    it('신청자는 applicantId 조건을 건 내 신청 목록을 조회할 수 있다 (useMyApplications, usePostApplications)', async () => {
+      const f = db(APPLICANT);
+      await assertSucceeds(
+        getDocs(query(collection(f, 'applications'), where('applicantId', '==', APPLICANT), orderBy('createdAt', 'desc'))),
+      );
+      await assertSucceeds(
+        getDocs(query(collection(f, 'applications'), where('postId', '==', 'p1'), where('applicantId', '==', APPLICANT))),
+      );
+    });
+
+    it('postId만으로 조회하거나 남의 uid로 조회하면 거부된다', async () => {
+      await assertFails(getDocs(query(collection(db(AUTHOR), 'applications'), where('postId', '==', 'p1'))));
+      await assertFails(getDocs(query(collection(db(OTHER), 'applications'), where('postId', '==', 'p1'))));
+      await assertFails(
+        getDocs(query(collection(db(OTHER), 'applications'), where('applicantId', '==', APPLICANT))),
+      );
+      await assertFails(
+        getDocs(query(collection(db(OTHER), 'applications'), where('postId', '==', 'p1'), where('authorId', '==', AUTHOR))),
+      );
+      await assertFails(getDocs(collection(db(OTHER), 'applications')));
+    });
+
+    it('남의 uid 조건이 아니면 결과가 없어도 조회는 허용된다 (작성자가 아닌 사람의 authorId 조회)', async () => {
+      await assertSucceeds(
+        getDocs(query(collection(db(OTHER), 'applications'), where('postId', '==', 'p1'), where('authorId', '==', OTHER))),
+      );
+    });
+
     it('처리된 신청은 취소·재처리할 수 없다', async () => {
       await seed('applications/a1', {
         postId: 'p1', postTitle: '', applicantId: APPLICANT, applicantName: '',
@@ -642,10 +747,10 @@ describe('예전 규칙으로 저장된 1글자 닉네임', () => {
     await seed('recruitPosts/p1', { ...futurePost, authorName: '김' });
   });
 
-  it('다른 필드는 바꿀 수 있고, 닉네임을 같은 값으로 다시 써도 된다', async () => {
+  it('닉네임을 같은 값으로 다시 쓸 수 있다', async () => {
     const ref = doc(db(APPLICANT), 'users', APPLICANT);
-    await assertSucceeds(updateDoc(ref, { profileImage: 'x' }));
-    await assertSucceeds(setDoc(ref, { displayName: '이', profileImage: 'y' }));
+    await assertSucceeds(updateDoc(ref, { displayName: '이' }));
+    await assertSucceeds(setDoc(ref, { displayName: '이' }));
   });
 
   it('모집글을 쓰고 신청하고 채팅방을 만들 수 있다', async () => {

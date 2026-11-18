@@ -6,10 +6,11 @@ import { auth, db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { unregisterPushToken } from "../lib/services/pushService";
 
+// users 문서 (src/types의 User와 같은 필드). 이메일은 저장하지 않으므로 user.email을 쓴다
 interface UserData {
   uid: string;
-  email: string;
   displayName: string;
+  provider?: "email" | "kakao";
   createdAt: Date;
 }
 

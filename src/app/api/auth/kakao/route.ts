@@ -8,14 +8,13 @@ interface KakaoTokenResponse {
   expires_in: number;
 }
 
+// 카카오 응답 중 쓰는 필드만 적는다 (프로필 사진·이메일은 쓰지 않아 응답·저장하지 않는다)
 interface KakaoUserResponse {
   id: number;
   kakao_account?: {
     profile?: {
       nickname?: string;
-      profile_image_url?: string;
     };
-    email?: string;
   };
 }
 
@@ -66,14 +65,12 @@ export async function POST(request: NextRequest) {
     const uid = `kakao_${kakaoUser.id}`;
     // 최초 가입 때 users 문서에 그대로 저장되므로 닉네임 규칙(보안 규칙 validName)에 맞게 다듬는다
     const nickname = toInitialDisplayName(kakaoUser.kakao_account?.profile?.nickname);
-    const profileImage =
-      kakaoUser.kakao_account?.profile?.profile_image_url ?? null;
 
     const firebaseToken = createCustomToken(uid);
 
     return NextResponse.json({
       token: firebaseToken,
-      user: { uid, nickname, profileImage },
+      user: { uid, nickname },
     });
   } catch (error) {
     console.error("카카오 로그인 에러:", error);

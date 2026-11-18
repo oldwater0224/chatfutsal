@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { Application, RecruitPost } from "../../types";
-import { db } from "../firebase";
+import { auth, db } from "../firebase";
 import { buildNotification } from "./notificationService";
 import { requestPush } from "./pushService";
 import {
@@ -154,9 +154,7 @@ export async function closePendingApplications(
   postTitle: string,
   { closePost = false } = {},
 ): Promise<void> {
-  const snap = await getDocs(
-    query(collection(db, "applications"), where("postId", "==", postId)),
-  );
+  const snap = await getDocs(postApplicationsOfAuthor(postId));
   const pending = pendingApplications(
     snap.docs.map((d) => ({ ref: d.ref, ...(d.data() as Application) })),
   );
@@ -192,6 +190,18 @@ export async function closePendingApplications(
 
   await commitInChunks(ops);
   requestPush(notiRefs.map((ref) => ref.id));
+}
+
+// 내가 작성한 모집글의 신청 목록 쿼리.
+// 보안 규칙상 신청 문서는 신청자·작성자만 읽을 수 있어 authorId 조건이 있어야 목록 조회가 통과한다.
+export function postApplicationsOfAuthor(postId: string) {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error("로그인이 필요해요");
+  return query(
+    collection(db, "applications"),
+    where("postId", "==", postId),
+    where("authorId", "==", uid),
+  );
 }
 
 // 신청 거절

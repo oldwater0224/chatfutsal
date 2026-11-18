@@ -1,0 +1,58 @@
+// 개인정보 처리방침·이용약관에 들어가는 운영 정보 (Firebase 의존성 없는 순수 모듈)
+// 아직 정해지지 않은 값은 null로 두고, 화면에서는 legalValue()로 LEGAL_PLACEHOLDER를 표시한다.
+// 릴리스 전에 missingLegalInfo()로 빈 항목이 없는지 점검한다.
+
+export const LEGAL_PLACEHOLDER = "(추후 기재)";
+
+export interface LegalInfo {
+  serviceName: string;
+  operatorName: string;
+  privacyOfficer: string;
+  /** 이용자 문의·개인정보 열람 요청을 받을 이메일 주소 */
+  contactEmail: string | null;
+  firestoreRegion: string | null;
+  vercelRegion: string | null;
+  /** 국외 이전받는 자(Google LLC)의 개인정보 문의처. URL (개인정보 보호법 제28조의8 제2항) */
+  googlePrivacyContact: string | null;
+  /** 국외 이전받는 자(Vercel Inc.)의 개인정보 문의처. URL (개인정보 보호법 제28조의8 제2항) */
+  vercelPrivacyContact: string | null;
+  /** 개인정보 처리방침 시행일 "YYYY-MM-DD" */
+  privacyEffectiveDate: string | null;
+  /** 이용약관 시행일 "YYYY-MM-DD" */
+  termsEffectiveDate: string | null;
+}
+
+export const LEGAL_INFO: Readonly<LegalInfo> = {
+  serviceName: "ChatFutsal",
+  operatorName: "운영자",
+  privacyOfficer: "운영자",
+  contactEmail: "oldwater0224@gmail.com",
+  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
+  // (Firebase 콘솔 > 프로젝트 설정 > 일반 > "기본 GCP 리소스 위치" 또는 Firestore Database 화면의 위치, 예: asia-northeast3)
+  firestoreRegion: "미국 등 Google 데이터센터 소재 국가",
+  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
+  // (Vercel 프로젝트 Settings > Functions > Function Region 또는 vercel.json의 regions, 예: icn1)
+  vercelRegion: "미국 등 Vercel 데이터센터 소재 국가",
+  // 확실한 담당 연락처를 확인하지 못해 정책 페이지(안의 문의처)를 기재한다
+  googlePrivacyContact: "https://policies.google.com/privacy",
+  vercelPrivacyContact: "https://vercel.com/legal/privacy-policy",
+  privacyEffectiveDate: "2026-10-01",
+  termsEffectiveDate: "2026-10-01",
+};
+
+export type LegalInfoKey = keyof LegalInfo;
+
+/** null이면 LEGAL_PLACEHOLDER를 돌려준다 */
+export function legalValue(value: string | null | undefined): string {
+  if (value == null) return LEGAL_PLACEHOLDER;
+  const trimmed = value.trim();
+  return trimmed === "" ? LEGAL_PLACEHOLDER : trimmed;
+}
+
+/** 미정(null·빈 문자열) 항목 이름 목록. 릴리스 전 점검용. 인자를 생략하면 LEGAL_INFO를 검사한다 */
+export function missingLegalInfo(info: Readonly<LegalInfo> = LEGAL_INFO): LegalInfoKey[] {
+  return (Object.keys(info) as LegalInfoKey[]).filter((key) => {
+    const value = info[key];
+    return value == null || value.trim() === "";
+  });
+}

@@ -4,17 +4,16 @@ import {
   doc,
   getDoc,
   getDocs,
-  query,
   runTransaction,
   serverTimestamp,
   updateDoc,
-  where,
 } from "firebase/firestore";
 import { Application, RecruitPost } from "../../types";
 import { db } from "../firebase";
 import { applicantsToNotifyOnDelete, assertCanReopen } from "./applicationRules";
 import { BatchOp, commitInChunks } from "./batchUtils";
 import { buildNotification } from "./notificationService";
+import { postApplicationsOfAuthor } from "./applicationService";
 import { requestPush } from "./pushService";
 import { nameForCopy } from "./userRules";
 
@@ -68,9 +67,7 @@ export async function updateRecruitPost(
 // 보안 규칙은 모집글이 삭제된 뒤(같은 배치 포함)에만 작성자의 신청 문서 삭제를 허용하므로
 // 모집글 삭제를 첫 배치에 넣는다.
 export async function deleteRecruitPost(postId: string, postTitle: string): Promise<void> {
-  const appsSnap = await getDocs(
-    query(collection(db, "applications"), where("postId", "==", postId)),
-  );
+  const appsSnap = await getDocs(postApplicationsOfAuthor(postId));
   const apps = appsSnap.docs.map((d) => d.data() as Application);
   const notifyIds = applicantsToNotifyOnDelete(apps);
   const notiRefs = notifyIds.map(() => doc(collection(db, "notifications")));

@@ -30,10 +30,11 @@ function SignupContent() {
 
       await updateProfile(user, { displayName });
 
+      // 이메일은 다른 사용자도 읽는 users 문서에 두지 않는다 (Auth에만 있다). 허용 키는 보안 규칙 userKeys()
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        email: user.email,
         displayName: displayName,
+        provider: 'email',
         createdAt: new Date(),
       });
 

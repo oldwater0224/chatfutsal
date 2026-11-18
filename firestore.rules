@@ -50,18 +50,50 @@ service cloud.firestore {
     }
 
     // ===== users =====
+    // 문서에 둘 수 있는 키. 개인정보 최소화를 위해 이메일·프로필 사진은 저장하지 않는다
+    // (화면은 이메일이 필요하면 Firebase Auth의 user.email을 쓴다).
+    // 새 필드(예: 동의 기록)를 추가할 때는 userKeys()에 넣고, 사용자가 바꿀 수 있으면 userEditableKeys()에도 넣는다.
+    function userKeys() {
+      return ['uid', 'displayName', 'provider', 'createdAt'];
+    }
+
+    // 가입 뒤 본인이 바꿀 수 있는 키
+    function userEditableKeys() {
+      return ['displayName'];
+    }
+
+    // 예전 버전이 저장한 키. 운영 데이터를 정리하기 전까지 남아 있을 수 있으므로
+    // 이 키가 있어도 닉네임 변경은 되게 하고, 본인이 지우는 것만 허용한다 (값을 넣거나 바꾸지는 못한다)
+    function legacyUserKeys() {
+      return ['email', 'profileImage'];
+    }
+
     match /users/{userId} {
-      // 닉네임을 건드릴 때만 검사한다. 예전 규칙으로 저장된 닉네임이 있어도 다른 필드는 바꿀 수 있고,
+      // 닉네임을 건드릴 때만 검사한다. 예전 규칙으로 저장된 닉네임이 있어도 닉네임을 같은 값으로 다시 쓸 수 있고,
       // 닉네임 삭제는 validName(null)이 거짓이라 막힌다.
       function nameUnchangedOrValid() {
         return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName'])
           || validName(request.resource.data.get('displayName', null));
       }
 
+      function userDiff() {
+        return request.resource.data.diff(resource.data);
+      }
+
       allow read: if signedIn();
+
       allow create: if isUser(userId)
-        && validName(request.resource.data.get('displayName', null));
-      allow update: if isUser(userId) && nameUnchangedOrValid();
+        && request.resource.data.keys().hasOnly(userKeys())
+        && validName(request.resource.data.get('displayName', null))
+        && request.resource.data.get('uid', userId) == userId
+        && request.resource.data.get('provider', 'email') in ['email', 'kakao'];
+
+      // 추가·변경은 userEditableKeys()만, 삭제는 레거시 키만 (displayName 삭제는 nameUnchangedOrValid가 막는다)
+      allow update: if isUser(userId)
+        && request.resource.data.keys().hasOnly(userKeys().concat(legacyUserKeys()))
+        && userDiff().addedKeys().union(userDiff().changedKeys()).hasOnly(userEditableKeys())
+        && userDiff().removedKeys().hasOnly(legacyUserKeys())
+        && nameUnchangedOrValid();
     }
 
     // ===== recruitPosts =====
@@ -113,8 +145,12 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/recruitPosts/$(postId)).data;
       }
 
-      // 모집글 상세에서 신청 목록을 postId로 조회하므로 로그인 사용자 전체에 허용
-      allow read: if signedIn();
+      // 신청 메시지·신청자 이름이 들어 있으므로 신청자 본인과 모집글 작성자만 읽는다.
+      // 목록 쿼리는 where('applicantId', '==', 내 uid) 또는 where('authorId', '==', 내 uid)를 걸어야 통과한다
+      // (postId만으로 조회하면 거부된다. src/hooks/useApplications.ts, applicationService.ts 참고)
+      allow read: if signedIn()
+        && (resource.data.applicantId == request.auth.uid
+          || resource.data.authorId == request.auth.uid);
 
       allow create: if isUser(request.resource.data.applicantId)
         && request.resource.data.keys().hasOnly([

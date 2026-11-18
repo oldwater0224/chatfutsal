@@ -78,7 +78,6 @@ export async function seedTestUsers() {
     try {
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        email: user.email,
         displayName: user.displayName,
         createdAt: new Date().toISOString(),
       });

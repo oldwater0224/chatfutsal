@@ -51,12 +51,11 @@ function KakaoCallbackContent() {
         if (!userDoc.exists()) {
           // 카카오 닉네임이 닉네임 규칙(2~12자 등)에 맞지 않으면 기본값으로 가입시킨다
           const nameCheck = validateDisplayName(data.user.nickname ?? "");
+          // 프로필 사진·이메일은 쓰는 곳이 없어 저장하지 않는다. 허용 키는 보안 규칙 userKeys()
           await setDoc(userRef, {
             uid: data.user.uid,
-            email: null,
             displayName: nameCheck.ok ? nameCheck.value : "사용자",
             provider: "kakao",
-            profileImage: data.user.profileImage,
             createdAt: serverTimestamp(),
           });
         }

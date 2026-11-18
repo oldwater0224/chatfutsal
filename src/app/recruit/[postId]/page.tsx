@@ -74,8 +74,6 @@ export default function RecruitDetailPage() {
   const [retryKey, setRetryKey] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
-  // 비로그인 상태에서는 보안 규칙에 막히므로 구독하지 않는다
-  const { applications } = usePostApplications(user ? postId : undefined);
   // 대기 신청 정리를 세션당 한 번만 시도하기 위한 기록
   const cleanupAttemptedRef = useRef(false);
 
@@ -132,6 +130,14 @@ export default function RecruitDetailPage() {
   };
 
   const isAuthor = user?.uid === post?.authorId;
+
+  // 보안 규칙상 작성자는 글의 전체 신청, 그 외 사용자는 내 신청만 읽을 수 있다.
+  // 게시글을 불러오기 전(작성자 여부를 모를 때)과 비로그인 상태에서는 구독하지 않는다.
+  const { applications } = usePostApplications(
+    postId,
+    uid,
+    post && uid ? uid === post.authorId : undefined,
+  );
 
   // 경기 시간 경과로 자동 마감된 글은, 마감을 수행한 사용자에게 남의 신청을 바꿀 권한이 없어
   // 대기 신청이 그대로 남는다. 권한이 있는 작성자가 글을 열 때 뒤늦게 정리한다.

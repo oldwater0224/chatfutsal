@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/src/hooks/useAuth';
 import { useAppData } from '@/src/contexts/AppDataContext';
+import { getInitial } from '@/src/lib/utils/getInitial';
 
 import { MessageCircle, Bell, Plus } from 'lucide-react';
 import Logo from './Logo';
@@ -28,7 +29,7 @@ function unreadLabel(base: string, count: number) {
 }
 
 export default function Header() {
-  const { user, isLoading } = useAuth();
+  const { user, userData, isLoading } = useAuth();
   const { totalUnread, notificationUnread } = useAppData();
 
   return (
@@ -72,7 +73,7 @@ export default function Header() {
                 aria-label="마이페이지"
                 className={`ml-1 w-8 h-8 text-[13px] hover:bg-gray-200 transition-colors ${avatarClass} ${focusRingClass}`}
               >
-                {user.displayName?.charAt(0) || 'U'}
+                {getInitial(userData?.displayName || user.displayName)}
               </Link>
             </>
           ) : (

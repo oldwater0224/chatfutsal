@@ -4,27 +4,43 @@
 
 export const LEGAL_PLACEHOLDER = "(추후 기재)";
 
-export const LEGAL_INFO = {
+export interface LegalInfo {
+  serviceName: string;
+  operatorName: string;
+  privacyOfficer: string;
+  /** 이용자 문의·개인정보 열람 요청을 받을 이메일 주소 */
+  contactEmail: string | null;
+  firestoreRegion: string | null;
+  vercelRegion: string | null;
+  /** 국외 이전받는 자(Google LLC)의 개인정보 문의처. URL (개인정보 보호법 제28조의8 제2항) */
+  googlePrivacyContact: string | null;
+  /** 국외 이전받는 자(Vercel Inc.)의 개인정보 문의처. URL (개인정보 보호법 제28조의8 제2항) */
+  vercelPrivacyContact: string | null;
+  /** 개인정보 처리방침 시행일 "YYYY-MM-DD" */
+  privacyEffectiveDate: string | null;
+  /** 이용약관 시행일 "YYYY-MM-DD" */
+  termsEffectiveDate: string | null;
+}
+
+export const LEGAL_INFO: Readonly<LegalInfo> = {
   serviceName: "ChatFutsal",
   operatorName: "운영자",
   privacyOfficer: "운영자",
-  // TODO: 이용자 문의·개인정보 열람 요청을 받을 이메일 주소 (운영자가 정해서 기재)
-  contactEmail: null as string | null,
-  // TODO: Firebase 콘솔 > 프로젝트 설정 > 일반 > "기본 GCP 리소스 위치" 또는 Firestore Database 화면의 위치 (예: asia-northeast3)
-  firestoreRegion: null as string | null,
-  // TODO: Vercel 프로젝트 Settings > Functions > Function Region (또는 vercel.json의 regions) (예: icn1)
-  vercelRegion: null as string | null,
-  // TODO: 국외 이전받는 자(Google LLC)의 개인정보 문의 연락처 (개인정보 보호법 제28조의8 제2항)
-  googlePrivacyContact: null as string | null,
-  // TODO: 국외 이전받는 자(Vercel Inc.)의 개인정보 문의 연락처 (개인정보 보호법 제28조의8 제2항)
-  vercelPrivacyContact: null as string | null,
-  // TODO: 개인정보 처리방침 시행일 "YYYY-MM-DD" (배포일에 맞춰 기재)
-  privacyEffectiveDate: null as string | null,
-  // TODO: 이용약관 시행일 "YYYY-MM-DD" (배포일에 맞춰 기재)
-  termsEffectiveDate: null as string | null,
-} as const;
+  contactEmail: "oldwater0224@gmail.com",
+  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
+  // (Firebase 콘솔 > 프로젝트 설정 > 일반 > "기본 GCP 리소스 위치" 또는 Firestore Database 화면의 위치, 예: asia-northeast3)
+  firestoreRegion: "미국 등 Google 데이터센터 소재 국가",
+  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
+  // (Vercel 프로젝트 Settings > Functions > Function Region 또는 vercel.json의 regions, 예: icn1)
+  vercelRegion: "미국 등 Vercel 데이터센터 소재 국가",
+  // 확실한 담당 연락처를 확인하지 못해 정책 페이지(안의 문의처)를 기재한다
+  googlePrivacyContact: "https://policies.google.com/privacy",
+  vercelPrivacyContact: "https://vercel.com/legal/privacy-policy",
+  privacyEffectiveDate: "2026-10-01",
+  termsEffectiveDate: "2026-10-01",
+};
 
-export type LegalInfoKey = keyof typeof LEGAL_INFO;
+export type LegalInfoKey = keyof LegalInfo;
 
 /** null이면 LEGAL_PLACEHOLDER를 돌려준다 */
 export function legalValue(value: string | null | undefined): string {
@@ -33,10 +49,10 @@ export function legalValue(value: string | null | undefined): string {
   return trimmed === "" ? LEGAL_PLACEHOLDER : trimmed;
 }
 
-/** 미정 항목 이름 목록. 릴리스 전 점검용 */
-export function missingLegalInfo(): string[] {
-  return (Object.keys(LEGAL_INFO) as LegalInfoKey[]).filter((key) => {
-    const value = LEGAL_INFO[key];
+/** 미정(null·빈 문자열) 항목 이름 목록. 릴리스 전 점검용. 인자를 생략하면 LEGAL_INFO를 검사한다 */
+export function missingLegalInfo(info: Readonly<LegalInfo> = LEGAL_INFO): LegalInfoKey[] {
+  return (Object.keys(info) as LegalInfoKey[]).filter((key) => {
+    const value = info[key];
     return value == null || value.trim() === "";
   });
 }

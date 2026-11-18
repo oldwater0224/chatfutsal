@@ -209,6 +209,16 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
               </>
             )}
           </p>
+
+          <nav aria-label="약관 및 정책" className="flex items-center justify-center gap-2 text-xs text-gray-500">
+            <Link href="/terms" className={`hover:underline rounded-sm ${focusRingClass}`}>
+              이용약관
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/privacy" className={`font-semibold text-gray-600 hover:underline rounded-sm ${focusRingClass}`}>
+              개인정보 처리방침
+            </Link>
+          </nav>
         </div>
       </div>
     </>

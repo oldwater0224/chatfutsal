@@ -62,6 +62,10 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
   // 로그인·회원가입 화면을 오가도 돌아갈 경로를 유지한다
   const nextQuery = next ? `?next=${encodeURIComponent(next)}` : "";
 
+  // 가입 버튼·카카오 버튼이 함께 가리키는 고지 문구. 동의 체크박스가 생기기 전까지 이 문구로 동의 사실을 알린다
+  const legalNoticeId = "auth-legal-notice";
+  const legalLinkClass = `text-gray-600 underline underline-offset-2 hover:text-gray-900 rounded-sm ${focusRingClass}`;
+
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
@@ -150,6 +154,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
             <button
               type="submit"
               disabled={isLoading || showNameError}
+              aria-describedby={isSignup ? legalNoticeId : undefined}
               className={`${primaryButtonClass} w-full h-12 text-[15px] mt-2`}
             >
               {isLoading
@@ -172,6 +177,7 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
           <a
             href={KAKAO_AUTH_URL}
             onClick={handleKakaoClick}
+            aria-describedby={legalNoticeId}
             className={`w-full h-12 flex items-center justify-center gap-2 px-4 rounded-lg text-[15px] font-semibold transition-opacity hover:opacity-90 ${focusRingClass}`}
             style={{ backgroundColor: "#FEE500", color: "rgba(0,0,0,0.85)" }}
           >
@@ -185,6 +191,18 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
             </svg>
             카카오로 시작하기
           </a>
+
+          <p id={legalNoticeId} className="-mt-5 text-center text-xs leading-relaxed text-gray-500 break-keep">
+            {isSignup ? "회원가입 또는 카카오로 시작하면" : "카카오로 처음 시작하면"}{" "}
+            <Link href="/terms" className={legalLinkClass}>
+              이용약관
+            </Link>
+            에 동의하고{" "}
+            <Link href="/privacy" className={`font-semibold ${legalLinkClass}`}>
+              개인정보 처리방침
+            </Link>
+            을 확인한 것으로 봅니다. 만 14세 미만은 {isSignup ? "가입할" : "이용할"} 수 없습니다.
+          </p>
 
           <p className="text-center text-[13px] text-gray-600">
             {mode === "login" ? (
@@ -209,16 +227,6 @@ export default function AuthForm({ mode, onSubmit, next }: Props) {
               </>
             )}
           </p>
-
-          <nav aria-label="약관 및 정책" className="flex items-center justify-center gap-2 text-xs text-gray-500">
-            <Link href="/terms" className={`hover:underline rounded-sm ${focusRingClass}`}>
-              이용약관
-            </Link>
-            <span aria-hidden="true">·</span>
-            <Link href="/privacy" className={`font-semibold text-gray-600 hover:underline rounded-sm ${focusRingClass}`}>
-              개인정보 처리방침
-            </Link>
-          </nav>
         </div>
       </div>
     </>

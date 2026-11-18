@@ -169,7 +169,13 @@ export default function TermsPage() {
         <Article id="withdrawal">
           <Numbered
             items={[
-              "회원은 언제든지 마이페이지에서 탈퇴할 수 있습니다.",
+              <>
+                회원은 언제든지{" "}
+                <a href="#contact" className={linkClass}>
+                  문의 이메일
+                </a>
+                로 탈퇴를 요청할 수 있으며, 운영자는 본인 확인 후 지체 없이 처리합니다.
+              </>,
               <>
                 탈퇴하면 개인정보는{" "}
                 <Link href="/privacy" className={`font-semibold ${linkClass}`}>
@@ -177,7 +183,7 @@ export default function TermsPage() {
                 </Link>
                 에 따라 파기합니다.
               </>,
-              "다른 이용자와 주고받은 채팅 메시지 내용은 상대방의 대화 기록으로 남으며, 작성자 이름은 ‘탈퇴한 사용자’로 표시됩니다.",
+              "다른 이용자와 주고받은 채팅 메시지는 상대방의 대화 기록으로 남을 수 있습니다.",
             ]}
           />
         </Article>
@@ -205,7 +211,7 @@ export default function TermsPage() {
           <p className={`mt-3 ${bodyClass}`}>시행일: {legalValue(termsEffectiveDate)}</p>
         </section>
 
-        <dl className="mt-10 rounded-xl bg-gray-50 p-4 space-y-2 text-[13px]">
+        <dl id="contact" className="scroll-mt-16 mt-10 rounded-xl bg-gray-50 p-4 space-y-2 text-[13px]">
           <div className="flex gap-2">
             <dt className="shrink-0 text-gray-500">운영자</dt>
             <dd className="min-w-0 text-gray-900">{operatorName}</dd>

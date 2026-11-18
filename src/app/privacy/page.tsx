@@ -74,6 +74,26 @@ function InfoCard({ title, rows }: { title: string; rows: { label: string; value
   );
 }
 
+/** 연락처 값. URL이면 새 탭 외부 링크, 이메일이면 mailto 링크, 비어 있으면 "(추후 기재)" */
+function ContactValue({ value }: { value: string | null | undefined }) {
+  const trimmed = value?.trim() ?? "";
+  if (/^https?:\/\//i.test(trimmed)) {
+    return (
+      <a href={trimmed} target="_blank" rel="noopener noreferrer" className={`break-all ${linkClass}`}>
+        {trimmed}
+      </a>
+    );
+  }
+  if (trimmed.includes("@")) {
+    return (
+      <a href={`mailto:${trimmed}`} className={`break-all ${linkClass}`}>
+        {trimmed}
+      </a>
+    );
+  }
+  return <>{legalValue(value)}</>;
+}
+
 const OUTSOURCING: { name: string; tasks: ReactNode }[] = [
   {
     name: "Google LLC",
@@ -245,36 +265,38 @@ export default function PrivacyPage() {
             서비스는 서비스 제공을 위한 처리위탁·보관을 위해 다음과 같이 개인정보를 국외로 이전합니다(「개인정보
             보호법」 제28조의8 제1항 제3호).
           </p>
+          {/* 이전 국가는 firestoreRegion·vercelRegion 값을 그대로 보여 준다. 리전 코드(asia-northeast3 등)가 아니라 "대한민국(서울)"처럼 사람이 읽는 서술형 문자열로 채운다 */}
           <div className="space-y-3">
             <InfoCard
               title="Google LLC"
               rows={[
-                {
-                  label: "이전 국가",
-                  value: `미국 등 Google 데이터센터 소재 국가 (Firestore 데이터 저장 위치: ${legalValue(firestoreRegion)})`,
-                },
+                { label: "이전 국가", value: legalValue(firestoreRegion) },
                 { label: "이전 항목", value: "2. 처리하는 개인정보 항목에 적힌 회원·서비스 이용 정보" },
                 { label: "이전 시기·방법", value: OVERSEAS_COMMON.when },
                 { label: "이전 목적", value: OVERSEAS_COMMON.purpose },
                 { label: "보유·이용 기간", value: OVERSEAS_COMMON.period },
-                { label: "연락처", value: legalValue(googlePrivacyContact) },
+                { label: "연락처", value: <ContactValue value={googlePrivacyContact} /> },
               ]}
             />
             <InfoCard
               title="Vercel Inc."
               rows={[
-                { label: "이전 국가", value: `미국 (서버 실행 리전: ${legalValue(vercelRegion)})` },
+                { label: "이전 국가", value: legalValue(vercelRegion) },
                 { label: "이전 항목", value: "접속 기록, 서비스 이용 중 요청 데이터" },
                 { label: "이전 시기·방법", value: OVERSEAS_COMMON.when },
                 { label: "이전 목적", value: OVERSEAS_COMMON.purpose },
                 { label: "보유·이용 기간", value: OVERSEAS_COMMON.period },
-                { label: "연락처", value: legalValue(vercelPrivacyContact) },
+                { label: "연락처", value: <ContactValue value={vercelPrivacyContact} /> },
               ]}
             />
           </div>
           <p>
             국외 이전을 거부하려면 회원 탈퇴로 개인정보 처리를 중단할 수 있습니다. 이 경우 서비스를 이용할 수
-            없습니다.
+            없습니다. 탈퇴 방법은{" "}
+            <a href="#rights" className={linkClass}>
+              11. 이용자의 권리와 행사 방법
+            </a>
+            을 참고해 주세요.
           </p>
         </Section>
 
@@ -297,7 +319,7 @@ export default function PrivacyPage() {
           <Bullets
             items={[
               "닉네임 변경: 마이페이지 > 프로필 수정",
-              "탈퇴: 마이페이지 > 회원 탈퇴",
+              "회원 탈퇴: 개인정보 보호책임자 이메일로 요청하면 본인 확인 후 지체 없이 처리합니다",
               "그 밖의 요청: 아래 개인정보 보호책임자 연락처",
             ]}
           />
@@ -348,13 +370,7 @@ export default function PrivacyPage() {
             <div>
               <dt className="text-[13px] font-medium text-gray-500">연락처</dt>
               <dd className="mt-0.5">
-                {contactEmail?.trim() ? (
-                  <a href={`mailto:${contactEmail.trim()}`} className={`break-all ${linkClass}`}>
-                    {contactEmail.trim()}
-                  </a>
-                ) : (
-                  legalValue(contactEmail)
-                )}
+                <ContactValue value={contactEmail} />
               </dd>
             </div>
           </dl>

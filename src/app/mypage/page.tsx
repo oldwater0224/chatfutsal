@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -70,10 +70,18 @@ export default function MyPage() {
     if (!isLoading && !user) router.push("/login");
   }, [user, isLoading, router]);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // 오프라인이면 푸시 토큰 정리를 최대 몇 초 기다리므로, 그동안 다시 누르지 못하게 막는다
   const handleLogout = async () => {
-    if (!window.confirm("로그아웃할까요?")) return;
-    await logout();
-    router.push("/");
+    if (isLoggingOut || !window.confirm("로그아웃할까요?")) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.push("/");
+    } catch {
+      setIsLoggingOut(false);
+    }
   };
 
   if (!isLoading && !user) return null;
@@ -155,11 +163,14 @@ export default function MyPage() {
                   <ChevronRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
                 </Link>
                 <button
+                  type="button"
                   onClick={handleLogout}
-                  className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition-colors cursor-pointer ${focusRingInsetClass}`}
+                  disabled={isLoggingOut}
+                  aria-busy={isLoggingOut}
+                  className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 text-left enabled:hover:bg-gray-50 enabled:cursor-pointer transition-colors ${focusRingInsetClass}`}
                 >
                   <LogOut className="w-5 h-5 text-gray-500" aria-hidden="true" />
-                  <span className="text-[15px] text-gray-900">로그아웃</span>
+                  <span className="text-[15px] text-gray-900">{isLoggingOut ? "로그아웃 중…" : "로그아웃"}</span>
                 </button>
               </section>
             </>

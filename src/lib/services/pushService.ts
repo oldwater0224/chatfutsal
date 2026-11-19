@@ -8,6 +8,10 @@ import { PUSH_MAX_IDS } from "../server/pushRules";
 const SW_PATH = "/firebase-messaging-sw.js";
 // 로그아웃 때 이 기기 토큰 문서를 지우려고 기억해 둔다
 const TOKEN_STORAGE_KEY = "chatfutsal:fcmToken";
+// 처음 등록한 서비스 워커가 활성화되기를 기다리는 최대 시간
+export const SW_ACTIVATION_TIMEOUT_MS = 10_000;
+// 로그아웃이 토큰 정리를 기다리는 최대 시간 (오프라인이면 Firestore 삭제가 끝나지 않는다)
+export const UNREGISTER_TIMEOUT_MS = 3_000;
 
 function rememberToken(token: string | null) {
   try {
@@ -26,6 +30,43 @@ function rememberedToken(): string | null {
   }
 }
 
+// 등록 객체에 활성 서비스 워커가 생길 때까지 기다린다.
+// getToken에 등록 객체를 넘기면 활성화를 기다리지 않고 pushManager.subscribe를 불러,
+// 처음 등록 직후에는 "no active Service Worker"로 실패한다.
+// navigator.serviceWorker.ready는 다른 등록 객체로 풀릴 수 있고 제한 시간이 없어 쓰지 않는다.
+export function waitForActiveWorker(
+  registration: ServiceWorkerRegistration,
+  timeoutMs: number = SW_ACTIVATION_TIMEOUT_MS,
+): Promise<ServiceWorkerRegistration> {
+  if (registration.active) return Promise.resolve(registration);
+
+  const worker = registration.installing ?? registration.waiting;
+  if (!worker) return Promise.reject(new Error("서비스 워커가 설치 중이 아니어서 활성화를 기다릴 수 없습니다"));
+
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      worker.removeEventListener("statechange", onStateChange);
+    };
+    const onStateChange = () => {
+      if (worker.state === "activated" || registration.active) {
+        cleanup();
+        resolve(registration);
+      } else if (worker.state === "redundant") {
+        cleanup();
+        reject(new Error("서비스 워커 설치에 실패했습니다 (redundant)"));
+      }
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(`서비스 워커가 ${timeoutMs}ms 안에 활성화되지 않았습니다`));
+    }, timeoutMs);
+    worker.addEventListener("statechange", onStateChange);
+    // 리스너를 붙이기 전에 상태가 바뀌었을 수 있다
+    onStateChange();
+  });
+}
+
 export async function isPushSupported(): Promise<boolean> {
   if (typeof window === "undefined") return false;
   if (!("serviceWorker" in navigator) || !("Notification" in window)) return false;
@@ -38,7 +79,7 @@ export async function registerPushToken(uid: string): Promise<string> {
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey) throw new Error("NEXT_PUBLIC_FIREBASE_VAPID_KEY가 없습니다");
 
-  const registration = await navigator.serviceWorker.register(SW_PATH);
+  const registration = await waitForActiveWorker(await navigator.serviceWorker.register(SW_PATH));
   const token = await getToken(getMessaging(getApp()), {
     vapidKey,
     serviceWorkerRegistration: registration,
@@ -63,13 +104,28 @@ async function deleteDeviceToken(): Promise<void> {
   await deleteToken(messaging);
 }
 
-// 로그아웃 전에 호출한다. 실패해도 로그아웃은 계속한다.
+// 로그아웃 전에 호출한다. 실패해도 로그아웃은 계속한다. 절대 reject하지 않는다.
 // 토큰 문서 삭제가 실패해도 다음에 이 기기로 로그인한 계정이 토큰 문서를 덮어써 소유자가 바뀐다.
+// 오프라인이면 deleteDoc이 끝나지 않으므로 최대 UNREGISTER_TIMEOUT_MS만 기다린다.
+// 삭제는 취소하지 않고 백그라운드에서 계속한다 (다시 연결되면 Firestore가 마저 보낸다).
 export async function unregisterPushToken(): Promise<void> {
   const token = rememberedToken();
   if (!token) return;
   rememberToken(null);
-  await Promise.allSettled([deleteDoc(doc(db, "fcmTokens", token)), deleteDeviceToken()]);
+
+  const deletes = Promise.allSettled([
+    Promise.resolve().then(() => deleteDoc(doc(db, "fcmTokens", token))),
+    deleteDeviceToken(),
+  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, UNREGISTER_TIMEOUT_MS);
+  });
+  try {
+    await Promise.race([deletes, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // 알림 문서를 커밋한 뒤 호출한다. 응답을 기다리지 않고, 실패해도 무시한다 (인앱 알림은 이미 저장됨).

@@ -58,6 +58,7 @@ import ApplicationModal from "@/src/components/ApplicationModal";
 import ApplicationList from "@/src/components/ApplicationList";
 import { usePostApplications } from "@/src/hooks/useApplications";
 import { formatMatchDate, isPostExpired } from "@/src/lib/utils/dateUtils";
+import { getInitial } from "@/src/lib/utils/getInitial";
 
 export default function RecruitDetailPage() {
   const params = useParams();
@@ -349,7 +350,7 @@ export default function RecruitDetailPage() {
             className={`mt-4 inline-flex items-center gap-2 rounded-lg text-[13px] text-gray-600 hover:text-gray-900 transition-colors ${focusRingClass}`}
           >
             <span className={`w-6 h-6 text-xs ${avatarClass}`} aria-hidden="true">
-              {post.authorName?.charAt(0)}
+              {getInitial(post.authorName)}
             </span>
             {post.authorName}
           </Link>

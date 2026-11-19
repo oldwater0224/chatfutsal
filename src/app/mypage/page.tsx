@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { avatarClass, focusRingInsetClass, spinnerClass } from "@/src/components/ui/styles";
+import { getInitial } from "@/src/lib/utils/getInitial";
 
 const MENU_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/mypage/recruits", label: "내가 작성한 모집글", icon: FileText },
@@ -96,7 +97,7 @@ export default function MyPage() {
             <>
               <section className="flex items-center gap-4 py-5">
                 <div className={`w-14 h-14 text-[22px] ${avatarClass}`} aria-hidden="true">
-                  {displayName.charAt(0)}
+                  {getInitial(displayName)}
                 </div>
                 <div className="min-w-0">
                   <p className="text-[17px] font-semibold text-gray-900 truncate">{displayName}</p>

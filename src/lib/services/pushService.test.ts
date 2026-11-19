@@ -25,6 +25,9 @@ vi.mock('firebase/messaging', () => ({
 }));
 
 import {
+  disablePush,
+  isPushOptedOut,
+  OPT_OUT_STORAGE_KEY,
   registerPushToken,
   SW_ACTIVATION_TIMEOUT_MS,
   UNREGISTER_TIMEOUT_MS,
@@ -138,6 +141,115 @@ describe('registerPushToken', () => {
     await expect(pending).resolves.toBe('tok');
     expect(messagingMocks.getToken).toHaveBeenCalledWith({}, { vapidKey: 'vapid', serviceWorkerRegistration: reg });
   });
+
+  it('저장에 성공하면 "푸시 끔" 기록을 지운다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_FIREBASE_VAPID_KEY', 'vapid');
+    const storage = memoryStorage();
+    storage.setItem(OPT_OUT_STORAGE_KEY, '1');
+    vi.stubGlobal('localStorage', storage);
+    const reg = fakeRegistration({ active: new FakeWorker('activated') });
+    vi.stubGlobal('navigator', { serviceWorker: { register: vi.fn(async () => reg) } });
+    messagingMocks.getToken.mockResolvedValue('tok');
+    firestoreMocks.setDoc.mockResolvedValue(undefined);
+
+    await registerPushToken('alice');
+    expect(isPushOptedOut()).toBe(false);
+    expect(storage.getItem('chatfutsal:fcmToken')).toBe('tok');
+  });
+
+  it('저장에 실패하면 "푸시 끔" 기록을 남긴다', async () => {
+    vi.stubEnv('NEXT_PUBLIC_FIREBASE_VAPID_KEY', 'vapid');
+    const storage = memoryStorage();
+    storage.setItem(OPT_OUT_STORAGE_KEY, '1');
+    vi.stubGlobal('localStorage', storage);
+    const reg = fakeRegistration({ active: new FakeWorker('activated') });
+    vi.stubGlobal('navigator', { serviceWorker: { register: vi.fn(async () => reg) } });
+    messagingMocks.getToken.mockResolvedValue('tok');
+    firestoreMocks.setDoc.mockRejectedValue(new Error('offline'));
+
+    await expect(registerPushToken('alice')).rejects.toThrow('offline');
+    expect(isPushOptedOut()).toBe(true);
+  });
+});
+
+describe('isPushOptedOut', () => {
+  it('기록이 없으면 false, 있으면 true', () => {
+    const storage = memoryStorage();
+    vi.stubGlobal('localStorage', storage);
+    expect(isPushOptedOut()).toBe(false);
+    storage.setItem(OPT_OUT_STORAGE_KEY, '1');
+    expect(isPushOptedOut()).toBe(true);
+  });
+
+  it('저장소 접근이 던지면 끄지 않은 것으로 본다', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('SecurityError');
+      },
+    });
+    expect(isPushOptedOut()).toBe(false);
+  });
+});
+
+describe('disablePush', () => {
+  function grantedDevice(currentToken: string) {
+    vi.stubEnv('NEXT_PUBLIC_FIREBASE_VAPID_KEY', 'vapid');
+    vi.stubGlobal('Notification', { permission: 'granted' });
+    vi.stubGlobal('navigator', {
+      serviceWorker: { getRegistration: vi.fn(async () => fakeRegistration({ active: new FakeWorker('activated') })) },
+    });
+    vi.stubGlobal('window', { Notification: {} });
+    messagingMocks.getToken.mockResolvedValue(currentToken);
+    messagingMocks.deleteToken.mockResolvedValue(true);
+    firestoreMocks.deleteDoc.mockResolvedValue(undefined);
+  }
+
+  it('"푸시 끔"을 기록하고 토큰 문서와 FCM 토큰을 지운다', async () => {
+    const storage = memoryStorage();
+    storage.setItem('chatfutsal:fcmToken', 'tok');
+    vi.stubGlobal('localStorage', storage);
+    grantedDevice('tok');
+
+    await disablePush();
+    expect(isPushOptedOut()).toBe(true);
+    expect(storage.getItem('chatfutsal:fcmToken')).toBeNull();
+    expect(firestoreMocks.deleteDoc).toHaveBeenCalledTimes(1);
+    expect(firestoreMocks.deleteDoc).toHaveBeenCalledWith({ path: 'fcmTokens/tok' });
+    expect(messagingMocks.deleteToken).toHaveBeenCalled();
+  });
+
+  it('오프라인이라 문서 삭제가 끝나지 않아도 제한 시간 안에 끝나고 reject하지 않는다', async () => {
+    const storage = memoryStorage();
+    storage.setItem('chatfutsal:fcmToken', 'tok');
+    vi.stubGlobal('localStorage', storage);
+    vi.stubGlobal('Notification', { permission: 'default' });
+    firestoreMocks.deleteDoc.mockReturnValue(new Promise(() => {}));
+
+    const pending = disablePush();
+    await vi.advanceTimersByTimeAsync(UNREGISTER_TIMEOUT_MS);
+    await expect(pending).resolves.toBeUndefined();
+    expect(isPushOptedOut()).toBe(true);
+  });
+
+  it('저장소를 못 써도 지금 기기 토큰의 문서와 FCM 토큰을 지운다', async () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('SecurityError');
+      },
+      setItem: () => {
+        throw new Error('SecurityError');
+      },
+      removeItem: () => {
+        throw new Error('SecurityError');
+      },
+    });
+    grantedDevice('tok');
+
+    await expect(disablePush()).resolves.toBeUndefined();
+    expect(firestoreMocks.deleteDoc).toHaveBeenCalledWith({ path: 'fcmTokens/tok' });
+    expect(messagingMocks.deleteToken).toHaveBeenCalled();
+    expect(isPushOptedOut()).toBe(false);
+  });
 });
 
 describe('unregisterPushToken', () => {
@@ -177,5 +289,17 @@ describe('unregisterPushToken', () => {
     firestoreMocks.deleteDoc.mockRejectedValue(new Error('permission-denied'));
     // Notification이 없는 환경에서 deleteDeviceToken이 던져도 삼킨다
     await expect(unregisterPushToken()).resolves.toBeUndefined();
+  });
+
+  it('로그아웃은 "푸시 끔" 기록을 지우지 않는다', async () => {
+    const storage = memoryStorage();
+    storage.setItem('chatfutsal:fcmToken', 'tok');
+    storage.setItem(OPT_OUT_STORAGE_KEY, '1');
+    vi.stubGlobal('localStorage', storage);
+    vi.stubGlobal('Notification', { permission: 'default' });
+    firestoreMocks.deleteDoc.mockResolvedValue(undefined);
+
+    await unregisterPushToken();
+    expect(isPushOptedOut()).toBe(true);
   });
 });

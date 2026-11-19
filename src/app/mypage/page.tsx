@@ -34,30 +34,67 @@ const PUSH_LABELS: Record<PushStatus, string> = {
   default: "꺼짐",
   denied: "차단됨 · 브라우저 설정에서 허용",
   enabled: "켜짐",
+  off: "꺼짐",
   error: "설정 실패 · 다시 시도",
 };
 
-// docs/features/푸시알림.md 3-2. 꺼짐·실패 상태에서만 눌러서 켤 수 있다
+// 켜고 끌 수 있는 상태. 이때만 스위치로 보여 준다 (차단·미지원·확인 중·실패는 문구만)
+const PUSH_SWITCH_STATUSES: PushStatus[] = ["default", "off", "enabled"];
+
+// docs/features/푸시알림.md 3-2. 꺼짐·실패 상태에서는 켜고, 켜짐 상태에서는 끈다.
+// 끄기는 다시 켜면 되므로 확인 창을 띄우지 않는다
 function PushRow() {
   const { push } = useAppData();
-  const canEnable = (push.status === "default" || push.status === "error") && !push.isEnabling;
+  const isBusy = push.isEnabling || push.isDisabling;
+  const isOn = push.status === "enabled";
+  const isSwitch = PUSH_SWITCH_STATUSES.includes(push.status);
+  const canToggle = (isSwitch || push.status === "error") && !isBusy;
+  const label = push.isEnabling ? "켜는 중" : push.isDisabling ? "끄는 중" : PUSH_LABELS[push.status];
+
+  const handleClick = () => {
+    if (!canToggle) return;
+    void (isOn ? push.disable() : push.enable());
+  };
 
   return (
     <button
       type="button"
-      onClick={push.enable}
-      disabled={!canEnable}
+      onClick={handleClick}
+      disabled={!canToggle}
+      role={isSwitch ? "switch" : undefined}
+      aria-checked={isSwitch ? isOn : undefined}
+      aria-busy={isBusy}
+      aria-labelledby="push-row-title"
+      aria-describedby="push-row-status"
       className={`-mx-4 w-[calc(100%+2rem)] px-4 py-4 flex items-center gap-3 border-b border-gray-100 text-left enabled:hover:bg-gray-50 enabled:cursor-pointer transition-colors ${focusRingInsetClass}`}
     >
-      <Bell className="w-5 h-5 text-gray-500" aria-hidden="true" />
-      <span className="flex-1 text-[15px] text-gray-900">푸시 알림</span>
+      <Bell className="w-5 h-5 shrink-0 text-gray-500" aria-hidden="true" />
+      <span id="push-row-title" className="flex-1 text-[15px] text-gray-900">
+        푸시 알림
+      </span>
       <span
-        className={`text-[13px] ${
-          push.status === "enabled" ? "text-green-700 font-medium" : push.status === "error" ? "text-red-600" : "text-gray-500"
+        id="push-row-status"
+        className={`text-right text-[13px] ${
+          isOn && !isBusy ? "text-green-700 font-medium" : push.status === "error" && !isBusy ? "text-red-600" : "text-gray-500"
         }`}
       >
-        {push.isEnabling ? "켜는 중" : PUSH_LABELS[push.status]}
+        {label}
       </span>
+      {isSwitch && (
+        // 꺼짐 상태도 흰 바탕과 3:1 이상 구분되도록 회색 500 테두리·손잡이를 쓴다
+        <span
+          aria-hidden="true"
+          className={`relative inline-flex shrink-0 w-11 h-6 rounded-full border-2 transition-colors ${
+            isOn ? "bg-green-600 border-green-600" : "bg-white border-gray-500"
+          } ${isBusy ? "opacity-50" : ""}`}
+        >
+          <span
+            className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full transition-[left,background-color] ${
+              isOn ? "left-[calc(100%-1.125rem)] bg-white" : "left-0.5 bg-gray-500"
+            }`}
+          />
+        </span>
+      )}
     </button>
   );
 }

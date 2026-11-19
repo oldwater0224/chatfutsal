@@ -26,8 +26,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const { chatRooms, isLoading: chatRoomsLoading, totalUnread } = useChatRooms(user?.uid);
   const notificationUnread = useUnreadNotificationCount(user?.uid);
   // 로그인 시 푸시 토큰 갱신도 앱 전체에서 한 번만 한다
-  const { status, isEnabling, enable } = usePushNotifications(user?.uid);
-  const push = useMemo(() => ({ status, isEnabling, enable }), [status, isEnabling, enable]);
+  const { status, isEnabling, isDisabling, enable, disable } = usePushNotifications(user?.uid);
+  const push = useMemo(
+    () => ({ status, isEnabling, isDisabling, enable, disable }),
+    [status, isEnabling, isDisabling, enable, disable],
+  );
 
   const value = useMemo(
     () => ({ chatRooms, chatRoomsLoading, totalUnread, notificationUnread, push }),

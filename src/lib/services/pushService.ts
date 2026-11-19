@@ -8,6 +8,8 @@ import { PUSH_MAX_IDS } from "../server/pushRules";
 const SW_PATH = "/firebase-messaging-sw.js";
 // 로그아웃 때 이 기기 토큰 문서를 지우려고 기억해 둔다
 const TOKEN_STORAGE_KEY = "chatfutsal:fcmToken";
+// 사용자가 이 기기에서 푸시를 끈 기록. 기기 설정이라 로그아웃·다른 계정 로그인에도 유지한다
+export const OPT_OUT_STORAGE_KEY = "chatfutsal:pushOptOut";
 // 처음 등록한 서비스 워커가 활성화되기를 기다리는 최대 시간
 export const SW_ACTIVATION_TIMEOUT_MS = 10_000;
 // 로그아웃이 토큰 정리를 기다리는 최대 시간 (오프라인이면 Firestore 삭제가 끝나지 않는다)
@@ -27,6 +29,24 @@ function rememberedToken(): string | null {
     return localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch {
     return null;
+  }
+}
+
+function setOptOut(optedOut: boolean) {
+  try {
+    if (optedOut) localStorage.setItem(OPT_OUT_STORAGE_KEY, "1");
+    else localStorage.removeItem(OPT_OUT_STORAGE_KEY);
+  } catch {
+    // 저장소를 못 쓰면 끈 상태를 기억하지 못한다 (새로고침하면 다시 켜질 수 있음)
+  }
+}
+
+// 사용자가 이 기기에서 푸시를 껐는지. 저장소를 못 쓰면 끄지 않은 것으로 본다
+export function isPushOptedOut(): boolean {
+  try {
+    return localStorage.getItem(OPT_OUT_STORAGE_KEY) === "1";
+  } catch {
+    return false;
   }
 }
 
@@ -75,6 +95,7 @@ export async function isPushSupported(): Promise<boolean> {
 
 // 알림 권한이 허용된 상태에서 호출한다. 토큰을 받아 fcmTokens/{토큰}에 저장한다.
 // 토큰(기기)당 문서가 하나라서, 같은 브라우저에서 다른 계정으로 로그인하면 소유자가 새 계정으로 바뀐다.
+// 저장에 성공하면 이 기기의 "푸시 끔" 기록을 지운다 (실패하면 끈 상태가 남아 새로고침해도 자동 등록하지 않는다).
 export async function registerPushToken(uid: string): Promise<string> {
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey) throw new Error("NEXT_PUBLIC_FIREBASE_VAPID_KEY가 없습니다");
@@ -87,35 +108,37 @@ export async function registerPushToken(uid: string): Promise<string> {
 
   await setDoc(doc(db, "fcmTokens", token), { uid, updatedAt: serverTimestamp() });
   rememberToken(token);
+  setOptOut(false);
   return token;
 }
 
 // 이 기기의 FCM 토큰을 폐기한다.
 // deleteToken은 getToken으로 서비스 워커를 지정한 적이 없으면(새로고침 후 등) 기본 서비스 워커를
 // 따로 등록하므로, 우리 서비스 워커로 getToken을 먼저 불러 지정해 둔다.
-async function deleteDeviceToken(): Promise<void> {
+// knownToken(저장소에 기억한 토큰)과 지금 토큰이 다르면 지금 토큰의 문서도 지운다
+// (저장소를 못 써서 토큰을 기억하지 못한 경우에도 끄기가 서버 발송을 멈추게 하려는 것).
+async function deleteDeviceToken(knownToken: string | null): Promise<void> {
   const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey || Notification.permission !== "granted" || !(await isPushSupported())) return;
   const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
   if (!registration) return;
 
   const messaging = getMessaging(getApp());
-  await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+  const current = await getToken(messaging, { vapidKey, serviceWorkerRegistration: registration });
+  if (current && current !== knownToken) {
+    await deleteDoc(doc(db, "fcmTokens", current)).catch((error) => console.error("푸시 토큰 문서 삭제 실패:", error));
+  }
   await deleteToken(messaging);
 }
 
-// 로그아웃 전에 호출한다. 실패해도 로그아웃은 계속한다. 절대 reject하지 않는다.
-// 토큰 문서 삭제가 실패해도 다음에 이 기기로 로그인한 계정이 토큰 문서를 덮어써 소유자가 바뀐다.
+// 토큰 문서와 FCM 토큰을 지운다. 절대 reject하지 않는다.
 // 오프라인이면 deleteDoc이 끝나지 않으므로 최대 UNREGISTER_TIMEOUT_MS만 기다린다.
 // 삭제는 취소하지 않고 백그라운드에서 계속한다 (다시 연결되면 Firestore가 마저 보낸다).
-export async function unregisterPushToken(): Promise<void> {
-  const token = rememberedToken();
-  if (!token) return;
+async function removeDeviceToken(token: string | null): Promise<void> {
   rememberToken(null);
-
   const deletes = Promise.allSettled([
-    Promise.resolve().then(() => deleteDoc(doc(db, "fcmTokens", token))),
-    deleteDeviceToken(),
+    Promise.resolve().then(() => (token ? deleteDoc(doc(db, "fcmTokens", token)) : undefined)),
+    Promise.resolve().then(() => deleteDeviceToken(token)),
   ]);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<void>((resolve) => {
@@ -126,6 +149,25 @@ export async function unregisterPushToken(): Promise<void> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// 로그아웃 전에 호출한다. 실패해도 로그아웃은 계속한다. 절대 reject하지 않는다.
+// 토큰 문서 삭제가 실패해도 다음에 이 기기로 로그인한 계정이 토큰 문서를 덮어써 소유자가 바뀐다.
+// "푸시 끔" 기록은 기기 설정이라 지우지 않는다.
+export async function unregisterPushToken(): Promise<void> {
+  const token = rememberedToken();
+  if (!token) return;
+  await removeDeviceToken(token);
+}
+
+// 사용자가 이 기기에서 푸시를 끈다. 절대 reject하지 않는다.
+// 1) "푸시 끔"을 먼저 기록해, 이후 과정이 늦어지거나 실패해도 새로고침 때 자동 재등록하지 않게 한다.
+// 2) 토큰 문서(서버 발송 대상)와 FCM 토큰을 지운다. 기다리는 시간은 UNREGISTER_TIMEOUT_MS로 제한한다.
+//    오프라인이면 문서 삭제가 백그라운드에 남아, 다시 연결될 때까지 서버가 이 기기로 보낼 수 있다.
+//    서버 발송은 fcmTokens 문서만 보므로 문서가 지워지면 멈춘다.
+export async function disablePush(): Promise<void> {
+  setOptOut(true);
+  await removeDeviceToken(rememberedToken());
 }
 
 // 알림 문서를 커밋한 뒤 호출한다. 응답을 기다리지 않고, 실패해도 무시한다 (인앱 알림은 이미 저장됨).

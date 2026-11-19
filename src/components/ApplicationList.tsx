@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { avatarClass, badgeClass, focusRingClass } from "./ui/styles";
+import { getInitial } from "@/src/lib/utils/getInitial";
 
 interface ApplicationListProps {
   applications: Application[];
@@ -76,7 +77,7 @@ export default function ApplicationList({
                   aria-label={`${app.applicantName} 프로필`}
                   className={`w-10 h-10 text-[15px] ${avatarClass} ${focusRingClass}`}
                 >
-                  {app.applicantName.charAt(0)}
+                  {getInitial(app.applicantName)}
                 </Link>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">

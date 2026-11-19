@@ -8,6 +8,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useAppData } from "@/src/contexts/AppDataContext";
 import BottomNav from "@/src/components/BottomNav";
 import Header from "@/src/components/Header";
+import { getInitial } from "@/src/lib/utils/getInitial";
 import {
   avatarClass,
   emptyIconTileClass,
@@ -83,7 +84,7 @@ export default function ChatListPage() {
                       className={`-mx-4 px-4 py-4 flex items-center gap-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${focusRingInsetClass}`}
                     >
                       <div className={`w-10 h-10 text-[15px] ${avatarClass}`} aria-hidden="true">
-                        {otherUserName.charAt(0)}
+                        {getInitial(otherUserName)}
                       </div>
 
                       <div className="flex-1 min-w-0">

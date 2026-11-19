@@ -11,6 +11,7 @@ import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getInitial } from "@/src/lib/utils/getInitial";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -111,7 +112,7 @@ export default function UserProfilePage() {
       <main className={`pt-14 ${showChatButton ? "pb-28" : "pb-12"} max-w-2xl mx-auto px-4`}>
         <section className="py-10 flex flex-col items-center text-center">
           <div className={`w-20 h-20 text-[22px] ${avatarClass}`} aria-hidden="true">
-            {targetUser.displayName?.charAt(0) || "U"}
+            {getInitial(targetUser.displayName, "U")}
           </div>
           <h2 className="mt-4 text-[22px] font-semibold text-gray-900">{targetUser.displayName}</h2>
           <p className="mt-1 text-[13px] text-gray-600">

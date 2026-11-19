@@ -16,6 +16,7 @@ import ChatRoom from "@/src/components/ChatRoom";
 import { ChatRoom as ChatRoomType } from "@/src/types";
 import { LogOut, MoreVertical } from "lucide-react";
 import SubHeader from "@/src/components/SubHeader";
+import { getInitial } from "@/src/lib/utils/getInitial";
 import {
   avatarClass,
   dangerMenuItemClass,
@@ -30,7 +31,7 @@ export default function ChatRoomPage() {
   const router = useRouter();
   const roomId = params.roomId as string;
 
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, userData, isLoading: authLoading } = useAuth();
   const {
     messages: allMessages,
     isLoading: messagesLoading,
@@ -137,7 +138,7 @@ export default function ChatRoomPage() {
   const handleSendMessage = async (text: string) => {
     if (!user) return;
 
-    await sendMessage(roomId, user.uid, user.displayName || "사용자", text);
+    await sendMessage(roomId, user.uid, userData?.displayName || user.displayName || "사용자", text);
   };
 
   const handleLeaveChatRoom = async () => {
@@ -193,7 +194,7 @@ export default function ChatRoomPage() {
               className={`inline-flex items-center gap-2 max-w-full rounded-lg ${focusRingClass}`}
             >
               <span className={`w-8 h-8 text-[13px] ${avatarClass}`} aria-hidden="true">
-                {otherUserName.charAt(0)}
+                {getInitial(otherUserName)}
               </span>
               <span className="truncate">{otherUserName}</span>
             </Link>

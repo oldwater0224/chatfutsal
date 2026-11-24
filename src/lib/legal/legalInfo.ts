@@ -24,8 +24,8 @@ export interface LegalInfo {
 
 export const LEGAL_INFO: Readonly<LegalInfo> = {
   serviceName: "ChatFutsal",
-  operatorName: "운영자",
-  privacyOfficer: "운영자",
+  operatorName: "정헌수",
+  privacyOfficer: "정헌수",
   contactEmail: "oldwater0224@gmail.com",
   // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
   // (Firebase 콘솔 > 프로젝트 설정 > 일반 > "기본 GCP 리소스 위치" 또는 Firestore Database 화면의 위치, 예: asia-northeast3)
@@ -36,7 +36,8 @@ export const LEGAL_INFO: Readonly<LegalInfo> = {
   // 확실한 담당 연락처를 확인하지 못해 정책 페이지(안의 문의처)를 기재한다
   googlePrivacyContact: "https://policies.google.com/privacy",
   vercelPrivacyContact: "https://vercel.com/legal/privacy-policy",
-  privacyEffectiveDate: "2026-10-01",
+  // consents.ts의 PRIVACY_VERSION과 같은 날짜로 맞춘다
+  privacyEffectiveDate: "2026-11-18",
   termsEffectiveDate: "2026-10-01",
 };
 
@@ -49,10 +50,39 @@ export function legalValue(value: string | null | undefined): string {
   return trimmed === "" ? LEGAL_PLACEHOLDER : trimmed;
 }
 
-/** 미정(null·빈 문자열) 항목 이름 목록. 릴리스 전 점검용. 인자를 생략하면 LEGAL_INFO를 검사한다 */
+/**
+ * 실제 이름 대신 쓰이는 일반 명칭. operatorName·privacyOfficer가 이 값이면 미정으로 본다.
+ * 비교는 앞뒤 공백을 지우고 영문 대소문자를 무시한다.
+ */
+export const GENERIC_PERSON_NAMES: readonly string[] = [
+  "운영자",
+  "관리자",
+  "담당자",
+  "운영팀",
+  "개인정보 보호책임자",
+  "admin",
+  "operator",
+  "tbd",
+  LEGAL_PLACEHOLDER,
+];
+
+/** 이름 필드: 일반 명칭이면 미정으로 본다 */
+const PERSON_NAME_KEYS: readonly LegalInfoKey[] = ["operatorName", "privacyOfficer"];
+
+function isGenericPersonName(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return GENERIC_PERSON_NAMES.some((name) => name.toLowerCase() === normalized);
+}
+
+/**
+ * 미정 항목 이름 목록. 릴리스 전 점검용. 인자를 생략하면 LEGAL_INFO를 검사한다.
+ * - 모든 항목: null·빈 문자열·공백
+ * - operatorName·privacyOfficer: "운영자" 같은 일반 명칭(GENERIC_PERSON_NAMES)
+ */
 export function missingLegalInfo(info: Readonly<LegalInfo> = LEGAL_INFO): LegalInfoKey[] {
   return (Object.keys(info) as LegalInfoKey[]).filter((key) => {
     const value = info[key];
-    return value == null || value.trim() === "";
+    if (value == null || value.trim() === "") return true;
+    return PERSON_NAME_KEYS.includes(key) && isGenericPersonName(value);
   });
 }

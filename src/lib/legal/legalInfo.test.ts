@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import { PRIVACY_VERSION } from './consents';
 import { LEGAL_INFO, LEGAL_PLACEHOLDER, legalValue, missingLegalInfo, type LegalInfo } from './legalInfo';
 
 const FILLED: LegalInfo = {
   serviceName: 'Svc',
-  operatorName: '운영자',
-  privacyOfficer: '운영자',
+  operatorName: '홍길동',
+  privacyOfficer: '김철수',
   contactEmail: 'a@example.com',
   firestoreRegion: 'region-a',
   vercelRegion: 'region-b',
@@ -41,6 +42,24 @@ describe('missingLegalInfo', () => {
     expect(missingLegalInfo(info)).toEqual(['contactEmail', 'vercelRegion', 'termsEffectiveDate']);
   });
 
+  it('operatorName·privacyOfficer가 일반 명칭이면 미정으로 본다 (앞뒤 공백 무시)', () => {
+    expect(missingLegalInfo({ ...FILLED, operatorName: '운영자' })).toEqual(['operatorName']);
+    expect(missingLegalInfo({ ...FILLED, privacyOfficer: '  운영자 ' })).toEqual(['privacyOfficer']);
+    expect(missingLegalInfo({ ...FILLED, operatorName: '관리자', privacyOfficer: 'Admin' })).toEqual([
+      'operatorName',
+      'privacyOfficer',
+    ]);
+    expect(missingLegalInfo({ ...FILLED, privacyOfficer: LEGAL_PLACEHOLDER })).toEqual(['privacyOfficer']);
+  });
+
+  it('일반 명칭 검사는 이름 필드에만 적용한다', () => {
+    expect(missingLegalInfo({ ...FILLED, serviceName: '운영자' })).toEqual([]);
+  });
+
+  it('일반 명칭을 포함하기만 한 실제 이름은 통과한다', () => {
+    expect(missingLegalInfo({ ...FILLED, operatorName: '운영자 홍길동' })).toEqual([]);
+  });
+
   it('인자를 생략하면 LEGAL_INFO를 검사한다', () => {
     expect(missingLegalInfo()).toEqual(missingLegalInfo(LEGAL_INFO));
   });
@@ -50,9 +69,18 @@ describe('missingLegalInfo', () => {
     expect(missingLegalInfo()).toEqual([]);
   });
 
+  it('LEGAL_INFO 이름 필드는 일반 명칭이 아니다', () => {
+    expect(missingLegalInfo(LEGAL_INFO)).not.toContain('operatorName');
+    expect(missingLegalInfo(LEGAL_INFO)).not.toContain('privacyOfficer');
+  });
+
   it('시행일은 YYYY-MM-DD 형식이다', () => {
     expect(LEGAL_INFO.privacyEffectiveDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(LEGAL_INFO.termsEffectiveDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('개인정보 처리방침 시행일은 PRIVACY_VERSION과 같다', () => {
+    expect(LEGAL_INFO.privacyEffectiveDate).toBe(PRIVACY_VERSION);
   });
 
   it('국외 이전받는 자 연락처는 https URL이다', () => {

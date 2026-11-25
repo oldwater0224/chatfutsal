@@ -38,7 +38,8 @@ export const LEGAL_INFO: Readonly<LegalInfo> = {
   vercelPrivacyContact: "https://vercel.com/legal/privacy-policy",
   // consents.ts의 PRIVACY_VERSION과 같은 날짜로 맞춘다
   privacyEffectiveDate: "2026-11-18",
-  termsEffectiveDate: "2026-10-01",
+  // consents.ts의 TERMS_VERSION과 같은 날짜로 맞춘다
+  termsEffectiveDate: "2026-11-18",
 };
 
 export type LegalInfoKey = keyof LegalInfo;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PRIVACY_VERSION } from './consents';
+import { PRIVACY_VERSION, TERMS_VERSION } from './consents';
 import { LEGAL_INFO, LEGAL_PLACEHOLDER, legalValue, missingLegalInfo, type LegalInfo } from './legalInfo';
 
 const FILLED: LegalInfo = {
@@ -81,6 +81,10 @@ describe('missingLegalInfo', () => {
 
   it('개인정보 처리방침 시행일은 PRIVACY_VERSION과 같다', () => {
     expect(LEGAL_INFO.privacyEffectiveDate).toBe(PRIVACY_VERSION);
+  });
+
+  it('이용약관 시행일은 TERMS_VERSION과 같다', () => {
+    expect(LEGAL_INFO.termsEffectiveDate).toBe(TERMS_VERSION);
   });
 
   it('국외 이전받는 자 연락처는 https URL이다', () => {

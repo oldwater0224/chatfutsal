@@ -265,7 +265,7 @@ export default function PrivacyPage() {
             서비스는 서비스 제공을 위한 처리위탁·보관을 위해 다음과 같이 개인정보를 국외로 이전합니다(「개인정보
             보호법」 제28조의8 제1항 제3호).
           </p>
-          {/* 이전 국가는 firestoreRegion·vercelRegion 값을 그대로 보여 준다. 리전 코드(asia-northeast3 등)가 아니라 "대한민국(서울)"처럼 사람이 읽는 서술형 문자열로 채운다 */}
+          {/* 이전 국가는 firestoreRegion·vercelRegion 값을 그대로 보여 준다. 리전 코드(asia-northeast3 등)가 아니라 "대한민국(서울): 데이터베이스 / 미국 등: 로그인 인증·푸시 발송"처럼 처리 위치별로 "위치: 용도"를 " / "로 나눠 적은 서술형 문자열로 채운다 */}
           <div className="space-y-3">
             <InfoCard
               title="Google LLC"

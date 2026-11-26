@@ -87,6 +87,16 @@ describe('missingLegalInfo', () => {
     expect(LEGAL_INFO.termsEffectiveDate).toBe(TERMS_VERSION);
   });
 
+  it('리전은 임시 서술("미국 등 …")이나 리전 코드가 아닌 확정 서술형이다', () => {
+    for (const region of [LEGAL_INFO.firestoreRegion, LEGAL_INFO.vercelRegion]) {
+      expect(region).not.toMatch(/^\s*미국 등/);
+      // 실제 리전(서울)을 먼저 적고, 해외 처리 위치는 그 뒤에 나눠 적는다
+      expect(region).toMatch(/^대한민국\(서울\): /);
+      // asia-northeast3, ap-northeast-2, icn1 같은 코드가 아니다
+      expect(region).not.toMatch(/^[a-z]+(-[a-z]+)*\d*(-\d+)?$/);
+    }
+  });
+
   it('국외 이전받는 자 연락처는 https URL이다', () => {
     expect(LEGAL_INFO.googlePrivacyContact).toMatch(/^https:\/\//);
     expect(LEGAL_INFO.vercelPrivacyContact).toMatch(/^https:\/\//);

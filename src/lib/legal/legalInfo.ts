@@ -27,18 +27,19 @@ export const LEGAL_INFO: Readonly<LegalInfo> = {
   operatorName: "정헌수",
   privacyOfficer: "정헌수",
   contactEmail: "oldwater0224@gmail.com",
-  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
-  // (Firebase 콘솔 > 프로젝트 설정 > 일반 > "기본 GCP 리소스 위치" 또는 Firestore Database 화면의 위치, 예: asia-northeast3)
-  firestoreRegion: "미국 등 Google 데이터센터 소재 국가",
-  // TODO: 콘솔에서 확인하면 실제 리전으로 바꿀 것
-  // (Vercel 프로젝트 Settings > Functions > Function Region 또는 vercel.json의 regions, 예: icn1)
-  vercelRegion: "미국 등 Vercel 데이터센터 소재 국가",
+  // 처리방침 화면에 그대로 나오므로 리전 코드가 아니라 사람이 읽는 서술형으로 적는다
+  // Firebase Authentication·FCM과 Vercel 엣지 네트워크는 리전 설정과 별개로 해외에서 처리될 수 있어 함께 적는다
+  // 근거: Firestore 위치 asia-northeast3, 2026-11-26 Firebase 콘솔 확인
+  firestoreRegion: "대한민국(서울): 데이터베이스 / 미국 등: 로그인 인증·푸시 발송",
+  // 근거: Vercel Function Region icn1(ap-northeast-2), 2026-11-26 Vercel 대시보드 확인
+  vercelRegion: "대한민국(서울): 서버 함수 / 전 세계 엣지 네트워크: 웹 요청 전달",
   // 확실한 담당 연락처를 확인하지 못해 정책 페이지(안의 문의처)를 기재한다
   googlePrivacyContact: "https://policies.google.com/privacy",
   vercelPrivacyContact: "https://vercel.com/legal/privacy-policy",
   // consents.ts의 PRIVACY_VERSION과 같은 날짜로 맞춘다
   privacyEffectiveDate: "2026-11-18",
-  termsEffectiveDate: "2026-10-01",
+  // consents.ts의 TERMS_VERSION과 같은 날짜로 맞춘다
+  termsEffectiveDate: "2026-11-18",
 };
 
 export type LegalInfoKey = keyof LegalInfo;
